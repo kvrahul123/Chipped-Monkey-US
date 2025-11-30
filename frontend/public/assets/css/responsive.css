@@ -1,0 +1,326 @@
+@media (max-width: 768px) {
+  .banner-popular-lists-ul {
+    flex-direction: column;
+  }
+  .mobile-none {
+    display: none;
+  }
+  .header-container {
+    display: none;
+  }
+  .header-container.active {
+    display: block;
+    height: unset;
+  }
+  .header-logo {
+    position: unset;
+    padding: 0px !important;
+    width: 100%;
+  }
+  .header-menu-ul > li {
+    width: 100%;
+  }
+  .header-menu-li-contact {
+    text-align: center;
+  }
+  .header-menu-li > a > img {
+    width: 35px;
+    border-radius: 5px;
+    background-color: #ffff;
+    padding: 5px;
+  }
+  .header-logo.others {
+    padding: 15px 20px;
+  }
+  ul.header-menu-ul {
+    flex-direction: column;
+    justify-content: flex-start;
+  }
+  .header-menu-li {
+    margin-top: 20px;
+    flex-direction: column;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+    margin-bottom: 12px;
+    padding-bottom: 7px;
+  }
+  .header-menu-li > a {
+    color: #ffff;
+    font-size: 14px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+  }
+  .header-menu-li > img {
+    background-color: #ffff;
+    width: 35px;
+    border-radius: 5px;
+    padding: 5px;
+  }
+  .header-logo > a > img {
+    width: 200px;
+    height: 100px;
+    padding: 15px 20px;
+  }
+  .banner-main-container {
+    padding: 20px;
+    margin-top: 0em;
+  }
+  .banner-main-title > h4 {
+    font-size: 18px;
+  }
+  .main-page-container {
+    margin-top: 20px;
+  }
+  .register-monkey-btn > button {
+    width: 100%;
+  }
+  .header-menu-icon {
+    z-index: 99999;
+    display: flex;
+    flex-direction: column;
+    position: relative;
+    align-items: flex-end;
+    margin-top: 10px;
+    margin-right: 10px;
+  }
+  .banner-main-title > h2 {
+    font-size: 26px;
+    line-height: 48px;
+  }
+  .emergency_helpline,
+  .header-phone {
+    font-size: 13px;
+  }
+  .banner-main-input {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+  }
+  .banner-main-input {
+    padding-bottom: 20px;
+    border-radius: 10px;
+    background-color: #ffff;
+  }
+  .register_scan_btn {
+    position: unset;
+    width: 200px;
+  }
+  .register_microchip_btn {
+    position: unset;
+    width: 200px;
+  }
+  input.banner-input-box {
+    font-size: 18px;
+    width: 100%;
+  }
+  .banner-popular-title {
+    display: none;
+  }
+  .banner-popular-title-inner-li {
+    margin-bottom: 25px;
+  }
+  .lookup-microchip-container {
+    margin-bottom: 30px;
+  }
+  .lost-found-container {
+    margin: 0px !important;
+  }
+  .lookup-microchip-container {
+    margin-top: -20px;
+    height: 330px;
+  }
+  .indexpagelost .btn-lost {
+    font-size: 22px;
+    margin-top: 10px;
+  }
+  .lookup-search {
+    flex-direction: column;
+    margin: 0;
+    padding: 0;
+  }
+  .form-search {
+    margin: 20px 0px 0px 0px;
+    width: 100% !important;
+  }
+  .footer {
+    padding: 0.5rem 0rem;
+  }
+  .header-bg {
+    padding: 0px;
+  }
+  .header-menu-icon.others {
+    margin-right: 0px;
+  }
+  .header-menu-icon.others i {
+    bottom: 0px;
+  }
+  .header-logo.others > img {
+    height: 90px;
+  }
+  .header-menu-icon > i {
+    font-size: 24px;
+    margin-top: 15px;
+    color: #a69494;
+    position: absolute;
+    bottom: 9px;
+    right: 0px;
+  }
+  .header-menus {
+    display: none;
+  }
+  .header-menus.active {
+    display: block;
+    height: 100vh;
+    width: calc(100vw - 50px);
+    background: #1e2228;
+    position: absolute;
+    left: 0px;
+    z-index: 100000;
+  }
+  .index-petsdetails-container-img > img {
+    width: 330px;
+    height: 153px;
+  }
+  iframe {
+    width: 337px !important;
+  }
+  .petdetailsBg {
+    margin: 0px 15px;
+  }
+  .petdetailsBg button{
+    width: 100%;
+  }
+  .slick-prev {
+    left: 9px !important;
+  }
+  .slick-next {
+    right: 19px !important;
+  }
+  .banner-main-container > .banner-inner-main-container {
+    width: 100%;
+  }
+
+  .contactus_container {
+    padding: 20px;
+  }
+  .contactus_card_container,
+  .contact_us_form_container {
+    flex-wrap: wrap;
+  }
+  .contactus_card_container {
+    margin-top: 20px;
+  }
+  .contact_us_left_container,
+  .contact_us_right_container {
+    width: calc(100%);
+    margin-top: 20px;
+  }
+  .register_grid {
+    flex-direction: column-reverse;
+  }
+  .rg_form {
+    margin-bottom: 20px;
+  }
+  .contactus_card_title {
+    position: absolute;
+    top: 1em;
+    left: 2em;
+  }
+  .contactus_card_content {
+    position: absolute;
+    top: 3em;
+    left: 2.2em;
+  }
+  .contactus_card_title > h4 {
+    font-size: 22px;
+  }
+  .contactus_inner_card {
+    margin-bottom: 20px;
+  }
+  .contactus_inner_card {
+    width: calc(100%);
+  }
+}
+/* 
+@media(max-width:1550px){
+    .header-logo > a >img{
+        width: 100%;
+        height: 100px;
+    }
+}
+
+@media(max-width:1350px){
+    .header-logo{
+     padding: 15px 80px;
+    }
+    .header-logo > a >img{
+        width: 160px;
+    }
+    .header-menu-li{
+        margin: 0px 5px;
+    }
+    .header-menu-li > a{
+        font-size: 16px;
+    }
+}
+
+
+ */
+
+ @media (max-width: 1920px) {
+  .header-logo {
+    padding: 15px 80px;
+  }
+  .header-logo > a > img {
+    width: 160px;
+    height: auto !important;
+  }
+  .header-menu-li {
+    margin: 0px 5px;
+  }
+  .header-menu-li > a {
+    font-size: 16px;
+  }
+
+}
+
+@media (max-width: 1350px) {
+  .header-logo {
+    padding: 15px 80px;
+  }
+  .header-logo > a > img {
+    width: 160px;
+    height: auto !important;
+  }
+  .header-menu-li {
+    margin: 0px 5px;
+  }
+  .header-menu-li > a {
+font-size: 12px;
+        display: flex;
+        flex-direction: row;
+        align-items: center;
+        width: 100%;
+        /* justify-content: center; */
+        padding: 10px 15px;
+  }
+  span.header-menu-li-title {
+    font-size: 15px;
+    margin-left: 15px;
+}
+  .emergency_helpline {
+    color: #1e3f78;
+    font-weight: 500;
+    font-size: 16px;
+}
+.header-phone {
+    font-weight: 500;
+    color: #f7a22e;
+    font-size: 14px;
+    letter-spacing: 0.8px;
+}
+.header-menu-li a img{
+    width: 35px !important;
+    height: 35px !important;
+}
+}

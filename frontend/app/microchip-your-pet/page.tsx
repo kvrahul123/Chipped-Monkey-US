@@ -1,0 +1,63 @@
+
+import { Metadata } from "next";
+import CommonLayout from "../frontend/layouts/CommonLayouts";
+import { generateCommonMetadata } from "../utils/metadata";
+import MicrochipPetData from "./MicrochipPetData";
+
+
+
+const frontendUrl = process.env.NEXT_PUBLIC_FRONTEND_URL;
+const appUrl = process.env.NEXT_PUBLIC_APP_URL; // Your API URL
+
+export async function generateMetadata(): Promise<Metadata> {
+  const res = await fetch(`${appUrl}frontend/pages/list/?id=16`);
+  const result = await res.json();
+  const seoData = result.data ? result.data[0] : null;
+
+  const dynamicTitle = seoData
+    ? seoData.meta_title
+    : process.env.NEXT_META_TITLE;
+  const dynamicDescription = seoData
+    ? seoData.meta_description
+    : process.env.NEXT_META_DESCRIPTION;
+  const dynamicKeywords = seoData
+    ? seoData.meta_keywords
+    : process.env.NEXT_META_KEYWORDS;
+  const dynamicImages = (seoData.image_file_name!=null && seoData.image_file_name!="")?(appUrl+"uploads/" + seoData.image_file_name) : process.env.NEXT_META_OG_IMAGE;
+
+  return generateCommonMetadata(
+    dynamicTitle,
+    dynamicDescription,
+    dynamicKeywords,
+    dynamicImages,
+    `${frontendUrl}microchip-your-pet`
+  );
+}
+
+export default function Shop() {
+  const tableStyle: React.CSSProperties = {
+    width: "100%",
+    borderCollapse: "collapse",
+    marginTop: "20px",
+  };
+
+  const thTdStyle: React.CSSProperties = {
+    border: "1px solid #ccc",
+    padding: "10px",
+    textAlign: "left",
+  };
+
+  const theadStyle: React.CSSProperties = {
+    backgroundColor: "#f2f2f2",
+  };
+
+  const h2Style: React.CSSProperties = {
+    marginTop: "30px",
+  };
+
+  return (
+    <CommonLayout>
+      <MicrochipPetData/>
+    </CommonLayout>
+  );
+}

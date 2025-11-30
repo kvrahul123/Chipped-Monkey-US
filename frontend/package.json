@@ -1,0 +1,53 @@
+{
+  "name": "frontend",
+  "version": "0.1.0",
+  "private": true,
+  "scripts": {
+    "dev": "next dev -p 3002",
+    "build": "next build",
+    "start": "next start -p 3001",
+    "lint": "next lint"
+  },
+  "dependencies": {
+    "@react-google-maps/api": "^2.20.7",
+    "@tiptap/extension-placeholder": "^3.2.0",
+    "@tiptap/extension-text-align": "^3.2.0",
+    "@tiptap/react": "^3.2.0",
+    "@tiptap/starter-kit": "^3.2.0",
+    "axios": "^1.11.0",
+    "bootstrap": "^5.3.7",
+    "crypto-js": "^4.2.0",
+    "formik": "^2.4.6",
+    "html-react-parser": "^5.2.6",
+    "html2canvas": "^1.4.1",
+    "html5-qrcode": "^2.3.8",
+    "jspdf": "^3.0.3",
+    "jspdf-autotable": "^5.0.2",
+    "markdown-draft-js": "^2.4.0",
+    "next": "15.4.6",
+    "react": "^18.3.1",
+    "react-bootstrap": "^2.10.10",
+    "react-dom": "^18.3.1",
+    "react-select": "^5.10.2",
+    "react-slick": "^0.31.0",
+    "react-toastify": "^11.0.5",
+    "slick-carousel": "^1.8.1",
+    "sweetalert2": "^11.22.4",
+    "swiper": "^11.2.10",
+    "yup": "^1.7.0"
+  },
+  "devDependencies": {
+    "@eslint/eslintrc": "^3",
+    "@types/node": "^20",
+    "@types/postcss-load-config": "^2.0.1",
+    "@types/react": "^19",
+    "@types/react-dom": "^19",
+    "@types/react-select": "^5.0.0",
+    "eslint": "^9",
+    "eslint-config-next": "15.4.6",
+    "postcss": "^8.5.6",
+    "postcss-import": "^16.1.1",
+    "postcss-load-config": "^6.0.1",
+    "typescript": "^5"
+  }
+}
