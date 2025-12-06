@@ -3,7 +3,6 @@ import Image from "next/image";
 import { generateCommonMetadata } from "../utils/metadata";
 import { Metadata } from "next";
 
-
 const frontendUrl = process.env.NEXT_PUBLIC_FRONTEND_URL;
 const appUrl = process.env.NEXT_PUBLIC_APP_URL; // Your API URL
 
@@ -21,7 +20,10 @@ export async function generateMetadata(): Promise<Metadata> {
   const dynamicKeywords = seoData
     ? seoData.meta_keywords
     : process.env.NEXT_META_KEYWORDS;
-  const dynamicImages = (seoData.image_file_name!=null && seoData.image_file_name!="")?(appUrl+"uploads/" + seoData.image_file_name) : process.env.NEXT_META_OG_IMAGE;
+  const dynamicImages =
+    seoData.image_file_name != null && seoData.image_file_name != ""
+      ? appUrl + "uploads/" + seoData.image_file_name
+      : process.env.NEXT_META_OG_IMAGE;
 
   return generateCommonMetadata(
     dynamicTitle,
@@ -31,7 +33,6 @@ export async function generateMetadata(): Promise<Metadata> {
     `${frontendUrl}about_us`
   );
 }
-
 
 export default function Shop() {
   return (
@@ -56,7 +57,7 @@ export default function Shop() {
                 </div>
                 <div className="col-md-9">
                   <p>
-                    At <a className="link-we">ChippedMonkey.co.uk</a>, we are
+                    At <a className="link-we">ChippedMonkey.com</a>, we are
                     dedicated to solving one of the most heartbreaking
                     challenges pet keepers face—losing a beloved animal. With
                     over 25 years of experience in the pet industry, we’ve seen
@@ -82,13 +83,13 @@ export default function Shop() {
                 <div className="col-md-12 mb-5">
                   <h3>Our Mission</h3>
                   <p className="mb-0">
-                    Our mission at{" "}
-                    <a className="link-we">ChippedMonkey.co.uk</a> is to ensure
-                    that every microchipped pet in the UK is registered in an
-                    up-to-date, accessible system that can be searched quickly
-                    in the event a pet goes missing. We aim to become the most
-                    trusted pet microchip registration provider in the UK by
-                    focusing on accuracy, reliability, and ease of use.
+                    Our mission at <a className="link-we">ChippedMonkey.com</a>{" "}
+                    is to ensure that every microchipped pet in the UK is
+                    registered in an up-to-date, accessible system that can be
+                    searched quickly in the event a pet goes missing. We aim to
+                    become the most trusted pet microchip registration provider
+                    in the UK by focusing on accuracy, reliability, and ease of
+                    use.
                   </p>
                 </div>
               </div>
@@ -97,7 +98,9 @@ export default function Shop() {
                 <div className="col-md-6 mb-4">
                   <div className="bg-about-a bg-about-a1">
                     <h3>We believe in</h3>
-                    <p>Making it easy for pet keepers to register their pets.</p>
+                    <p>
+                      Making it easy for pet keepers to register their pets.
+                    </p>
                     <p>
                       Offering a platform that is accessible to professionals
                       handling lost animals.
@@ -112,9 +115,9 @@ export default function Shop() {
                       Microchipping is one of the most effective ways to ensure
                       a lost pet can be returned home safely. Each pet’s
                       microchip contains a unique ID number that links to the
-                      keeper&apos;s contact information in a secure database. But
-                      the microchip alone is not enough—proper registration is
-                      critical.
+                      keeper&apos;s contact information in a secure database.
+                      But the microchip alone is not enough—proper registration
+                      is critical.
                     </p>
 
                     <p>
@@ -122,7 +125,7 @@ export default function Shop() {
                       but never returned home simply because their chip was not
                       registered or the contact details were outdated. That’s
                       where
-                      <a className="link-we">ChippedMonkey.co.uk</a> makes a
+                      <a className="link-we">ChippedMonkey.com</a> makes a
                       difference.
                     </p>
                   </div>
@@ -147,7 +150,7 @@ export default function Shop() {
                     <p>
                       We’re proudly based in the United Kingdom, serving pet
                       keepers and professionals from all across England,
-                      Scotland, Wales, and Northern Ireland. 
+                      Scotland, Wales, and Northern Ireland.
                     </p>
                   </div>
                 </div>
@@ -171,7 +174,7 @@ export default function Shop() {
                   <div className="bg-about-a">
                     <h3>Lost &amp; Found: Our Core Focus</h3>
                     <p>
-                      At <a className="link-we">ChippedMonkey.co.uk</a>, we
+                      At <a className="link-we">ChippedMonkey.com</a>, we
                       specialize in helping to reunite lost pets with their
                       families. Our team works closely with lost and found
                       networks, rescue organisations, vets, and local
@@ -339,8 +342,8 @@ export default function Shop() {
                       recovery. We’ve worked in pet care, veterinary services,
                       shelter management, and animal control. This gives us a
                       unique, 360-degree view of the issues—one we’ve used to
-                      build a system that actually works for both pet keepers and
-                      professionals.
+                      build a system that actually works for both pet keepers
+                      and professionals.
                     </p>
                   </div>
                 </div>
@@ -365,7 +368,7 @@ export default function Shop() {
                 <div className="col-md-12 mb-4">
                   <div className="bg-abo-all">
                     <h3 className="mb-0">
-                      Why Choose <a className="link-we">ChippedMonkey.co.uk</a>?
+                      Why Choose <a className="link-we">ChippedMonkey.com</a>?
                     </h3>
                     <p>
                       UK-Based: We’re built specifically for UK pet keepers and
@@ -438,7 +441,7 @@ export default function Shop() {
                       identification and recovery throughout the UK.
                     </p>
                     <p>Compliance &amp; Accreditation</p>
-                  
+
                     <p>
                       <b>
                         How You Can Help You can be part of the solution.

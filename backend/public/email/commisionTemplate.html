@@ -1,122 +1,323 @@
 <!DOCTYPE html>
 <html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Funds Transfer Confirmation</title>
     <style>
-        /* General Email Reset & Typography */
-        body {
-            font-family: 'Helvetica Neue', Arial, sans-serif;
-            background-color: #f0f3f5; /* Lighter, cooler background */
-            margin: 0;
-            padding: 0;
-            -webkit-text-size-adjust: 100%;
-            -ms-text-size-adjust: 100%;
-            color: #333333;
-        }
-        .container {
-            width: 100%;
-            max-width: 600px;
-            margin: 0 auto;
-            background-color: #ffffff;
-            border-radius: 12px;
-            box-shadow: 0 8px 20px rgba(0, 0, 0, 0.05); /* Slightly softer shadow */
-            padding: 0;
-            box-sizing: border-box;
-            border: 1px solid #e5e9ec;
-        }
-        
-        /* Header Section with Logo */
-        .header {
+      /* General Email Reset & Typography */
+      body {
+        font-family: "Helvetica Neue", Arial, sans-serif;
+        background-color: #f0f3f5; /* Lighter, cooler background */
+        margin: 0;
+        padding: 0;
+        -webkit-text-size-adjust: 100%;
+        -ms-text-size-adjust: 100%;
+        color: #333333;
+      }
+      .container {
+        width: 100%;
+        max-width: 600px;
+        margin: 0 auto;
+        background-color: #ffffff;
+        border-radius: 12px;
+        box-shadow: 0 8px 20px rgba(0, 0, 0, 0.05); /* Slightly softer shadow */
+        padding: 0;
+        box-sizing: border-box;
+        border: 1px solid #e5e9ec;
+      }
+
+      /* Header Section with Logo */
+      .header {
+        text-align: center;
+        background-color: #eef4ff; /* Neutral dark grey/charcoal for professionalism */
+        padding: 20px 20px 30px; /* More padding on the bottom */
+        border-top-left-radius: 12px;
+        border-top-right-radius: 12px;
+      }
+      .header h1 {
+        color: #ffffff;
+        font-size: 24px;
+        font-weight: 500;
+        margin-top: 15px; /* Space below the logo */
+        margin-bottom: 0;
+      }
+
+      /* Content Area */
+      .content {
+        padding: 30px 40px;
+        line-height: 1.6;
+        color: #555555;
+      }
+      .content p {
+        margin-bottom: 20px;
+      }
+
+      /* Amount Summary Block (Success Green) */
+      .summary-block {
+        text-align: center;
+        margin: 30px 0;
+        padding: 25px; /* Increased padding */
+        background-color: #f3fff3; /* Very light success color */
+        border-radius: 8px;
+        border: 1px solid #c0eacb;
+      }
+      .summary-block .amount-label {
+        font-size: 13px;
+        color: #4a6d4d;
+        margin-bottom: 8px;
+        display: block;
+        text-transform: uppercase;
+        font-weight: 600;
+      }
+      .summary-block .amount {
+        font-size: 38px;
+        font-weight: 800; /* Extra bold */
+        color: #388e3c; /* Stronger green */
+        line-height: 1;
+      }
+
+      /* Detailed Table */
+      .detail-table {
+        margin-top: 25px;
+        margin-bottom: 30px;
+      }
+      .detail-table th,
+      .detail-table td {
+        padding: 10px 0;
+        text-align: left;
+        border-bottom: 1px dashed #e0e0e0; /* Dashed line for a modern separation */
+      }
+      .detail-table th {
+        color: #777777;
+        font-weight: normal;
+        width: 45%;
+      }
+      .detail-table td {
+        font-weight: 600;
+        color: #222222;
+        width: 55%;
+      }
+      .detail-table tr:last-child th,
+      .detail-table tr:last-child td {
+        border-bottom: none;
+      }
+
+      /* CTA Button Styling */
+      .button {
+        display: inline-block;
+        background-color: #2196f3; /* New primary blue for CTA */
+        color: #ffffff;
+        padding: 12px 25px;
+        border-radius: 50px; /* Pill-shaped button */
+        text-decoration: none;
+        font-weight: 600;
+        font-size: 16px;
+        margin: 20px 0;
+        box-shadow: 0 4px 8px rgba(33, 150, 243, 0.4);
+      }
+
+      /* Footer */
+      .footer {
+        text-align: center;
+        padding: 25px 40px;
+        background-color: #f0f3f5;
+        border-top: 1px solid #e0e0e0;
+        border-bottom-left-radius: 12px;
+        border-bottom-right-radius: 12px;
+        font-size: 11px;
+        color: #aaaaaa;
+      }
+    </style>
+  </head>
+  <body>
+    <div style="background-color: #f0f3f5; padding: 40px 0">
+      <div
+        class="container"
+        style="
+          width: 100%;
+          max-width: 600px;
+          margin: 0 auto;
+          background-color: #ffffff;
+          border-radius: 12px;
+          box-shadow: 0 8px 20px rgba(0, 0, 0, 0.05);
+          padding: 0;
+          box-sizing: border-box;
+          border: 1px solid #e5e9ec;
+        ">
+        <div
+          class="header"
+          style="
             text-align: center;
-            background-color: #eef4ff; /* Neutral dark grey/charcoal for professionalism */
-            padding: 20px 20px 30px; /* More padding on the bottom */
+            background-color: #eef4ff;
+            padding: 20px 20px 30px;
             border-top-left-radius: 12px;
             border-top-right-radius: 12px;
-        }
-        .header h1 {
-            color: #ffffff;
-            font-size: 24px;
-            font-weight: 500;
-            margin-top: 15px; /* Space below the logo */
-            margin-bottom: 0;
-        }
+          ">
+          <img
+            src="https://chippedmonkey.com/assets/images/logo-inside.png"
+            width="180"
+            alt="Chipped Monkey Logo"
+            style="display: block; margin: 0 auto" />
+        </div>
 
-        /* Content Area */
-        .content {
-            padding: 30px 40px;
-            line-height: 1.6;
-            color: #555555;
-        }
-        .content p {
-            margin-bottom: 20px;
-        }
+        <div
+          class="content"
+          style="padding: 30px 40px; line-height: 1.6; color: #555555">
+          <p>Hello **[Customer Name]**,</p>
 
-        /* Amount Summary Block (Success Green) */
-        .summary-block {
-            text-align: center;
-            margin: 30px 0;
-            padding: 25px; /* Increased padding */
-            background-color: #f3fff3; /* Very light success color */
-            border-radius: 8px;
-            border: 1px solid #c0eacb;
-        }
-        .summary-block .amount-label {
-            font-size: 13px;
-            color: #4a6d4d;
-            margin-bottom: 8px;
-            display: block;
-            text-transform: uppercase;
-            font-weight: 600;
-        }
-        .summary-block .amount {
-            font-size: 38px;
-            font-weight: 800; /* Extra bold */
-            color: #388e3c; /* Stronger green */
-            line-height: 1;
-        }
-        
-        /* Detailed Table */
-        .detail-table {
-            margin-top: 25px;
-            margin-bottom: 30px;
-        }
-        .detail-table th, .detail-table td {
-            padding: 10px 0;
-            text-align: left;
-            border-bottom: 1px dashed #e0e0e0; /* Dashed line for a modern separation */
-        }
-        .detail-table th {
-            color: #777777;
-            font-weight: normal;
-            width: 45%;
-        }
-        .detail-table td {
-            font-weight: 600;
-            color: #222222;
-            width: 55%;
-        }
-        .detail-table tr:last-child th, .detail-table tr:last-child td {
-            border-bottom: none;
-        }
-        
-        /* CTA Button Styling */
-        .button {
-            display: inline-block;
-            background-color: #2196f3; /* New primary blue for CTA */
-            color: #ffffff;
-            padding: 12px 25px;
-            border-radius: 50px; /* Pill-shaped button */
-            text-decoration: none;
-            font-weight: 600;
-            font-size: 16px;
-            margin: 20px 0;
-            box-shadow: 0 4px 8px rgba(33, 150, 243, 0.4);
-        }
+          <p>
+            We are happy to confirm the successful deposit of funds to your
+            account **[Customer Account Number/ID]**. Your balance has been
+            updated.
+          </p>
 
-        /* Footer */
-        .footer {
+          <div
+            class="summary-block"
+            style="
+              text-align: center;
+              margin: 30px 0;
+              padding: 25px;
+              background-color: #f3fff3;
+              border-radius: 8px;
+              border: 1px solid #c0eacb;
+            ">
+            <span
+              class="amount-label"
+              style="
+                font-size: 13px;
+                color: #4a6d4d;
+                margin-bottom: 8px;
+                display: block;
+                text-transform: uppercase;
+                font-weight: 600;
+              "
+              >Funds Credited</span
+            >
+            <strong
+              class="amount"
+              style="
+                font-size: 38px;
+                font-weight: 800;
+                color: #388e3c;
+                line-height: 1;
+              "
+              >**[Transfer Amount & Currency, e.g., £0]**</strong
+            >
+          </div>
+
+          <p>Please review the complete transaction details below:</p>
+
+          <table
+            class="detail-table"
+            width="100%"
+            cellspacing="0"
+            cellpadding="0"
+            style="
+              margin-top: 25px;
+              margin-bottom: 30px;
+              border-collapse: collapse;
+            ">
+            <tbody>
+              <tr>
+                <th
+                  style="
+                    padding: 10px 0;
+                    text-align: left;
+                    color: #777777;
+                    font-weight: normal;
+                    width: 45%;
+                    border-bottom: 1px dashed #e0e0e0;
+                  ">
+                  Transaction ID:
+                </th>
+                <td
+                  style="
+                    padding: 10px 0;
+                    text-align: left;
+                    font-weight: 600;
+                    color: #222222;
+                    width: 55%;
+                    border-bottom: 1px dashed #e0e0e0;
+                  ">
+                  **[Transaction Reference Number]**
+                </td>
+              </tr>
+              <tr>
+                <th
+                  style="
+                    padding: 10px 0;
+                    text-align: left;
+                    color: #777777;
+                    font-weight: normal;
+                    width: 45%;
+                    border-bottom: 1px dashed #e0e0e0;
+                  ">
+                  Transfer Date:
+                </th>
+                <td
+                  style="
+                    padding: 10px 0;
+                    text-align: left;
+                    font-weight: 600;
+                    color: #222222;
+                    width: 55%;
+                    border-bottom: 1px dashed #e0e0e0;
+                  ">
+                  **[Date and Time]**
+                </td>
+              </tr>
+              <tr>
+                <th
+                  style="
+                    padding: 10px 0;
+                    text-align: left;
+                    color: #777777;
+                    font-weight: normal;
+                    width: 45%;
+                  ">
+                  Transferred By:
+                </th>
+                <td
+                  style="
+                    padding: 10px 0;
+                    text-align: left;
+                    font-weight: 600;
+                    color: #222222;
+                  ">
+                  **[Admin/Company Name]**
+                </td>
+              </tr>
+              <tr>
+                <th
+                  style="
+                    padding: 10px 0;
+                    text-align: left;
+                    color: #777777;
+                    font-weight: normal;
+                    width: 45%;
+                  ">
+                  Transferred Reason:
+                </th>
+                <td
+                  style="
+                    padding: 10px 0;
+                    text-align: left;
+                    font-weight: 600;
+                    color: #222222;
+                  ">
+                  **[Transfer Reason]**
+                </td>
+              </tr>
+            </tbody>
+          </table>
+
+          <p>Best regards,<br />Chipped Monkey Team</p>
+        </div>
+
+        <div
+          class="footer"
+          style="
             text-align: center;
             padding: 25px 40px;
             background-color: #f0f3f5;
@@ -125,60 +326,14 @@
             border-bottom-right-radius: 12px;
             font-size: 11px;
             color: #aaaaaa;
-        }
-    </style>
-</head>
-<body>
-    <div style="background-color: #f0f3f5; padding: 40px 0;">
-        <div class="container" style="width: 100%; max-width: 600px; margin: 0 auto; background-color: #ffffff; border-radius: 12px; box-shadow: 0 8px 20px rgba(0, 0, 0, 0.05); padding: 0; box-sizing: border-box; border: 1px solid #e5e9ec;">
-
-            <div class="header" style="text-align: center; background-color: #eef4ff; padding: 20px 20px 30px; border-top-left-radius: 12px; border-top-right-radius: 12px;">
-                <img src="https://chippedmonkey.co.uk/assets/images/logo-inside.png" width="180" alt="Chipped Monkey Logo" style="display: block; margin: 0 auto;">
-                            </div>
-
-            <div class="content" style="padding: 30px 40px; line-height: 1.6; color: #555555;">
-                <p>Hello **[Customer Name]**, </p>
-
-                <p>We are happy to confirm the successful deposit of funds to your account **[Customer Account Number/ID]**. Your balance has been updated.</p>
-                
-                <div class="summary-block" style="text-align: center; margin: 30px 0; padding: 25px; background-color: #f3fff3; border-radius: 8px; border: 1px solid #c0eacb;">
-                    <span class="amount-label" style="font-size: 13px; color: #4a6d4d; margin-bottom: 8px; display: block; text-transform: uppercase; font-weight: 600;">Funds Credited</span>
-                    <strong class="amount" style="font-size: 38px; font-weight: 800; color: #388e3c; line-height: 1;">**[Transfer Amount & Currency, e.g., £0]**</strong>
-                </div>
-
-                <p>Please review the complete transaction details below:</p>
-
-                <table class="detail-table" width="100%" cellspacing="0" cellpadding="0" style="margin-top: 25px; margin-bottom: 30px; border-collapse: collapse;">
-                    <tbody>
-                        <tr>
-                            <th style="padding: 10px 0; text-align: left; color: #777777; font-weight: normal; width: 45%; border-bottom: 1px dashed #e0e0e0;">Transaction ID:</th>
-                            <td style="padding: 10px 0; text-align: left; font-weight: 600; color: #222222; width: 55%; border-bottom: 1px dashed #e0e0e0;">**[Transaction Reference Number]**</td>
-                        </tr>
-                        <tr>
-                            <th style="padding: 10px 0; text-align: left; color: #777777; font-weight: normal; width: 45%; border-bottom: 1px dashed #e0e0e0;">Transfer Date:</th>
-                            <td style="padding: 10px 0; text-align: left; font-weight: 600; color: #222222; width: 55%; border-bottom: 1px dashed #e0e0e0;">**[Date and Time]**</td>
-                        </tr>
-                        <tr>
-                            <th style="padding: 10px 0; text-align: left; color: #777777; font-weight: normal; width: 45%;">Transferred By:</th>
-                            <td style="padding: 10px 0; text-align: left; font-weight: 600; color: #222222;">**[Admin/Company Name]**</td>
-                        </tr>
-                         <tr>
-                            <th style="padding: 10px 0; text-align: left; color: #777777; font-weight: normal; width: 45%;">Transferred Reason:</th>
-                            <td style="padding: 10px 0; text-align: left; font-weight: 600; color: #222222;">**[Transfer Reason]**</td>
-                        </tr>
-                    </tbody>
-                </table>
-                
-             
-                <p>Best regards,<br>Chipped Monkey Team</p>
-            </div>
-
-            <div class="footer" style="text-align: center; padding: 25px 40px; background-color: #f0f3f5; border-top: 1px solid #e0e0e0; border-bottom-left-radius: 12px; border-bottom-right-radius: 12px; font-size: 11px; color: #aaaaaa;">
-                <p>This is an automated notification. For security, please do not reply to this email.</p>
-                <p> Chipped Monkey | **[Your Address/Link]**</p>
-            </div>
-
+          ">
+          <p>
+            This is an automated notification. For security, please do not reply
+            to this email.
+          </p>
+          <p>Chipped Monkey | **[Your Address/Link]**</p>
         </div>
+      </div>
     </div>
-</body>
+  </body>
 </html>

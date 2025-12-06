@@ -26,10 +26,8 @@ export default function Header() {
   const toggleMenu = () => {
     setIsMenuOpen(!isMenuOpen);
 
-    const headerContainer = document.querySelector(".header-container");
     const headerMenu = document.querySelector(".header-menus");
     const menuIcon = document.querySelector(".menu-icon");
-    headerContainer?.classList.toggle("active");
     headerMenu?.classList.toggle("active");
     menuIcon?.classList.toggle("active");
   };
@@ -209,10 +207,18 @@ export default function Header() {
             </li>
           </ul>
         </div>
+
+        <div className="header_mobile_icon">
+          <i
+            className={`fa-solid ${isMenuOpen ? "fa-x" : "fa-bars"}`}
+            onClick={toggleMenu}></i>
+        </div>
       </div>
 
       <div className="header_contact_info">
-        <div className="emergency_helpline">24/7 emergency Helpline - (888) TRACK-17</div>
+        <div className="emergency_helpline">
+          24/7 emergency Helpline - (888) TRACK-17
+        </div>
       </div>
     </header>
   );

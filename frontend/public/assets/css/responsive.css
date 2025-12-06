@@ -6,8 +6,18 @@
     display: none;
   }
   .header-container {
+    display: flex;
+    justify-content: space-between;
+  }
+  .header-menus,.header_user_menu{
     display: none;
   }
+  .header_mobile_icon{
+    display: block;
+  }
+  .header_mobile_icon > i {
+    font-size: 25px;
+}
   .header-container.active {
     display: block;
     height: unset;
@@ -16,6 +26,10 @@
     position: unset;
     padding: 0px !important;
     width: 100%;
+  }
+  .header-container-logo >  a >img{
+width: 190px;
+height: 80px;
   }
   .header-menu-ul > li {
     width: 100%;
@@ -175,11 +189,19 @@
     background: #1e2228;
     position: absolute;
     left: 0px;
+    top: 0px;
     z-index: 100000;
   }
+  .banner-heading-title > h4 {
+    font-size: 40px;
+    margin-top: 10px;
+}
+.testimonial-container{
+  padding: 120px 0px 100px;
+}
   .index-petsdetails-container-img > img {
-    width: 330px;
-    height: 153px;
+    width: 430px;
+    height: 300px !important;
   }
   iframe {
     width: 337px !important;
@@ -279,7 +301,7 @@
     margin: 0px 5px;
   }
   .header-menu-li > a {
-    font-size: 16px;
+    font-size: 20px;
   }
 
 }
@@ -309,7 +331,7 @@ font-size: 12px;
     margin-left: 15px;
 }
   .emergency_helpline {
-    color: #1e3f78;
+    color: #ffff;
     font-weight: 500;
     font-size: 16px;
 }

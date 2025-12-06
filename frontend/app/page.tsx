@@ -437,7 +437,12 @@ export default function Home() {
             </Modal.Footer>
           </Modal>
           <div className="row">
-            <div className="col-12 col-md-2"></div>
+            <div className="col-12 col-md-2">
+              <div className="header-main-icon-container mobile-none">
+                <span className="header-main-icon-1"></span>
+                <span className="header-main-icon-2"></span>
+              </div>
+            </div>
             <div className="col-12 col-md-6">
               <div className="banner-heading-title">
                 <span>Start Your Registration</span>
@@ -513,23 +518,23 @@ export default function Home() {
                         )}
 
                         <div className="header-form-btn-container">
-                        <button
-                          type="submit"
-                          className="btn-register register_microchip_btn"
-                          disabled={isSubmitting}>
-                          {isSubmitting ? "Processing..." : "Register"}
-                        </button>
-
-                        <button
-                          type="button"
-                          className="btn-register register_scan_btn"
-                          onClick={() => openScanner(setFieldValue)}>
-                          <i
-                            className="fas fa-qrcode"
-                            style={{ marginRight: "8px" }}></i>
-                          Scan
+                          <button
+                            type="submit"
+                            className="btn-register register_microchip_btn"
+                            disabled={isSubmitting}>
+                            {isSubmitting ? "Processing..." : "Register"}
                           </button>
-                          </div>
+
+                          <button
+                            type="button"
+                            className="btn-register register_scan_btn"
+                            onClick={() => openScanner(setFieldValue)}>
+                            <i
+                              className="fas fa-qrcode"
+                              style={{ marginRight: "8px" }}></i>
+                            Scan
+                          </button>
+                        </div>
                       </Form>
                     </div>
                   )}
@@ -554,43 +559,40 @@ export default function Home() {
                   </p>
                 </div>
 
-                            <div className="banner-popular-container">
-              <div className="banner-popular-title">
-                <h4>Popular:</h4>
-              </div>
+                <div className="banner-popular-container">
+                  <div className="banner-popular-title">
+                    <h4>Popular:</h4>
+                  </div>
 
-              <div className="banner-popular-lists">
-                <ul className="banner-popular-lists-ul">
-                  <li className="banner-popular-title-li">
-                    <div className="banner-popular-title-inner-li">
-                 
-                      <Link href="/pet-owners/change-ownership">
-                        Transfer Keepership
-                        <i className="fa-solid fa-arrow-right"></i>
-                      </Link>
-                    </div>
-                  </li>
-                  <li className="banner-popular-title-li">
-                    <div className="banner-popular-title-inner-li">
-               
-                      <Link href="/pet-owners/lost-found-pets">
-                        Report Lost Pet
-                        <i className="fa-solid fa-arrow-right"></i>
-                      </Link>
-                    </div>
-                  </li>
-                  <li className="banner-popular-title-li">
-                    <div className="banner-popular-title-inner-li">
-                  
-                      <Link href="/pet-owners/lost-found-pets">
-                        Found A Lost Pet?
-                        <i className="fa-solid fa-arrow-right"></i>
-                      </Link>
-                    </div>
-                  </li>
-                </ul>
-              </div>
-            </div>
+                  <div className="banner-popular-lists">
+                    <ul className="banner-popular-lists-ul">
+                      <li className="banner-popular-title-li">
+                        <div className="banner-popular-title-inner-li">
+                          <Link href="/pet-owners/change-ownership">
+                            Transfer Keepership
+                            <i className="fa-solid fa-arrow-right"></i>
+                          </Link>
+                        </div>
+                      </li>
+                      <li className="banner-popular-title-li">
+                        <div className="banner-popular-title-inner-li">
+                          <Link href="/pet-owners/lost-found-pets">
+                            Report Lost Pet
+                            <i className="fa-solid fa-arrow-right"></i>
+                          </Link>
+                        </div>
+                      </li>
+                      <li className="banner-popular-title-li">
+                        <div className="banner-popular-title-inner-li">
+                          <Link href="/pet-owners/lost-found-pets">
+                            Found A Lost Pet?
+                            <i className="fa-solid fa-arrow-right"></i>
+                          </Link>
+                        </div>
+                      </li>
+                    </ul>
+                  </div>
+                </div>
               </div>
             </div>
             <div className="col-12 col-md-4">
@@ -753,7 +755,7 @@ export default function Home() {
                     href="http://localhost/chipped_monkey"
                     target="_blank"
                     rel="noopener noreferrer">
-                    ChippedMonkey.co.uk
+                    ChippedMonkey.com
                   </a>
                   , we understand that your pet’s safety and identification are
                   of utmost importance. Choosing the right pet microchip
@@ -768,7 +770,7 @@ export default function Home() {
                       Our platform offers a simple, user-friendly process to
                       register your pet’s microchip online in the UK quickly.
                       Whether you have a new puppy, kitten, or are updating your
-                      existing pet’s microchip details, ChippedMonkey.co.uk lets
+                      existing pet’s microchip details, ChippedMonkey.com lets
                       you do it all with just a few clicks, saving you time and
                       hassle.
                     </p>
@@ -825,7 +827,7 @@ export default function Home() {
                       We stay fully up-to-date with evolving UK pet
                       microchipping legislation, including compulsory
                       microchipping requirements for dogs and cats.
-                      ChippedMonkey.co.uk ensures your pet’s microchip
+                      ChippedMonkey.com ensures your pet’s microchip
                       registration meets legal standards, helping you avoid
                       fines and penalties.
                     </p>
@@ -841,7 +843,7 @@ export default function Home() {
                       animal shelters, and rescue centres nationwide, making it
                       easier than ever for lost pets to be scanned and
                       identified quickly. When you register with
-                      ChippedMonkey.co.uk, you’re joining a network dedicated to
+                      ChippedMonkey.com, you’re joining a network dedicated to
                       improving pet recovery rates across the UK.
                     </p>
                   </li>
@@ -850,9 +852,9 @@ export default function Home() {
                     <h3>Compatible with All ISO-Compliant Pet Microchips</h3>
                     <p>
                       Whether your pet’s microchip was implanted by your vet, a
-                      shelter, or a breeder, ChippedMonkey.co.uk supports all
-                      ISO 11784/11785-compliant microchips widely used in the UK
-                      and internationally, ensuring your pet’s chip can be
+                      shelter, or a breeder, ChippedMonkey.com supports all ISO
+                      11784/11785-compliant microchips widely used in the UK and
+                      internationally, ensuring your pet’s chip can be
                       registered and found.
                     </p>
                   </li>
@@ -951,7 +953,7 @@ export default function Home() {
                   <Image
                     src="/assets/images/found.png"
                     width={400}
-                    height={700}
+                    height={350}
                     quality={100}
                     alt="Lost Img"
                   />
@@ -1018,59 +1020,6 @@ export default function Home() {
                   </Slider>
                 </div>
               </section>
-            </div>
-          </div>
-        </div>
-
-        <div className="container">
-          <div className="blog-container">
-            <div className="row mb-8 mt-5 d-flex align-items-center">
-              <div className="col-md-8 blog-title">
-                <p>Our Blog</p>
-                <h4>Exploring the Latest Trends in Pet lovers</h4>
-              </div>
-              <div className="col-md-4 blog-title text-end">
-                <Link href="/blog/lists" className="view_all">
-                  View All
-                </Link>
-              </div>
-            </div>
-            <div className="row blog-section mb-10">
-              {blogs.map((blog, index) => (
-                <div className="col-12 col-md-12 col-lg-4 mb-4" key={index}>
-                  <div className="card mb-4 blog-card">
-                    <Link href={`/blog/details/${blog.slug}`}>
-                      <Image
-                        className="card-img img-blog"
-                        src={
-                          blog.image_file_name
-                            ? `${appUrl}uploads/${blog.image_file_name}`
-                            : `${appUrl}/assets/images/default.jpg`
-                        }
-                        alt={blog.title}
-                        width={410}
-                        height={250}
-                        style={{ objectFit: "cover" }}
-                      />
-
-                      <div className="card-body p-4">
-                        <div className="views mb-2">{blog.date}</div>
-                        <h4 className="card-title" style={{ fontSize: "18px" }}>
-                          {blog.title}
-                        </h4>
-                        <small className="text-muted cat">
-                          {blog.category || ""}
-                        </small>
-                        <p className="card-text">
-                          {blog.short_description
-                            ? parse(blog.short_description)
-                            : "N/A"}
-                        </p>
-                      </div>
-                    </Link>
-                  </div>
-                </div>
-              ))}
             </div>
           </div>
         </div>

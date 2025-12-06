@@ -1,4 +1,4 @@
-import { Metadata } from 'next'
+import { Metadata } from "next";
 
 export function generateCommonMetadata(
   title?: string,
@@ -6,63 +6,64 @@ export function generateCommonMetadata(
   keywords?: any,
   metaImages?: string,
   canonicalUrl?: string
-  
 ): Metadata {
   // Function to strip HTML tags from the description
   const stripHtmlTags = (input: string | undefined): string =>
-    input ? input.replace(/<\/?[^>]+(>|$)/g, '') : '';
+    input ? input.replace(/<\/?[^>]+(>|$)/g, "") : "";
 
-  const fullTitle = title ? `${title}` : 'Chipped Monkey';
-  const fullDescription = description ? stripHtmlTags(description) : 'Register and manage your pet’s microchip with Chipped Monkey, the UK’s trusted uk-compliant database. 24/7 reunification support UK';
+  const fullTitle = title ? `${title}` : "Chipped Monkey";
+  const fullDescription = description
+    ? stripHtmlTags(description)
+    : "Register and manage your pet’s microchip with Chipped Monkey, the UK’s trusted uk-compliant database. 24/7 reunification support UK";
 
   return {
     title: {
       default: fullTitle,
-      template: '%s | My App',
+      template: "%s | My App",
     },
     description: fullDescription,
     keywords: [keywords],
-    authors: [{ name: 'Chipped Monkey' }],
-    creator: 'Chipped Monkey',
-    publisher: 'Chipped Monkey',
+    authors: [{ name: "Chipped Monkey" }],
+    creator: "Chipped Monkey",
+    publisher: "Chipped Monkey",
     openGraph: {
-      type: 'website',
-      locale: 'en_US',
-      siteName: 'Chipped Monkey',
+      type: "website",
+      locale: "en_US",
+      siteName: "Chipped Monkey",
       title: fullTitle,
       description: fullDescription,
       images: [
         {
-          url: metaImages || '/assets/images/logo-inside.png',
+          url: metaImages || "/assets/images/logo-inside.png",
           width: 1200,
           height: 630,
-          alt: title || 'Chipped Monkey Logo',
+          alt: title || "Chipped Monkey Logo",
         },
       ],
     },
     twitter: {
-      card: 'summary_large_image',
+      card: "summary_large_image",
       title: fullTitle,
       description: fullDescription,
-      creator: '@yourhandle',
+      creator: "@yourhandle",
     },
     robots: {
-      index: true,
-      follow: true,
+      index: false,
+      follow: false,
       googleBot: {
-        index: true,
-        follow: true,
-        'max-video-preview': -1,
-        'max-image-preview': 'large',
-        'max-snippet': -1,
+        index: false,
+        follow: false,
+        "max-video-preview": -1,
+        "max-image-preview": "large",
+        "max-snippet": -1,
       },
     },
     verification: {
-      google: 'your-google-verification-code',
-      yandex: 'your-yandex-verification-code',
+      google: "your-google-verification-code",
+      yandex: "your-yandex-verification-code",
     },
     alternates: {
-      canonical: canonicalUrl || 'https://chippedmonkey.co.uk/', // Add canonical URL here
+      canonical: canonicalUrl || "https://chippedmonkey.com/", // Add canonical URL here
     },
   };
 }

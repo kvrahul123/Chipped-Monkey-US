@@ -79,7 +79,7 @@ export default function Footer() {
           <div className="col-md-6 col-lg-3 mb-4 mb-lg-0">
             <h4 className="footer-menu-title text-white mb-3">Contact US</h4>
             <p className="footer-p-element">
-              Call Us : <Link href="tel:+18888722517">07734616466</Link>
+              Call Us : <Link href="tel:+18888722517">+1 888-872-2517</Link>
             </p>
             <p className="footer-p-element">
               We are open Monday to Friday business hours 9:00 am to 17:00 pm

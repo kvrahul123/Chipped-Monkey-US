@@ -745,7 +745,7 @@ export class MicrochipOrdersController extends Controller {
       }
 
       const transactionRepo = AppDataSource.getRepository(TransactionDetails);
-      const userRepository= AppDataSource.getRepository(User);
+      const userRepository = AppDataSource.getRepository(User);
 
       const transactionRequestRepo =
         AppDataSource.getRepository(TransactionRequest);
@@ -772,44 +772,58 @@ export class MicrochipOrdersController extends Controller {
         where: { id: transaction?.user_id },
       });
 
-       
-    // 🔹 Send Email after successful transaction
-    const templatePath = path.join(__dirname, "../../public/email/commisionTemplate.html");
-    let template = fs.readFileSync(templatePath, "utf8");
+      // 🔹 Send Email after successful transaction
+      const templatePath = path.join(
+        __dirname,
+        "../../public/email/commisionTemplate.html"
+      );
+      let template = fs.readFileSync(templatePath, "utf8");
 
-    // Replace placeholders in your template
-    const html = template
-      .replace("**[Customer Name]**", transaction?.account_holders_name || "Customer")
-      .replace("**[Customer Account Number/ID]**", transaction?.account_number || "")
-      .replace("**[Transfer Amount & Currency, e.g., £0]**", `$${savedTransaction.amount}`)
-      .replace("**[Transaction Reference Number]**", String(body.transactionRequest_id))
-      .replace("**[Date and Time]**", new Date().toLocaleString())
-      .replace("**[Admin/Company Name]**", "Chipped Monkey") // or dynamically from decodedToken
-      .replace("**[Your Company Name]**", "Chipped Monkey Ltd")
-       .replace("**[Transfer Reason]**",  body.message)
-      .replace("**[Your Address/Link]**", "https://chippedmonkey.co.uk");
+      // Replace placeholders in your template
+      const html = template
+        .replace(
+          "**[Customer Name]**",
+          transaction?.account_holders_name || "Customer"
+        )
+        .replace(
+          "**[Customer Account Number/ID]**",
+          transaction?.account_number || ""
+        )
+        .replace(
+          "**[Transfer Amount & Currency, e.g., £0]**",
+          `$${savedTransaction.amount}`
+        )
+        .replace(
+          "**[Transaction Reference Number]**",
+          String(body.transactionRequest_id)
+        )
+        .replace("**[Date and Time]**", new Date().toLocaleString())
+        .replace("**[Admin/Company Name]**", "Chipped Monkey") // or dynamically from decodedToken
+        .replace("**[Your Company Name]**", "Chipped Monkey Ltd")
+        .replace("**[Transfer Reason]**", body.message)
+        .replace("**[Your Address/Link]**", "https://chippedmonkey.com");
 
-    const transporter = nodemailer.createTransport({
-      host: process.env.SMTP_HOST,
-      port: Number(process.env.SMTP_PORT) || 465,
-      secure: true,
-      auth: {
-        user: process.env.SMTP_USERNAME,
-        pass: process.env.SMTP_EMAIL_PASSWORD,
-      },
-      tls: { rejectUnauthorized: false },
-    });
-
-    try {
-      await transporter.sendMail({
-        from: `"Chipped Monkey" <${process.env.SMTP_USERNAME}>`,
-        to: user?.email, // assuming you have customer_email in transactionRequest
-        subject: `Funds Deposit Confirmation - $${savedTransaction.amount}`,
-        html: html,
+      const transporter = nodemailer.createTransport({
+        host: process.env.SMTP_HOST,
+        port: Number(process.env.SMTP_PORT) || 465,
+        secure: true,
+        auth: {
+          user: process.env.SMTP_USERNAME,
+          pass: process.env.SMTP_EMAIL_PASSWORD,
+        },
+        tls: { rejectUnauthorized: false },
       });
-    } catch (mailError) {
-      console.error("Mail sending failed:", mailError);
-    }
+
+      try {
+        await transporter.sendMail({
+          from: `"Chipped Monkey" <${process.env.SMTP_USERNAME}>`,
+          to: user?.email, // assuming you have customer_email in transactionRequest
+          subject: `Funds Deposit Confirmation - $${savedTransaction.amount}`,
+          html: html,
+        });
+      } catch (mailError) {
+        console.error("Mail sending failed:", mailError);
+      }
 
       return {
         message: "Transaction created successfully",
@@ -824,7 +838,6 @@ export class MicrochipOrdersController extends Controller {
       };
     }
   }
-
 
   @Security("jwt")
   @Post("/create/implantedMicrochip")
