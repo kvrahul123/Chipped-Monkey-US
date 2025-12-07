@@ -6,7 +6,7 @@ export default function Footer() {
     <footer className="footer">
       <div className="container">
         <div className="row">
-          <div className="col-md-6 col-lg-6 mb-4 mb-lg-0">
+          <div className="col-md-6 col-lg-6 mb-4 mb-lg-0 mt-4 mt-lg-0">
             <Image
               width={200}
               height={94}
@@ -91,7 +91,7 @@ export default function Footer() {
         <hr className="mt-7 mt-md-7 mb-2 text-white" />
         <div className="d-md-flex align-items-center justify-content-between footer-address">
           <small className="mb-2 mb-lg-0">
-            <p className="p-0 m-0" style={{ marginBottom: "10px" }}>
+            <p className="p-0 m-0">
               © Copyright © CHIPPEDMONKEY LTD All rights reserved
             </p>
             <p style={{ marginTop: "10px" }}>
@@ -100,6 +100,82 @@ export default function Footer() {
             </p>
           </small>
         </div>
+      </div>
+      <div className="footer-mobile">
+        <div className="container-fluid">
+         <div className="row info-row">
+         <div className="col">
+       
+         <Link href="/" className="">
+            <Image
+              src="/assets/images/list-icon.png"
+              alt="home"
+              width={40}
+              height={40}
+              quality={100}
+            />
+            <span>Shop</span>
+          </Link>
+       
+      </div>
+      <div className="col">
+       
+         <Link href="/" className="">
+            <Image
+              src="/assets/images/home-icon.png"
+              alt="home"
+            width={40}
+              height={40}
+              quality={100}
+            />
+            <span>Shop</span>
+          </Link>
+       
+      </div>
+      <div className="col">
+       
+         <Link href="/" className="">
+            <Image
+              src="/assets/images/search-icon.png"
+              alt="home"
+           width={40}
+              height={40}
+              quality={100}
+            />
+            <span>Search</span>
+          </Link>
+       
+      </div>
+      <div className="col">
+       
+          <Link href="/" className="">
+            <Image
+              src="/assets/images/cart-icon.png"
+              alt="home"
+       width={40}
+              height={40}
+              quality={100}
+            />
+            <span>Cart</span>
+          </Link>
+       
+      </div>
+      <div className="col">
+       
+          <Link href="/" className="">
+            <Image
+              src="/assets/images/contact-icon.png"
+              alt="home"
+      width={40}
+              height={40}
+              quality={100}
+            />
+            <span>Contact</span>
+          </Link>
+       
+      </div>
+      </div>
+      </div>
       </div>
     </footer>
   );
