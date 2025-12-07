@@ -448,7 +448,7 @@ export default function Home() {
                 <span>Start Your Registration</span>
                 <h4>
                   The Smart Choice
-                  <br /> for Your Pet's Forever ID
+                  <br /> for Your Pet's <b>Forever ID</b>
                 </h4>
               </div>
               <div className="banner-heading-form-container">
@@ -520,14 +520,14 @@ export default function Home() {
                         <div className="header-form-btn-container">
                           <button
                             type="submit"
-                            className="btn-register register_microchip_btn"
+                            className="btn-register2"
                             disabled={isSubmitting}>
                             {isSubmitting ? "Processing..." : "Register"}
                           </button>
 
                           <button
                             type="button"
-                            className="btn-register register_scan_btn"
+                            className="btn-register"
                             onClick={() => openScanner(setFieldValue)}>
                             <i
                               className="fas fa-qrcode"
@@ -559,7 +559,22 @@ export default function Home() {
                   </p>
                 </div>
 
-                <div className="banner-popular-container">
+               
+              </div>
+            </div>
+            <div className="col-12 col-md-4">
+              <Image
+                src="/assets/images/banner_dog.png"
+                alt="Banner Img"
+                width="400"
+                height="400"
+                className="mobile-none"
+              />
+            </div>
+          </div>
+
+          <div className="row">
+             <div className="banner-popular-container">
                   <div className="banner-popular-title">
                     <h4>Popular:</h4>
                   </div>
@@ -593,17 +608,6 @@ export default function Home() {
                     </ul>
                   </div>
                 </div>
-              </div>
-            </div>
-            <div className="col-12 col-md-4">
-              <Image
-                src="/assets/images/banner_dog.png"
-                alt="Banner Img"
-                width="400"
-                height="400"
-                className="mobile-none"
-              />
-            </div>
           </div>
         </div>
         <div className="container">
@@ -871,7 +875,7 @@ export default function Home() {
 
             <div className="col-lg-6 col-md-12">
               <div className="col-12 mb-3">
-                <h3>Register Your Account Today</h3>
+                <h3 className="index-head-3 ">Register Your Account Today</h3>
               </div>
               <div className="row">
                 {cards.map((card) => {
@@ -921,7 +925,7 @@ export default function Home() {
         </div>
 
         <div className="container">
-          <div className="row mt-5">
+          <div className="row mt-3">
             <div className="col-lg-6 col-md-6 petdetails">
               <div className="index-petsdetails-container">
                 <div className="index-petsdetails-container-img">

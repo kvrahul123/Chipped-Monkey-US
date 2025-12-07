@@ -1,3 +1,8 @@
+@media (max-width: 991px) {
+  .footer-mobile {
+  display: block;
+  }
+}
 @media (max-width: 768px) {
   .banner-popular-lists-ul {
     flex-direction: column;
@@ -105,15 +110,12 @@ height: 80px;
   .header-phone {
     font-size: 13px;
   }
-  .banner-main-input {
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-  }
+ 
   .banner-main-input {
     padding-bottom: 20px;
     border-radius: 10px;
     background-color: #ffff;
+    flex-direction: column;
   }
   .register_scan_btn {
     position: unset;
@@ -126,12 +128,52 @@ height: 80px;
   input.banner-input-box {
     font-size: 18px;
     width: 100%;
+    height: 48px;
+    flex: auto;
   }
+  .header-form-btn-container {
+display: flex;
+    margin-top: 15px;
+    flex-wrap: nowrap;
+}
+.btn-register2, .btn-register {
+  height: 48px;
+  margin-left: 0px;
+    margin-right: 0px;
+    width: 100%;
+    gap: 15px;
+}
   .banner-popular-title {
     display: none;
   }
   .banner-popular-title-inner-li {
-    margin-bottom: 25px;
+    margin-bottom: 0px;
+    width: 100%;
+    border: 0px;
+  }
+  .banner-popular-title-inner-li > a {
+  border: 2px solid #033a95;
+}
+  .banner-popular-lists {
+  width: 100%;
+}
+.banner-popular-lists > ul {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  width: 100%;
+}
+li.banner-popular-title-li {
+margin-right: 0px;
+    width: 100%;
+    margin-bottom: 15px;
+}
+.banner-popular-title-inner-li > a {
+  padding: 10px 24px 10px 24px;
+  justify-content: center;
+}
+  .banner-popular-container{
+    margin-top: 0;
   }
   .lookup-microchip-container {
     margin-bottom: 30px;
@@ -192,10 +234,11 @@ height: 80px;
     top: 0px;
     z-index: 100000;
   }
-  .banner-heading-title > h4 {
+    .banner-heading-title > h4 {
     font-size: 40px;
     margin-top: 10px;
-}
+    line-height: 43px;
+  }
 .testimonial-container{
   padding: 120px 0px 100px;
 }
