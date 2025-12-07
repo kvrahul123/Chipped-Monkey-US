@@ -2,7 +2,7 @@ import CommonLayout from "../frontend/layouts/CommonLayouts";
 import Image from "next/image";
 import { generateCommonMetadata } from "../utils/metadata";
 import { Metadata } from "next";
-
+ 
 const frontendUrl = process.env.NEXT_PUBLIC_FRONTEND_URL;
 const appUrl = process.env.NEXT_PUBLIC_APP_URL; // Your API URL
 
