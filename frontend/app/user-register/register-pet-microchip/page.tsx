@@ -1,4 +1,3 @@
-
 import CommonLayout from "@/app/frontend/layouts/CommonLayouts";
 import Image from "next/image";
 
@@ -6,7 +5,6 @@ const appUrl = process.env.NEXT_PUBLIC_APP_URL; // Your API URL
 import { RegisterForm } from "./RegisterForm";
 import { generateCommonMetadata } from "@/app/utils/metadata";
 import { Metadata } from "next";
-
 
 const frontendUrl = process.env.NEXT_PUBLIC_FRONTEND_URL;
 
@@ -24,18 +22,20 @@ export async function generateMetadata(): Promise<Metadata> {
   const dynamicKeywords = seoData
     ? seoData.meta_keywords
     : process.env.NEXT_META_KEYWORDS;
-  const dynamicImages = (seoData.image_file_name!=null && seoData.image_file_name!="")?(appUrl+"uploads/" + seoData.image_file_name) : process.env.NEXT_META_OG_IMAGE;
+  const dynamicImages =
+    seoData.image_file_name != null && seoData.image_file_name != ""
+      ? appUrl + "uploads/" + seoData.image_file_name
+      : process.env.NEXT_META_OG_IMAGE;
 
   return generateCommonMetadata(
     dynamicTitle,
     dynamicDescription,
     dynamicKeywords,
     dynamicImages,
-    `${frontendUrl}user-register/pet_owner`
+    `${frontendUrl}user-register/register-pet-microchip`
   );
 }
 const Register = () => {
- 
   return (
     <CommonLayout>
       <div className="main-page-container">
@@ -51,7 +51,7 @@ const Register = () => {
               />
             </div>
 
-            <RegisterForm/>
+            <RegisterForm />
           </div>
         </div>
       </div>

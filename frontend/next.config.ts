@@ -6,9 +6,8 @@ const nextConfig = {
   eslint: {
     ignoreDuringBuilds: true, // Ignore ESLint warnings during build
   },
-  quiet: true,
   images: {
-    domains: ['localhost'], // Replace with the domain from which your images are being served
+    domains: ['localhost','chippedmonkey.com'], // Replace with the domain from which your images are being served
   },
 };
 

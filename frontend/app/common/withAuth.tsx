@@ -49,7 +49,7 @@ const withAuth = <P extends object>(
           alert(data.data.user_type);
           if (
             pathname === "/user-login/pet_owner" ||
-            pathname === "/user-register/pet_owner"
+            pathname === "/user-register/register-pet-microchip"
           ) {
             router.push("/customer/dashboard");
             return;
@@ -58,7 +58,7 @@ const withAuth = <P extends object>(
           if (
             data.data.user_type === "customer" &&
             pathname !== "/user-login/pet_owner" &&
-            pathname !== "/user-register/pet_owner"
+            pathname !== "/user-register/register-pet-microchip"
           ) {
             router.push("/customer/dashboard");
             return;
@@ -74,9 +74,11 @@ const withAuth = <P extends object>(
     }, [router, pathname]);
 
     if (!token || !userType) {
-      return <div>
-        <Loader/>
-      </div>;
+      return (
+        <div>
+          <Loader />
+        </div>
+      );
     }
 
     return <Component {...(props as P)} token={token} userType={userType} />;

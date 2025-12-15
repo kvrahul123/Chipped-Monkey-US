@@ -44,7 +44,10 @@ import { PackageDetails } from "../../entities/PackageDetails";
 import { MicrochipPayment } from "../../entities/MicrochipPayment";
 import { MicrochipPaymentDetails } from "../../entities/MicrochipPaymentDetails";
 import { TransactionDetails } from "../../entities/TransactionDetails";
-import { externalSources,checkExternalMicrochip } from "../../utils/ExternalMicrochip";
+import {
+  externalSources,
+  checkExternalMicrochip,
+} from "../../utils/ExternalMicrochip";
 
 require("dotenv").config();
 export interface OpayoTransactionResponse {
@@ -84,7 +87,6 @@ export interface OpayoTransactionResponse {
   };
 }
 
-
 // ===== Multer Storage Setup =====
 const storage = multer.diskStorage({
   destination: (req, file, cb) => {
@@ -110,14 +112,17 @@ interface MulterRequest extends express.Request {
   file?: Express.Multer.File;
 }
 
-
-
 @Route("frontend")
 export class FrontendController extends Controller {
   @Post("/microchip/create")
   public async createMicrochip(
     @Request() request: MulterRequest
-  ): Promise<{ message: string; data?: Contact; statusCode: number,externalDatabase?:boolean }> {
+  ): Promise<{
+    message: string;
+    data?: Contact;
+    statusCode: number;
+    externalDatabase?: boolean;
+  }> {
     return new Promise((resolve) => {
       // Handle single file upload
       upload.single("photo")(request, {} as any, async (err: any) => {
@@ -272,7 +277,7 @@ export class FrontendController extends Controller {
       if (!microchip_number) {
         return {
           message: "Microchip number is required",
-          data: [],
+          data: {},
           exists: false,
           externalDatabase: false,
           statusCode: 400,
@@ -286,55 +291,64 @@ export class FrontendController extends Controller {
 
       if (existingMicrochip) {
         return {
-          message: "Microchip number already exists with Chipped Monkey",
+          message: `Microchip number already exists with Chipped Monkey`,
           exists: true,
-          data: existingMicrochip,
+          data: {
+             microchipNumber:microchip_number,
+            existingMicrochip:existingMicrochip,
+            isRegistered: true,
+            ownerLastUpdateDate: existingMicrochip.updated_at || null,
+            isDistributed: false, // assume local DB does not track distribution
+            registeredWith: "Chipped Monkey",
+          },
           externalDatabase: false,
           statusCode: 200,
         };
       }
 
+      // 2️⃣ Check external sources
       const sources = externalSources(microchip_number);
 
       const cleanParams = (params: Record<string, any>) => {
         const cleaned: Record<string, string> = {};
-
         for (const key in params) {
           const value = params[key];
           if (value !== undefined && value !== null) {
             cleaned[key] = String(value);
           }
         }
-
         return cleaned;
       };
 
       for (const source of sources) {
         try {
-          // Clean params to ensure URLSearchParams receives only string values
           const cleanedParams = cleanParams(source.params);
-
           const query = new URLSearchParams(cleanedParams);
-
           const response = await fetch(`${source.url}?${query.toString()}`);
-          const text = (await response.text()).trim().toLowerCase();
+          const text = await response.json(); // assume API returns JSON
 
-          if (text === "true" || text == "info") {
-            let message = "";
-            if (text === "true") {
-              message =
-                `Microchip number is already registered on ${source.name}.` +
-                (source.phone_number ? ` Contact: ${source.phone_number}` : "");
-            } else if (text == "info") {
-              message =
-                `Microchip number was found on ${source.name}.` +
-                (source.phone_number ? ` Contact: ${source.phone_number}` : "");
-            }
+          // If the microchip is registered or distributed
+          if (text.isRegistered || text.isDistributed) {
+            const msgParts: string[] = [];
+            if (text.isRegistered)
+              msgParts.push(`registered on ${source.name}`);
+            if (text.isDistributed)
+              msgParts.push(`distributed by ${source.name}`);
 
             return {
-              message,
-              exists: false,
-              data: [],
+              message:
+                `Microchip number is ${msgParts.join(" and ")}` +
+                (source.phone_number
+                  ? `. Contact: ${source.phone_number}`
+                  : ""),
+              exists: true,
+              data: {
+                 microchipNumber:microchip_number,
+                isRegistered: !!text.isRegistered,
+                ownerLastUpdateDate: text.ownerLastUpdateDate || null,
+                isDistributed: !!text.isDistributed,
+                registeredWith: source.name,
+              },
               externalDatabase: true,
               statusCode: 200,
             };
@@ -347,9 +361,15 @@ export class FrontendController extends Controller {
 
       // 3️⃣ Not found anywhere
       return {
-        message: "This Microchip is not registered in any UK database",
+        message: "This Microchip is not registered in any US database",
         exists: false,
-        data: [],
+        data: {
+          microchipNumber:microchip_number,
+          isRegistered: false,
+          ownerLastUpdateDate: null,
+          isDistributed: false,
+          registeredWith: null,
+        },
         externalDatabase: false,
         statusCode: 400,
       };
@@ -358,8 +378,14 @@ export class FrontendController extends Controller {
       return {
         message: "Failed to check microchip",
         exists: false,
+        data: {
+           microchipNumber:"",
+          isRegistered: false,
+          ownerLastUpdateDate: null,
+          isDistributed: false,
+          registeredWith: null,
+        },
         externalDatabase: false,
-        data: [],
         statusCode: 500,
       };
     }

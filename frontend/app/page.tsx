@@ -21,6 +21,9 @@ const secret = process.env.NEXT_PUBLIC_HASH_SECRET as string;
 export default function Home() {
   const route = useRouter();
   const [microchipData, setMicrochipData] = useState<any>(null); // store fetched data
+
+  const [openAAhaMicrochip, setopenAAhaMicrochip] = useState(false);
+  const [checkedMicrochipData, setcheckedMicrochipData] = useState([]);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [dataMessage, setMessage] = useState(false);
   const [IsRegistered, setIsRegistered] = useState(false);
@@ -57,17 +60,10 @@ export default function Home() {
 
   const cards = [
     {
-      id: "1",
-      title: "Implanter",
-      description: "Online Access to your Dog and Cat Microchip Information",
-      type: "implanter",
-      icon: "/assets/images/icons11.png",
-    },
-    {
       id: "0",
-      title: "Pet keeper",
+      title: "Pet owner",
       description: "Easy to update your pets' information.",
-      type: "pet_keeper",
+      type: "pet_owner",
       icon: "/assets/images/icons12.png",
     },
     {
@@ -279,6 +275,7 @@ export default function Home() {
     formType: String
   ) => {
     try {
+      setopenAAhaMicrochip(false);
       setIsRegistered(false);
       const response = await fetch(`${appUrl}frontend/microchip/check`, {
         method: "POST",
@@ -290,7 +287,7 @@ export default function Home() {
       const encryptedMicrochip = EncryptData(values.microchip_number, secret);
       if (data.statusCode === 200) {
         setMicrochipData({
-          ...data.data,
+          ...data.data.existingMicrochip,
           message: data.message,
           exists: data.exists,
           externalDatabase: data.externalDatabase,
@@ -311,13 +308,8 @@ export default function Home() {
           );
           return;
         }
-        setError(
-          `${
-            data.message || "MicroChip check failed"
-          } <a href="/pet-owners/update-pet-microchip?microchip=${encodeURIComponent(
-            encryptedMicrochip
-          )}">Click here to register</a>`
-        );
+        setcheckedMicrochipData(data.data);
+        setopenAAhaMicrochip(true);
       }
     } catch (err: any) {
       setError(err.message || "Something went wrong!");
@@ -384,7 +376,7 @@ export default function Home() {
                         {microchipData.microchip_number}
                       </p>
                       <p>
-                        <strong>Pet Keeper:</strong> {microchipData.pet_keeper}
+                        <strong>Pet Owner:</strong> {microchipData.pet_owner}
                       </p>
                       <p>
                         <strong>Phone:</strong> {microchipData.phone_number}
@@ -558,8 +550,6 @@ export default function Home() {
                     information in our secure national pet recovery database.
                   </p>
                 </div>
-
-               
               </div>
             </div>
             <div className="col-12 col-md-4">
@@ -574,46 +564,54 @@ export default function Home() {
           </div>
 
           <div className="row">
-             <div className="banner-popular-container">
-                  <div className="banner-popular-title">
-                    <h4>Popular:</h4>
-                  </div>
+            <div className="banner-popular-container">
+              <div className="banner-popular-title">
+                <h4>Popular:</h4>
+              </div>
 
-                  <div className="banner-popular-lists">
-                    <ul className="banner-popular-lists-ul">
-                      <li className="banner-popular-title-li">
-                        <div className="banner-popular-title-inner-li">
-                          <Link href="/pet-owners/change-ownership">
-                            Transfer Keepership
-                            <i className="fa-solid fa-arrow-right"></i>
-                          </Link>
-                        </div>
-                      </li>
-                      <li className="banner-popular-title-li">
-                        <div className="banner-popular-title-inner-li">
-                          <Link href="/pet-owners/lost-found-pets">
-                            Report Lost Pet
-                            <i className="fa-solid fa-arrow-right"></i>
-                          </Link>
-                        </div>
-                      </li>
-                      <li className="banner-popular-title-li">
-                        <div className="banner-popular-title-inner-li">
-                          <Link href="/pet-owners/lost-found-pets">
-                            Found A Lost Pet?
-                            <i className="fa-solid fa-arrow-right"></i>
-                          </Link>
-                        </div>
-                      </li>
-                    </ul>
-                  </div>
-                </div>
+              <div className="banner-popular-lists">
+                <ul className="banner-popular-lists-ul">
+                  <li className="banner-popular-title-li">
+                    <div className="banner-popular-title-inner-li">
+                      <Link href="/pet-owners/change-ownership">
+                        Transfer Keepership
+                        <i className="fa-solid fa-arrow-right"></i>
+                      </Link>
+                    </div>
+                  </li>
+                  <li className="banner-popular-title-li">
+                    <div className="banner-popular-title-inner-li">
+                      <Link href="/pet-owners/lost-found-pets">
+                        Report Lost Pet
+                        <i className="fa-solid fa-arrow-right"></i>
+                      </Link>
+                    </div>
+                  </li>
+                  <li className="banner-popular-title-li">
+                    <div className="banner-popular-title-inner-li">
+                      <Link href="/pet-owners/lost-found-pets">
+                        Found A Lost Pet?
+                        <i className="fa-solid fa-arrow-right"></i>
+                      </Link>
+                    </div>
+                  </li>
+                </ul>
+              </div>
+            </div>
           </div>
         </div>
         <div className="container">
           <div className="lookup-microchip-container h-100">
             <div className="lookup-microchip-title">
-              <h1 className="text-white mb-3 mt-2">Lookup Microchip</h1>
+              <h1 className="text-white mb-3 mt-2">
+                Chipped Monkey Lookup Tool
+              </h1>
+              <p>
+                Easily search for a microchip across the Chipped Monkey Database
+                and other major U.S. pet microchip registries, including those
+                integrated with AAHA. Instantly access registration details to
+                help reunite lost pets with their families.
+              </p>
             </div>
             <div className="row justify-content-center">
               <div className="col-12 col-lg-8 lookup-search">
@@ -633,7 +631,6 @@ export default function Home() {
                               serverError2 || Object.values(errors).join(", "),
                           }}></div>
                       )}
-
                       <Form className="d-flex lookup-search gap-2">
                         <Field
                           id="microchip_number"
@@ -664,6 +661,51 @@ export default function Home() {
             </div>
           </div>
         </div>
+
+        {openAAhaMicrochip && (
+          <div className="container">
+            <div className="aaha-search-results">
+              <div className="aaha-header">
+                <div className="aaha-logo-container">
+                  <span className="aaha-logo">AAHA</span>
+                  <span className="aaha-text">AAHA Search results:</span>
+                </div>
+                <Link
+                  href={`https://www.aaha.org/petmicrochiplookup?microchip_id=${checkedMicrochipData?.microchipNumber}`}
+                  className="aaha-visit-link">
+                  Visit AAHA &nbsp;→
+                </Link>
+              </div>
+
+              <div className="microchip-info">
+                <p className="microchip-title">
+                  The Microchip is distributed or manufactured by:
+                  {checkedMicrochipData?.isRegistered ||
+                  checkedMicrochipData?.isDistributed
+                    ? registeredWith
+                    : ""}
+                </p>
+                <p className="microchip-subtitle">
+                  This is most likely a microchip from one of the following:
+                </p>
+
+                <ul className="registry-list">
+                  <li>Banfield (800-838-6738)</li>
+                  <li>HomeAgain (888-466-3242)</li>
+                  <li>Petstablished (855-684-3184 Ext.3)</li>
+                  <li>Save This Life (855-777-CHIP or 855-777-2447)</li>
+                  <li>SmartTag (866-603-6863)</li>
+                </ul>
+              </div>
+
+              <Link
+                href={`https://www.aaha.org/petmicrochiplookup?microchip_id=${checkedMicrochipData?.microchipNumber}`}
+                className="visit-aaha-now-link">
+                Visit AAHA now →
+              </Link>
+            </div>
+          </div>
+        )}
 
         {/* <div className="container">
           <div className="row bg-light-a p-4">
@@ -884,7 +926,7 @@ export default function Home() {
                     <div key={card.type} className="col-6 col-md-6 mb-10">
                       <Link
                         href={{
-                          pathname: "/user-register/pet_owner",
+                          pathname: "/user-register/register-pet-microchip",
                           query: { token: encoded }, // pass encoded token
                         }}>
                         <div className="d-flex flex-column">

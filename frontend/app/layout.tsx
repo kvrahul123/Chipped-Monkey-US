@@ -2,9 +2,9 @@ import type { Metadata } from "next";
 
 
 export const metadata: Metadata = {
-  title: "Chipped Monkey |UK Pet Microchip Database",
-  description: "Register and manage your pet’s microchip with Chipped Monkey, the UK’s trusted uk-compliant database. 24/7 reunification support UK",
-  keywords: "Pet microchip database, UK pet microchip registration, 24/7 pet reunification support,  Register pet microchip online,  Update pet microchip details,  Change of keeper verification,  Pet microchip legal requirement UK,  Secure pet microchip database,  Lost pet recovery UK",
+  title: "Chipped Monkey |US Pet Microchip Database",
+  description: "Register and manage your pet’s microchip with Chipped Monkey, the US’s trusted US-compliant database. 24/7 reunification support US",
+  keywords: "Pet microchip database, US pet microchip registration, 24/7 pet reunification support,  Register pet microchip online,  Update pet microchip details,  Change of keeper verification,  Pet microchip legal requirement US,  Secure pet microchip database,  Lost pet recovery US",
     robots: {
     index: false,
     follow: false,

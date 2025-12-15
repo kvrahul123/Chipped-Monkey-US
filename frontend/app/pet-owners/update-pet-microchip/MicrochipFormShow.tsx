@@ -100,12 +100,35 @@ function MicrochipFormContent() {
   return (
     <>
       {!isValid ? (
-        <MicrochipInput
-          onValid={(number: string) => {
-            setMicrochipNumber(number);
-            setIsValid(true);
-          }}
-        />
+        // <MicrochipInput
+        //   onValid={(number: string) => {
+        //     setMicrochipNumber(number);
+        //     setIsValid(true);
+        //   }}
+        // />
+
+        <div>
+          <p className="text-lg" style={{ color: "#ffffff", fontSize: "18px" }}>
+            <span className="updateregister_header_content">Create account to enroll your pet</span>
+            <br />
+            <Link
+              href="/user-register/register-pet-microchip"
+              style={{ color: "#f8a131", fontSize: "20px" }}>
+              <button className="btn btn-primary my-2">
+                Create and enroll
+              </button>
+            </Link>{" "}
+          </p>
+
+          <p className="text-lg" style={{ color: "#ffffff", fontSize: "18px" }}>
+            Already have an account?{" "}
+            <Link
+              href="/user-login/pet_owner"
+              style={{ color: "#f8a131", fontSize: "20px" }}>
+              Sign in here
+            </Link>{" "}
+          </p>
+        </div>
       ) : (
         <div>
           {loadingUser ? (
@@ -113,30 +136,28 @@ function MicrochipFormContent() {
           ) : isLoggedIn ? (
             <MicrochipForm microchipNumber={microchipNumber} />
           ) : (
-            <div>
-              <p
-                className="text-lg"
-                style={{ color: "#ffffff", fontSize: "18px" }}>
-                To proceed, kindly{" "}
-                <Link
-                  href="/user-login/pet_owner"
-                  style={{ color: "#f8a131", fontSize: "20px" }}>
-                  Sign in
-                </Link>{" "}
-                for an account before adding a new microchip.
-              </p>
-              <p
-                className="text-lg"
-                style={{ color: "#ffffff", fontSize: "18px" }}>
-                Don't have an account?{" "}
-                <Link
-                  href="/user-register/pet_owner"
-                  style={{ color: "#f8a131", fontSize: "20px" }}>
-                  Register here
-                </Link>{" "}
-                to get started.
-              </p>
-            </div>
+        <div>
+          <p className="text-lg" style={{ color: "#ffffff", fontSize: "18px" }}>
+            <span className="updateregister_header_content">Create account to enroll your pet</span>
+            <br />
+            <Link
+              href="/user-register/register-pet-microchip"
+              style={{ color: "#f8a131", fontSize: "20px" }}>
+              <button className="btn btn-primary my-2">
+                Create and enroll
+              </button>
+            </Link>{" "}
+          </p>
+
+          <p className="text-lg" style={{ color: "#ffffff", fontSize: "18px" }}>
+            Already have an account?{" "}
+            <Link
+              href="/user-login/pet_owner"
+              style={{ color: "#f8a131", fontSize: "20px" }}>
+              Sign in here
+            </Link>{" "}
+          </p>
+        </div>
           )}
         </div>
       )}

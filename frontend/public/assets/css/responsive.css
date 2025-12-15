@@ -305,6 +305,17 @@ margin-right: 0px;
   .contactus_inner_card {
     width: calc(100%);
   }
+
+  .cm-heading-primary:after{
+        right: 50px;
+    top: 126px;
+  }
+  .cm-heading-secondary:after{
+    right: 0px;
+  }
+  .cm-heading-secondary.cm-faq-heading:after{
+    top: 68px;
+  }
 }
 /* 
 @media(max-width:1550px){

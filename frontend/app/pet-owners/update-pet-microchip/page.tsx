@@ -45,45 +45,19 @@ export default function UpdatePetMicrochip() {
           <div className="row ">
             <div className="col-lg-12 col-md-12 mt-4">
               <div
-                className="registe-monkey-new"
+                className="registe-monkey-new text-center"
                 style={{
                   backgroundSize: "cover",
                   backgroundPosition: "center",
                 }}>
                 <div className="row">
-                  <div className="col-lg-6 col-md-12 mb-4 mb-lg-0 register-left-dv">
-                    <h2 className="mb-0 page-title-h2 text-white">
-                      Register your Chipped Monkey here
+                  <div className="col-lg-12 col-md-12 mb-lg-0 register-left-dv">
+                    <h2 className="mb-0 page-title-h2 text-white mb-2">
+                      Your Pet's Lifeline: Register their microchip and secure
+                      their journey home.
                     </h2>
-                    <p className="mt-2 text-white">
-                      To start a transfer or registration, enter the MicroChip
-                      number in the box below and follow the options on
-                      screen.&nbsp;
-                    </p>
-                    <div className="top-images">
-                      <Image
-                        src="/assets/images/dog-icons.png"
-                        alt="popular image"
-                        width={75}
-                        height={75}
-                      />
-
-                      <Image
-                        src="/assets/images/cat-icons.png"
-                        alt="popular image"
-                        width={75}
-                        height={75}
-                      />
-
-                      <Image
-                        src="/assets/images/ferret-icons.png"
-                        alt="popular image"
-                        width={75}
-                        height={75}
-                      />
-                    </div>
                   </div>
-                  <div className="col-lg-6 col-md-12 mb-0 register-right-dv">
+                  <div className="col-lg-12 col-md-12 mb-0 register-right-dv">
                     <MicrochipFormShow />
                   </div>
                 </div>
@@ -107,7 +81,7 @@ export default function UpdatePetMicrochip() {
                         width={115}
                         height={115}
                       />
-                      <h4 className="fs-5 mt-3">
+                      <h4 className="fs-5 mt-3 fw-bold">
                         Enter your pet’s microchip number
                       </h4>
                     </div>
@@ -119,7 +93,7 @@ export default function UpdatePetMicrochip() {
                         width={115}
                         height={115}
                       />
-                      <h4 className="fs-5 mt-3">
+                      <h4 className="fs-5 mt-3 fw-bold">
                         Select your dog breed or cat breed
                       </h4>
                     </div>
@@ -131,7 +105,7 @@ export default function UpdatePetMicrochip() {
                         width={115}
                         height={115}
                       />
-                      <h4 className="fs-5 mt-3">
+                      <h4 className="fs-5 mt-3 fw-bold">
                         {" "}
                         Provide pet keeper details (name, contact number,
                         current address)
@@ -145,7 +119,7 @@ export default function UpdatePetMicrochip() {
                         width={115}
                         height={115}
                       />
-                      <h4 className="fs-5 mt-3">
+                      <h4 className="fs-5 mt-3 fw-bold">
                         Submit via a streamlined online form
                       </h4>
                     </div>
@@ -220,57 +194,336 @@ export default function UpdatePetMicrochip() {
                 </div>
               </div> */}
 
-              <div className="row bg-light-a p-4">
-                <div className="col-lg-12 mb-3 pe-2 pe-lg-5">
-                  <h2 className="fs-3">
-                    UK Microchip Law — What You Need to Know
-                  </h2>
+              <div className="cm-content-wrapper">
+                <h1 className="cm-heading-primary">
+                  Welcome to ChippedMonkey:
+                  <br />
+                  Complete Your Pet's Protection!
+                </h1>
+                <p className="cm-intro-text">
+                  You've taken the first crucial step by microchipping your pet.
+                  Now, it's time to activate that protection. A microchip is
+                  only effective if it's registered with your current contact
+                  information!
+                </p>
 
-                  <p>
-                    In the UK, it’s a legal requirement for all dogs to be
-                    microchipped and for keeper details to be kept up to date.
-                    If your dog’s microchip doesn’t match your current address
-                    or phone, you could face a fine of up to £500. For cats
-                    England mandates cat microchipping by law. If your cats
-                    microchip doesn’t match your current address or phone, you
-                    could face a fine of up to £500.
+                <blockquote className="cm-quote-box cm-quote-emphasis">
+                  <p className="cm-quote-text">
+                    Registering your pet's microchip with ChippedMonkey is the
+                    <span className="cm-highlight-secondary">
+                      essential link
+                    </span>
+                    between a lost pet and a happy reunion.
                   </p>
+                </blockquote>
 
-                  <h5>Staying compliant:</h5>
+                <h2 className="cm-heading-primary">
+                  Why Registration is
+                  <span className="cm-highlight-secondary">
+                    {" "}
+                    Non-Negotiable
+                  </span>
+                </h2>
 
-                  <div className="ps-0 mt-4 d-flex flexcol">
-                    <ul className="mb-3 list-icons-new2 pe-3 pe-lg-5">
-                      <li>
-                        Ensures you’re covered if your pet is lost or stolen.
-                      </li>
-                      <li>
-                        Increases the chance of a safe return through shelters
-                        or vets scanning the chip.
-                      </li>
+                <p className="cm-standard-text">
+                  Think of the microchip as a key, and ChippedMonkey
+                  registration as the lock box holding your contact information.
+                  If the lock box is empty, the key is useless.
+                </p>
 
-                      <li>Avoids penalties under UK microchip law.</li>
-                    </ul>
-                    {/* <ul className="mb-0 list-icons-new2">
-                      <li>
-                        We support these microchip types to match most UK
-                        practices:
-                        <div className="d-flex mt-2">
-                          <p className="mb-0 pe-5 fw-600">
-                            — FECAVA / FDXA <br></br>— Avid Encrypted
-                          </p>
-                          <p className="mb-0 pe-5 fw-600">
-                            — Trovan Unique
-                            <br></br>— ISO / FDXB
-                          </p>
-                        </div>
-                      </li>
-                    </ul> */}
+                <h3 className="cm-heading-tertiary">
+                  The Power of Up-to-Date Microchip Registration
+                </h3>
+
+                <div className="cm-table-container">
+                  <table className="cm-info-table">
+                    <thead>
+                      <tr>
+                        <th className="cm-table-header">Benefit</th>
+                        <th className="cm-table-header">Description</th>
+                        <th className="cm-table-header">Key Result</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      <tr>
+                        <td className="cm-table-cell cm-emphasized">
+                          ⚡️ Instant Reunions
+                        </td>
+                        <td className="cm-table-cell">
+                          When your lost dog or cat is found and scanned,
+                          shelters and vets instantly see your up-to-date
+                          contact details.
+                        </td>
+                        <td className="cm-table-cell">
+                          Fast return home for your lost pet.
+                        </td>
+                      </tr>
+                      <tr>
+                        <td className="cm-table-cell cm-emphasized">
+                          🛡️ Permanent Peace of Mind
+                        </td>
+                        <td className="cm-table-cell">
+                          Unlike collars and tags that can break or fall off, a
+                          registered microchip provides permanent pet
+                          identification that lasts a lifetime.
+                        </td>
+                        <td className="cm-table-cell">
+                          Continuous protection that can't be lost.
+                        </td>
+                      </tr>
+                      <tr>
+                        <td className="cm-table-cell cm-emphasized">
+                          🤝 Trust and Reliability
+                        </td>
+                        <td className="cm-table-cell">
+                          We ensure your pet's unique ID number is securely
+                          linked to you, giving rescuers confidence they can
+                          reach the right owner—you.
+                        </td>
+                        <td className="cm-table-cell">
+                          Accurate contact for all animal welfare professionals.
+                        </td>
+                      </tr>
+                    </tbody>
+                  </table>
+                </div>
+
+                <h2 className="cm-faq-heading">
+                  How ChippedMonkey Makes Registration Easy
+                </h2>
+                <p className="cm-standard-text">
+                  It takes less than five minutes to secure your pet's
+                  identification for life.
+                </p>
+
+                <h3 className="cm-heading-tertiary">
+                  Three Simple Steps to Pet Protection:
+                </h3>
+                <ul className="cm-step-list">
+                  <li className="cm-step-item">
+                    <span className="cm-step-number">1.</span>{" "}
+                    <strong>Find Your Chip Number:</strong> Locate the 10, 12,
+                    or 15-digit microchip ID from your vet records or adoption
+                    papers.
+                  </li>
+                  <li className="cm-step-item">
+                    <span className="cm-step-number">2.</span>{" "}
+                    <strong>Tell Us About Your Pet:</strong> Enter your pet's
+                    name, breed, and a quick description.
+                  </li>
+                  <li className="cm-step-item">
+                    <span className="cm-step-number">3.</span>{" "}
+                    <strong>Secure Your Contact Info:</strong> Submit your
+                    current phone numbers, email, and address. This is the vital
+                    information rescuers need!
+                  </li>
+                </ul>
+
+                <div className="cm-alert-box cm-crucial-reminder">
+                  <h4 className="cm-alert-heading">
+                    🚨 Crucial Reminder: Keep It Updated!
+                  </h4>
+                  <p className="cm-alert-text">
+                    Moving or changing phones? Your pet microchip registration
+                    needs to be updated! Log into your ChippedMonkey account
+                    anytime—24/7—to ensure your protection is always current. We
+                    offer seamless updates for life.
+                  </p>
+                </div>
+
+                <h2>Ready to Complete Your Pet's ID?</h2>
+                <p className="cm-standard-text">
+                  Don't wait until it's too late. Microchip registration is the
+                  most important step after implantation.
+                </p>
+                <p className="cm-call-to-action-text">
+                  <span className="cm-icon">👉</span>{" "}
+                  <strong className="cm-highlight-strong">
+                    Start by entering your pet’s microchip number above{" "}
+                  </strong>
+                  <strong>to secure their journey home.</strong>
+                </p>
+
+                <h2>
+                  Your Questions About Pet Microchip Registration, Answered
+                </h2>
+                <p className="cm-standard-text">
+                  We understand you want the best protection for your companion.
+                  Here are the answers to the most common questions about
+                  microchips and registration.
+                </p>
+
+                <div className="cm-faq-container">
+                  <div className="cm-faq-item">
+                    <h4 className="cm-faq-question">
+                      What is a pet microchip, exactly?
+                    </h4>
+                    <p className="cm-faq-answer">
+                      A pet microchip is a tiny, rice-sized transponder
+                      implanted just under your pet's skin by a veterinarian. It
+                      stores a unique, unchangeable ID number. It is{" "}
+                      <strong>NOT a GPS device</strong>. It does not track your
+                      pet's location; it serves as permanent pet identification
+                      only when scanned by a shelter or vet.
+                    </p>
                   </div>
+                  <div className="cm-faq-item">
+                    <h4 className="cm-faq-question">
+                      Why is registration necessary if my pet is already
+                      microchipped?
+                    </h4>
+                    <p className="cm-faq-answer">
+                      Implantation only gives your pet a unique ID number.{" "}
+                      <strong>
+                        Registration is the critical step that links that unique
+                        ID number to your contact information.
+                      </strong>{" "}
+                      Without registration, a scanner will only show a number,
+                      and the shelter won't know who to call. Registration is
+                      what makes the microchip work.
+                    </p>
+                  </div>
+                  <div className="cm-faq-item">
+                    <h4 className="cm-faq-question">
+                      I don't know my pet's microchip number. What should I do?
+                    </h4>
+                    <p className="cm-faq-answer">
+                      Don't worry! You can usually find the number on your
+                      veterinary records, adoption papers, or a vaccination
+                      certificate. If you can't find the paperwork, any
+                      veterinarian or animal shelter can quickly scan your pet
+                      for free to retrieve the number for you.
+                    </p>
+                  </div>
+                  <div className="cm-faq-item">
+                    <h4 className="cm-faq-question">
+                      How often do I need to update my microchip registration?
+                    </h4>
+                    <p className="cm-faq-answer">
+                      You only need to update your registration anytime your
+                      contact information changes. This includes: moving to a
+                      new address, getting a new phone number, or changing your
+                      primary email address. ChippedMonkey allows you to log in
+                      and make these essential updates instantly, ensuring
+                      continuous protection.
+                    </p>
+                  </div>
+                  <div className="cm-faq-item">
+                    <h4 className="cm-faq-question">
+                      My pet's microchip is from a different company. Can I
+                      still register with ChippedMonkey?
+                    </h4>
+                    <p className="cm-faq-answer">
+                      Yes! We are a universal pet recovery service. You can
+                      register any brand or manufacturer's microchip here on
+                      ChippedMonkey. Our goal is simple: to make sure your
+                      contact information is centralized, secure, and easily
+                      accessible to anyone who finds your lost pet.
+                    </p>
+                  </div>
+                </div>
+              </div>
 
-                  <p className="mb-0">
-                    So no matter which microchip standard your vet used, we're
-                    ready.
-                  </p>
+              {/* --- New Content Section: FAQ (Wrapped in Distinct Container) --- */}
+              <div className="row mt-5 cmp-faq-full-width">
+                <div className="container">
+                  <div className="row">
+                    <div className="col-lg-12">
+                      {/* H1 Title for SEO and Structure */}
+                      <h1 className="cmp-faq-main-h1">
+                        Pet Microchip Registration FAQs
+                      </h1>
+                      <h2 className="fs-3 section-title-h2 cmp-faq-header">
+                        Your Questions About Pet Microchip Protection, Answered
+                      </h2>
+                      <p className="cmp-faq-intro-text">
+                        We understand you want the best protection for your
+                        companion. Here are the answers to the most common
+                        questions about microchips and registration.
+                      </p>
+                      {/* FAQ Item 1 */}
+                      <div className="cmp-faq-card">
+                        <details className="cmp-faq-details">
+                          <summary className="cmp-faq-question">
+                            What is a pet microchip, exactly?
+                          </summary>
+                          <p className="cmp-faq-answer">
+                            A pet microchip is a tiny, rice-sized transponder
+                            implanted just under your pet's skin. It is read by
+                            a scanner, which reveals a unique ID number. It is
+                            NOT a GPS device . It cannot track your pet's
+                            location; it only serves as a permanent, scannable
+                            ID.
+                          </p>
+                        </details>
+                      </div>
+                      {/* FAQ Item 2 */}
+                      <div className="cmp-faq-card">
+                        <details className="cmp-faq-details">
+                          <summary className="cmp-faq-question">
+                            Why is registration necessary if my pet is already
+                            microchipped?
+                          </summary>
+                          <p className="cmp-faq-answer">
+                            Implantation only gives your pet a unique ID number.
+                            Registration is the critical step that links that
+                            unique ID number to your contact information in a
+                            database. Without registration, a scanner will only
+                            show a number, and the shelter won't know who to
+                            call. Registration is what makes the microchip work.
+                          </p>
+                        </details>
+                      </div>
+                      {/* FAQ Item 3 */}
+                      <div className="cmp-faq-card">
+                        <details className="cmp-faq-details">
+                          <summary className="cmp-faq-question">
+                            I don't know my pet's microchip number. What should
+                            I do?
+                          </summary>
+                          <p className="cmp-faq-answer">
+                            Don't worry! If you can't find it on your veterinary
+                            records or adoption papers, simply take your pet to
+                            any veterinarian or animal shelter. They will scan
+                            your pet for free to retrieve the microchip ID
+                            number for you.
+                          </p>
+                        </details>
+                      </div>
+                      {/* FAQ Item 4 */}
+                      <div className="cmp-faq-card">
+                        <details className="cmp-faq-details">
+                          <summary className="cmp-faq-question">
+                            My pet's microchip is from a different company. Can
+                            I still register with ChippedMonkey?
+                          </summary>
+                          <p className="cmp-faq-answer">
+                            Yes! ChippedMonkey is a universal pet recovery
+                            service. You can register any brand or
+                            manufacturer's microchip here. Our goal is to make
+                            sure your contact information is centralized,
+                            secure, and easily accessible to anyone who finds
+                            your lost pet.
+                          </p>
+                        </details>
+                      </div>
+                      {/* FAQ Item 5 (New Question) */}
+                      <div className="cmp-faq-card">
+                        <details className="cmp-faq-details">
+                          <summary className="cmp-faq-question">
+                            Do microchips replace collars and ID tags?
+                          </summary>
+                          <p className="cmp-faq-answer">
+                            No. Microchips are a permanent backup. An ID tag on
+                            a collar provides immediate visual contact
+                            information for the rescuer. A microchip is the
+                            permanent identification that remains if the collar
+                            falls off. We recommend using both!
+                          </p>
+                        </details>
+                      </div>
+                    </div>
+                  </div>
                 </div>
               </div>
 

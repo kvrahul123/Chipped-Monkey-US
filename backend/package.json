@@ -26,6 +26,7 @@
     "esl": "^11.2.1",
     "exceljs": "^4.4.0",
     "express": "^4.21.0",
+    "express-rate-limit": "^8.2.1",
     "jsonwebtoken": "^9.0.2",
     "modesl": "^1.2.1",
     "moment-timezone": "^0.5.46",
