@@ -52,13 +52,7 @@ export default function Contact() {
                 </div>
                 <ContactForm />
               </div>
-              <div className="contact_us_right_container">
-                <div className="contact_us_right_container_title">
-                  <h3>Chipped Monkey Address</h3>
-                  <p>28 Fore Street, North Petherton, Bridgwater,</p>
-                  <p>England, TA6 6PY</p>
-                </div>
-              </div>
+       
             </div>
           </div>
         </div>

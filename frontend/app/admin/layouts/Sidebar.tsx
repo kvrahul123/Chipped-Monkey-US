@@ -338,7 +338,7 @@ export default function Sidebar() {
   };
 
   const logout = () => {
-    removeLocalStorageItem("token");
+    localStorage.clear();
     router.push("/admin/auth");
   };
 

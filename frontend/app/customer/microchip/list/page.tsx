@@ -12,6 +12,15 @@ import { Modal, Button } from "react-bootstrap";
 import Image from "next/image";
 const appUrl = process.env.NEXT_PUBLIC_APP_URL;
 
+declare global {
+  interface Window {
+    appendHelcimPayIframe?: (
+      checkoutToken: string,
+      allowExit?: boolean
+    ) => void;
+  }
+}
+
 interface MicrochipOrder {
   id: number;
   order_id: string;
@@ -29,6 +38,7 @@ export default function MicrochipOrdersPage() {
   const [currentPage, setCurrentPage] = useState(1);
   const [itemsPerPage] = useState(10);
   const token = getLocalStorageItem("token");
+  const [isLoading, setIsLoading] = useState(false);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [selectedMicrochip, setSelectedMicrochip] = useState<string>("");
 
@@ -107,10 +117,10 @@ export default function MicrochipOrdersPage() {
     indexOfFirstmicrochips,
     indexOfLastmicrochips
   );
-
   const handleBuyNow = async (selectedPlan: string, microchip: string) => {
     try {
-      let token = getLocalStorageItem("token");
+      setIsLoading(true);
+      const token = getLocalStorageItem("token");
 
       const res = await axios.post(
         `${appUrl}frontend/microchip/payment`,
@@ -119,42 +129,31 @@ export default function MicrochipOrdersPage() {
           selected_plan: selectedPlan,
         },
         {
-          headers: {
-            Authorization: `Bearer ${token}`,
-          },
+          headers: { Authorization: `Bearer ${token}` },
         }
       );
 
-      // ✅ Only if API returns 200
       if (res.data.statusCode === 200) {
-        const { nextUrl, formFields } = res.data;
-
-        // Auto-submit hidden form
-        const form = document.createElement("form");
-        form.method = "POST";
-        form.action = nextUrl;
-
-        Object.entries(formFields).forEach(([key, value]) => {
-          const input = document.createElement("input");
-          input.type = "hidden";
-          input.name = key;
-          input.value = value;
-          form.appendChild(input);
-        });
-
-        document.body.appendChild(form);
-        form.submit();
+        setIsModalOpen(false);
+        openHelcimModal(res.data.checkoutToken);
       } else {
-        // Show toast for errors
-        toast.error(res.data.message || "Something went wrong");
+        toast.error(res.data.message);
       }
-    } catch (err: any) {
-      console.error(err);
-      toast.error(
-        err.response?.data?.message || "Failed to create payment session"
-      );
+    } catch (err) {
+      console.error("Payment initialization error", err);
+      toast.error("Payment initialization failed");
+    } finally {
+      setIsLoading(false); // stop loading
     }
   };
+  const openHelcimModal = (checkoutToken: string) => {
+    if (!window.appendHelcimPayIframe) {
+      toast.error("Payment service not loaded. Please refresh.");
+      return;
+    }
+    window.appendHelcimPayIframe(checkoutToken, true);
+  };
+
   const getPackageStyle = (type: string) => {
     switch (type?.toLowerCase()) {
       case "standard":
@@ -218,10 +217,10 @@ export default function MicrochipOrdersPage() {
                         <th scope="col">Microchip number</th>
                         <th scope="col">Petkeeper's name </th>
                         <th scope="col">Pet's name </th>
-                        <th scope="col">Pet's status </th>
                         <th scope="col">Package Type </th>
                         <th scope="col">Payment Status</th>
                         <th scope="col">Status </th>
+                        <th scope="col">Purchase</th>
                         <th scope="col">Actions</th>
                       </tr>
                     </thead>
@@ -242,9 +241,7 @@ export default function MicrochipOrdersPage() {
                           <td>{microchips.pet_keeper}</td>
                           <td>{microchips.pet_name}</td>
 
-                          <td>{microchips.pet_status}</td>
                           <td>
-                            
                             <span
                               style={{
                                 padding: "4px 10px",
@@ -279,7 +276,7 @@ export default function MicrochipOrdersPage() {
                           </td>
 
                           <td>
-                            {microchips.payment_status !== "paid" &&
+                                                        {microchips.payment_status !== "paid" &&
                               microchips.status != "active" && (
                                 <span
                                   onClick={() => {
@@ -288,10 +285,12 @@ export default function MicrochipOrdersPage() {
                                     );
                                     setIsModalOpen(true);
                                   }}
-                                  className="btn btn-icon btn-sm btn-info-transparent rounded-pill mx-2">
-                                  <i className="fa-solid fa-money-bill-wave"></i>
+                                  className="btn btn-icon">
+                                  <button className="btn btn-primary">Buy Now</button>
                                 </span>
                               )}
+                          </td>
+                          <td>
 
                             <Link
                               href={`/customer/microchip/edit/${microchips.id}`}
@@ -335,113 +334,81 @@ export default function MicrochipOrdersPage() {
             </Modal.Header>
 
             <Modal.Body>
-              <div className="row mt-3 payment_card">
-                {/* Standard */}
-                <div className="col-lg-4 mb-4">
+              <div className="row mt-5 payment_card">
+                {/* Lifetime Registration */}
+                <div className="col-lg-6 mb-4">
                   <div className="packages-container">
                     <div className="package-container-title">
-                      <h3>Standard</h3>
-                    </div>
-
-                    <div className="package-container-payment">
-                      <h4 className="d-flex justify-content-center align-items-center payment-middle">
-                        <span>£</span>15.00
-                        <span className="packagepayment_type">Lifetime</span>
-                      </h4>
+                      <h3>Lifetime Registration (One-Time Payment)</h3>
                     </div>
 
                     <div className="package-container-description">
                       <ul>
-                        <li>Pet microchip registration</li>
-                        <li>Demo Video</li>
+                        <li>Includes everything in Free +</li>
+                        <li>Lost animal instant alerts (email/SMS)</li>
+                        <li>Printable “FOUND” posters with QR</li>
+                        <li>Vet / shelter notes</li>
+                        <li>Ownership transfer history</li>
+                        <li>Certificate of registration (PDF)</li>
+                        <li>Priority lookup visibility</li>
                       </ul>
                     </div>
 
+                    <div className="package-container-payment">
+                      <h4 className="d-flex justify-content-center align-items-center payment-middle">
+                        <span>$</span>49
+                      </h4>
+                    </div>
+
                     <div className="package-btn-container">
-                      <Button
-                        variant="primary"
-                        className="w-100"
+                      <button
+                        type="button"
+                        className="btn btn-primary"
                         onClick={() =>
-                          handleBuyNow("standard", selectedMicrochip)
+                          handleBuyNow("lifetime", selectedMicrochip)
                         }>
-                        Buy Now
-                      </Button>
+                        {isLoading ? "Purchasing..." : "Buy Now"}
+                      </button>
                     </div>
                   </div>
                 </div>
 
-                {/* Premium */}
-                <div className="col-lg-4 mb-4">
+                {/* Annual Protection Plan */}
+                <div className="col-lg-6 mb-4">
                   <div className="packages-container">
                     <div className="package-container-title">
-                      <h3>Premium</h3>
-                    </div>
-
-                    <div className="package-container-payment">
-                      <h4 className="d-flex justify-content-center align-items-center payment-middle">
-                        <span>£</span>50.00
-                        <span className="packagepayment_type">Yearly</span>
-                      </h4>
+                      <h3>Annual Protection Plan (Recurring Revenue)</h3>
                     </div>
 
                     <div className="package-container-description">
                       <ul>
-                        <li>Location pet</li>
-                        <li>Contact vet email</li>
-                        <li>Lost pet listings</li>
-                        <li>24/7 customer care</li>
-                        <li>Demo Video</li>
-                        <li>Pet microchip registration</li>
+                        <li>Includes everything above +</li>
+                        <li>24/7 lost animal response workflow</li>
+                        <li>SMS + WhatsApp alerts</li>
+                        <li>WhatsApp lost/found report</li>
+                        <li>Geo-alert radius</li>
+                        <li>Theft / dispute timestamped records</li>
+                        <li>Insurance-ready documentation</li>
+                        <li>Multi-animal dashboard</li>
+                        <li>Concierge ownership transfer</li>
                       </ul>
-                    </div>
-
-                    <div className="package-btn-container">
-                      <Button
-                        variant="primary"
-                        className="w-100"
-                        onClick={() =>
-                          handleBuyNow("premium", selectedMicrochip)
-                        }>
-                        Buy Now
-                      </Button>
-                    </div>
-                  </div>
-                </div>
-
-                {/* Platinum */}
-                <div className="col-lg-4 mb-4">
-                  <div className="packages-container">
-                    <div className="package-container-title">
-                      <h3>Platinum</h3>
                     </div>
 
                     <div className="package-container-payment">
                       <h4 className="d-flex justify-content-center align-items-center payment-middle">
-                        <span>£</span>3.99
-                        <span className="packagepayment_type">Monthly</span>
+                        <span>$</span>19.99
                       </h4>
                     </div>
 
-                    <div className="package-container-description">
-                      <ul>
-                        <li>Location pet</li>
-                        <li>Contact vet email</li>
-                        <li>Lost pet listings</li>
-                        <li>24/7 customer care</li>
-                        <li>Demo Video</li>
-                        <li>Pet microchip registration</li>
-                      </ul>
-                    </div>
-
                     <div className="package-btn-container">
-                      <Button
-                        variant="primary"
-                        className="w-100"
+                      <button
+                        type="button"
+                        className="btn btn-primary"
                         onClick={() =>
-                          handleBuyNow("platinum", selectedMicrochip)
+                          handleBuyNow("annual", selectedMicrochip)
                         }>
-                        Buy Now
-                      </Button>
+                        {isLoading ? "Purchasing..." : "Enable auto-renewal"}
+                      </button>
                     </div>
                   </div>
                 </div>

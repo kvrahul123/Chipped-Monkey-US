@@ -2,7 +2,7 @@ import CommonLayout from "../frontend/layouts/CommonLayouts";
 import Image from "next/image";
 import { generateCommonMetadata } from "../utils/metadata";
 import { Metadata } from "next";
- 
+
 const frontendUrl = process.env.NEXT_PUBLIC_FRONTEND_URL;
 const appUrl = process.env.NEXT_PUBLIC_APP_URL; // Your API URL
 
@@ -41,9 +41,10 @@ export default function Shop() {
         <div className="container pt-7 pt-md-7 pb-8">
           <div className="row">
             <div className="col-lg-12 col-md-12">
-              <h2>
-                Trusted UK Pet Microchip Registry for Lost &amp; Found Pets
-              </h2>
+              <h1>
+                About Chipped Monkey: Your Trusted National Pet Microchip
+                Registry
+              </h1>
 
               <div className="row mt-3 mb-5 d-flex align-items-center">
                 <div className="col-md-3">
@@ -57,165 +58,68 @@ export default function Shop() {
                 </div>
                 <div className="col-md-9">
                   <p>
-                    At <a className="link-we">ChippedMonkey.com</a>, we are
-                    dedicated to solving one of the most heartbreaking
-                    challenges pet keepers face—losing a beloved animal. With
-                    over 25 years of experience in the pet industry, we’ve seen
-                    the heartache that comes with a lost pet and the relief when
-                    that pet is safely returned home. Our mission is simple yet
-                    powerful: to help reunite lost, microchipped pets with their
-                    rightful keepers through a reliable, UK-based microchip
-                    registration service.
-                  </p>
-                  <p>
-                    In a world where millions of pets are microchipped, too many
-                    are never reunited with their families due to improper or
-                    missing registration. Our goal is to close this
-                    gap—providing keepers, shelters, vets, and animal control
-                    professionals across the UK with a central, trusted database
-                    that makes finding lost pets faster, easier, and more
-                    effective.
+                    ​At Chipped Monkey, we believe that no pet should ever be
+                    truly lost. Our mission is to provide a secure, reliable,
+                    and universal pet microchip registration service that gives
+                    pet parents the ultimate peace of mind. As a vital link in
+                    the national pet recovery chain, we specialize in bringing
+                    families back together through advanced technology and
+                    seamless database integration. ​By choosing Chipped Monkey,
+                    you are ensuring that your dog or cat is protected by a
+                    registry that is visible to every animal shelter and
+                    veterinary clinic in the United States.
                   </p>
                 </div>
               </div>
 
               <div className="row">
                 <div className="col-md-12 mb-5">
-                  <h3>Our Mission</h3>
+                  <h2>
+                    A Proud AAHA Universal Pet Microchip Lookup Participant
+                  </h2>
                   <p className="mb-0">
-                    Our mission at <a className="link-we">ChippedMonkey.com</a>{" "}
-                    is to ensure that every microchipped pet in the UK is
-                    registered in an up-to-date, accessible system that can be
-                    searched quickly in the event a pet goes missing. We aim to
-                    become the most trusted pet microchip registration provider
-                    in the UK by focusing on accuracy, reliability, and ease of
-                    use.
+                    ​The strength of a pet recovery database lies in its
+                    accessibility. We are a recognized participant in the AAHA
+                    (American Animal Hospital Association) Universal Pet
+                    Microchip Lookup tool.
+                  </p>
+                  <p>
+                    ​This is the industry-standard search engine used by animal
+                    professionals nationwide. When a lost pet is found and
+                    scanned, the AAHA tool instantly identifies Chipped Monkey
+                    as the primary registry. This integration allows rescuers to
+                    find your contact information faster, significantly
+                    increasing the chances of a rapid pet reunion.
+                  </p>
+                </div>
+
+                <div className="col-md-12 mb-5">
+                  <h2>Why Register with the Chipped Monkey Network?</h2>
+                  <p className="mb-0">
+                    ​In the world of lost pet prevention, seconds matter. We
+                    have designed our platform to be the most efficient online
+                    pet microchip registry available.
+                  </p>
+                  <p>
+                    ​This is the industry-standard search engine used by animal
+                    professionals nationwide. When a lost pet is found and
+                    scanned, the AAHA tool instantly identifies Chipped Monkey
+                    as the primary registry. This integration allows rescuers to
+                    find your contact information faster, significantly
+                    increasing the chances of a rapid pet reunion.
                   </p>
                 </div>
               </div>
 
               <div className="row">
-                <div className="col-md-6 mb-4">
-                  <div className="bg-about-a bg-about-a1">
-                    <h3>We believe in</h3>
-                    <p>
-                      Making it easy for pet keepers to register their pets.
-                    </p>
-                    <p>
-                      Offering a platform that is accessible to professionals
-                      handling lost animals.
-                    </p>
-                    <p>Encouraging responsible pet keepership across the UK.</p>
-                  </div>
-                </div>
-                <div className="col-md-6 mb-4">
-                  <div className="bg-about-a">
-                    <h3>Why Microchipping Matters</h3>
-                    <p>
-                      Microchipping is one of the most effective ways to ensure
-                      a lost pet can be returned home safely. Each pet’s
-                      microchip contains a unique ID number that links to the
-                      keeper&apos;s contact information in a secure database.
-                      But the microchip alone is not enough—proper registration
-                      is critical.
-                    </p>
-
-                    <p>
-                      Every year, thousands of pets in the UK are microchipped
-                      but never returned home simply because their chip was not
-                      registered or the contact details were outdated. That’s
-                      where
-                      <a className="link-we">ChippedMonkey.com</a> makes a
-                      difference.
-                    </p>
-                  </div>
-                </div>
-              </div>
-
-              <div className="row">
-                <div className="col-md-6 mb-4">
-                  <div className="bg-about-a">
-                    <h3>We ensure</h3>
-                    <p>Your microchip data is securely stored.</p>
-                    Your contact details are kept current.<p></p>
-                    <p>
-                      The recovery process is straightforward for animal
-                      professionals.
-                    </p>
-                  </div>
-                </div>
-                <div className="col-md-6 mb-4">
-                  <div className="bg-about-a bg-about-a1">
-                    <h3>A UK-Based Service You Can Trust</h3>
-                    <p>
-                      We’re proudly based in the United Kingdom, serving pet
-                      keepers and professionals from all across England,
-                      Scotland, Wales, and Northern Ireland.
-                    </p>
-                  </div>
-                </div>
-              </div>
-
-              <div className="row">
-                <div className="col-md-6 mb-4">
-                  <div className="bg-about-a bg-about-a1">
-                    <h3>Our services are tailored to</h3>
-                    <p>Meet UK microchipping compliance.</p>
-                    <p>Support UK-based shelters, vets, and local councils.</p>
-
-                    <p>
-                      Serve all types of pets—from cats and dogs to rabbits and
-                      exotic animals.
-                    </p>
-                  </div>
-                </div>
-
-                <div className="col-md-6 mb-4">
-                  <div className="bg-about-a">
-                    <h3>Lost &amp; Found: Our Core Focus</h3>
-                    <p>
-                      At <a className="link-we">ChippedMonkey.com</a>, we
-                      specialize in helping to reunite lost pets with their
-                      families. Our team works closely with lost and found
-                      networks, rescue organisations, vets, and local
-                      authorities to facilitate the recovery process. When a pet
-                      with a registered microchip is found, time is of the
-                      essence. Our platform ensures a swift lookup process and
-                      immediate access to the contact information needed to get
-                      pets back home safely.
-                    </p>
-                  </div>
-                </div>
-              </div>
-
-              <div className="row">
-                <div className="col-md-6">
-                  <div className="bg-about-a">
-                    <h3>Key benefits of our system include</h3>
-
-                    <p>24/7 microchip lookup capability.</p>
-
-                    <p>Real-time keeper notification options.</p>
-
-                    <p>
-                      Integration with lost pet networks. <br /> <br />
-                      We also provide guidance for pet keeper on what to do if
-                      their pet goes missing, and we support the professionals
-                      who are on the frontlines of pet recovery.
-                    </p>
-                  </div>
-                </div>
-              </div>
-
-              <div className="row mt-5">
                 <div className="col-md-12 mb-4">
                   <h1 className="mb-0">How It Works ?</h1>
                 </div>
               </div>
 
               <div className="row">
-                <div className="col-md-3">
-                  <div className="stepsall steps1">
+                <div className="col-md-4">
+                  <div className="stepsall steps1 h-100 h-100">
                     <div>
                       <Image
                         src="/assets/images/step-icons1.png"
@@ -225,16 +129,22 @@ export default function Shop() {
                       />
                     </div>
                     <span>Step 01</span>
-                    <h4>Register Your Pet</h4>
+                    <h3>Universal Compatibility for All Chips</h3>
                     <p>
-                      Enter your pet’s microchip number, your contact details,
-                      and a few important facts about your pet.
+                      ​We are a universal pet registry. We support every
+                      microchip brand and frequency, including:
+                      <ul>
+                        <li>​15-digit ISO Standard (134.2 kHz)</li>​
+                        <li>10-digit Non-ISO (125 kHz)</li>​
+                        <li>9-digit Avid (128 kHz)</li>
+                      </ul>
                     </p>
+                    <p>Whether your pet has a chip from HomeAgain, Avid, 24PetWatch, or AKC Reunite, Chipped Monkey can securely store and protect their ID.</p>
                   </div>
                 </div>
 
-                <div className="col-md-3">
-                  <div className="stepsall steps1">
+                <div className="col-md-4">
+                  <div className="stepsall steps1 h-100">
                     <div>
                       <Image
                         src="/assets/images/step-icons2.png"
@@ -244,16 +154,15 @@ export default function Shop() {
                       />
                     </div>
                     <span>Step 02</span>
-                    <h4>Secure Your Information</h4>
+                    <h3>User-Friendly Profile Management</h3>
                     <p>
-                      We store your data securely and allow you to update it any
-                      time, ensuring it&apos;s always current.
+                     ​Your life changes—you move homes, change phone numbers, or get a new email. Our secure portal allows you to update your recovery information 24/7. An updated profile is the #1 factor in successfully returning a lost pet, and we make that process effortless for pet owners.
                     </p>
                   </div>
                 </div>
 
-                <div className="col-md-3">
-                  <div className="stepsall steps1">
+                <div className="col-md-4">
+                  <div className="stepsall steps1 h-100">
                     <div>
                       <Image
                         src="/assets/images/step-icons3.png"
@@ -263,206 +172,90 @@ export default function Shop() {
                       />
                     </div>
                     <span>Step 03</span>
-                    <h4>Pet Gets Lost?</h4>
+                    <h3> Built for Professionals and Pet Parents</h3>
                     <p>
-                      If your pet is found, a vet, shelter, or animal warden can
-                      search the microchip number in our system.
+                     ​While our interface is simple for owners, our backend meets the rigorous technical standards required by the AAHA network and national animal welfare organizations. We bridge the gap between complex technology and the simple love you have for your pet.
+
                     </p>
                   </div>
                 </div>
 
-                <div className="col-md-3">
-                  <div className="stepsall steps1">
-                    <div>
-                      <Image
-                        src="/assets/images/step-icons4.png"
-                        width={85}
-                        height={85}
-                        alt="Step 04"
-                      />
+            
+              </div>
+              {/* --- New Content Section: FAQ (Wrapped in Distinct Container) --- */}
+              <div className="row mt-5 cmp-faq-full-width">
+                <div className="container">
+                  <div className="row">
+                    <div className="col-lg-12">
+                    
+                      <h2 className="fs-3 section-title-h2 cmp-faq-header">
+                        Frequently Asked Questions
+                      </h2>
+                 
+                      {/* FAQ Item 1 */}
+                      <div className="cmp-faq-card">
+                        <details className="cmp-faq-details">
+                          <summary className="cmp-faq-question">
+                            How do I register my pet's microchip with Chipped Monkey?
+                          </summary>
+                          <p className="cmp-faq-answer">
+                           ​Registration is easy! Visit our portal, enter your pet’s unique 9, 10, or 15-digit microchip ID, and provide your contact details. Your pet will be instantly added to our searchable national database.
+
+                          </p>
+                        </details>
+                      </div>
+                      {/* FAQ Item 2 */}
+                      <div className="cmp-faq-card">
+                        <details className="cmp-faq-details">
+                          <summary className="cmp-faq-question">
+                           Is there a fee for Chipped Monkey registration?
+                          </summary>
+                          <p className="cmp-faq-answer">
+                           ​We offer transparent and accessible registration options to ensure every pet can be protected. Unlike other registries that hide your data behind expensive annual subscriptions, Chipped Monkey focuses on lifetime recovery visibility.
+                          </p>
+                        </details>
+                      </div>
+                      {/* FAQ Item 3 */}
+                      <div className="cmp-faq-card">
+                        <details className="cmp-faq-details">
+                          <summary className="cmp-faq-question">
+                             Can any vet find me through Chipped Monkey?
+
+                          </summary>
+                          <p className="cmp-faq-answer">
+                        ​Yes. Because we are integrated with the AAHA Universal Lookup, any veterinarian or shelter with an internet connection can identify Chipped Monkey as your pet’s registry and facilitate your contact.
+
+                          </p>
+                        </details>
+                      </div>
+                      {/* FAQ Item 4 */}
+                      <div className="cmp-faq-card">
+                        <details className="cmp-faq-details">
+                          <summary className="cmp-faq-question">
+                       What makes Chipped Monkey different from other registries?
+                          </summary>
+                          <p className="cmp-faq-answer">
+                            ​Our commitment to humanized pet recovery. We don't just store numbers; we provide a community-focused safety net that is optimized for both Google search and professional animal recovery tools.
+
+                          </p>
+                        </details>
+                      </div>
+                      {/* FAQ Item 5 (New Question) */}
+                      <div className="cmp-faq-card">
+                        <details className="cmp-faq-details">
+                          <summary className="cmp-faq-question">
+                            Join the Chipped Monkey Mission
+                          </summary>
+                          <p className="cmp-faq-answer">
+                           ​Don't wait for an emergency to happen. Ensure your pet has a voice when they are lost. Register with Chipped Monkey today and join thousands of pet parents who trust us to be their partner in pet safety and recovery.
+                          </p>
+                        </details>
+                      </div>
                     </div>
-                    <span>Step 04</span>
-                    <h4>Reunification</h4>
-                    <p>
-                      Once the pet is matched, the keeper is notified and
-                      reunited with their pet as quickly as possible.
-                    </p>
                   </div>
                 </div>
               </div>
 
-              <div className="row mt-3">
-                <div className="col-md-12">
-                  <p>It’s that simple—and that important.</p>
-                </div>
-              </div>
-
-              <div className="row mt-2">
-                <div className="col-md-12 mb-4">
-                  <div className="bg-abo-all">
-                    <h3 className="mb-0">Education &amp; Awareness</h3>
-                    <p className="mb-0">
-                      Part of our mission includes educating pet keepers across
-                      the UK about the importance of microchip registration and
-                      regular data updates. Many keepers don’t realise that
-                      registering a microchip is separate from having it
-                      implanted—and that failure to register makes the chip
-                      useless in helping return a lost animal.
-                    </p>
-                  </div>
-                </div>
-              </div>
-
-              <div className="row mt-2">
-                <div className="col-md-12 mb-4">
-                  <div className="bg-abo-all">
-                    <h3 className="mb-0">We actively:</h3>
-                    <p>Share educational content and guides.</p>
-
-                    <p>
-                      Work with vet clinics and rescue groups to promote
-                      awareness.
-                    </p>
-
-                    <p className="mb-0">
-                      Encourage pet keepers to check and update their chip
-                      details regularly.
-                    </p>
-                  </div>
-                </div>
-              </div>
-
-              <div className="row mt-2">
-                <div className="col-md-12 mb-4">
-                  <div className="bg-abo-all">
-                    <h3 className="mb-0">Our Experience</h3>
-                    <p className="mb-0">
-                      With more than 25 years of experience in the pet industry,
-                      our team understands the challenges involved in lost pet
-                      recovery. We’ve worked in pet care, veterinary services,
-                      shelter management, and animal control. This gives us a
-                      unique, 360-degree view of the issues—one we’ve used to
-                      build a system that actually works for both pet keepers
-                      and professionals.
-                    </p>
-                  </div>
-                </div>
-              </div>
-
-              <div className="row mt-2">
-                <div className="col-md-12 mb-4">
-                  <div className="bg-abo-all">
-                    <h3 className="mb-0">Our Commitment to Data Security</h3>
-                    <p className="mb-0">
-                      Your privacy and data protection are critically important
-                      to us. We follow best practices in data security and
-                      comply with all UK GDPR regulations. All microchip and
-                      keeper information stored in our system is encrypted and
-                      handled with strict confidentiality.
-                    </p>
-                  </div>
-                </div>
-              </div>
-
-              <div className="row mt-2">
-                <div className="col-md-12 mb-4">
-                  <div className="bg-abo-all">
-                    <h3 className="mb-0">
-                      Why Choose <a className="link-we">ChippedMonkey.com</a>?
-                    </h3>
-                    <p>
-                      UK-Based: We’re built specifically for UK pet keepers and
-                      professionals.
-                    </p>
-
-                    <p>✔ Experienced: Over 25 years in the pet industry.</p>
-
-                    <p>
-                      ✔ Reliable &amp; Secure: Safe storage of your pet’s
-                      microchip data.
-                    </p>
-
-                    <p>
-                      ✔ Recognised: Widely used and trusted across animal
-                      recovery networks.
-                    </p>
-
-                    <p>
-                      ✔ User-Friendly: Simple registration and update process.
-                    </p>
-
-                    <p className="mb-0">
-                      Whether you’re registering a new puppy, updating your
-                      contact info, or searching for a lost pet, we make the
-                      process quick and painless.
-                    </p>
-                  </div>
-                </div>
-              </div>
-
-              {/* <div className="row mt-2">
-                <div className="col-md-12 mb-4">
-                  <div className="bg-abo-all">
-                    <h3 className="mb-0">Success Stories</h3>
-                    <h4>Milo the Spaniel – Birmingham</h4>
-                    <p>
-                      Milo went missing during a fireworks display and was found
-                      10 miles away two days later. Thanks to a local vet
-                      scanning his microchip and accessing our registry, he was
-                      home within hours.
-                    </p>
-
-                    <h4>Luna the Cat – Glasgow</h4>
-                    <p className="mb-0">
-                      After slipping out an open window, Luna was taken in by a
-                      kind neighbour who took her to a shelter. The shelter
-                      checked her chip, pulled her record from our database, and
-                      Luna was back with her family the same day. <br />
-                      These are just a few of the thousands of successful
-                      reunions we’ve helped make possible. <br /> Community
-                      &amp; Partnerships
-                    </p>
-                  </div>
-                </div>
-              </div> */}
-
-              <div className="row mt-5">
-                <div className="col-md-12 mb-4">
-                  <div className="bg-abo-all">
-                    <h3 className="mb-0">
-                      We believe in collaboration. That’s why we partner with:
-                    </h3>
-                    <p>Veterinary practices</p>
-                    <p>Local authorities and dog wardens</p>
-                    <p>Rescue centres and rehoming charities</p>
-                    <p>Pet stores and breeders</p>
-                    <p>
-                      Together, we’re building a stronger network for pet
-                      identification and recovery throughout the UK.
-                    </p>
-                    <p>Compliance &amp; Accreditation</p>
-
-                    <p>
-                      <b>
-                        How You Can Help You can be part of the solution.
-                        Here&apos;s how:
-                      </b>
-                    </p>
-                    <p>Register your pets in our database.</p>
-                    <p>Check and update your microchip details regularly.</p>
-                    <p>Encourage friends and family to do the same.</p>
-                    <p>
-                      Support lost &amp; found initiatives in your local
-                      community.
-                    </p>
-                    <p className="mb-0">
-                      Every registration helps close the gap in the pet
-                      microchip system and brings us closer to 100%
-                      recoverability for lost pets.
-                    </p>
-                  </div>
-                </div>
-              </div>
             </div>
           </div>
         </div>

@@ -31,7 +31,7 @@ export default function TransactionList({ transactions = [] }: { transactions: T
         <div className="wallet-table-inner-content">
           <h3>Requested Amount</h3>
           <span className="wallet-table-transaction_amount">
-            £{tx.requested_amount || "0.00"}
+            ${tx.requested_amount || "0.00"}
           </span>
         </div>
 
@@ -39,7 +39,7 @@ export default function TransactionList({ transactions = [] }: { transactions: T
         <div className="wallet-table-inner-content">
           <h3>Sent Amount</h3>
           <span className="wallet-table-transaction_amount">
-            £{tx?.paid_amount || "0.00"}
+            ${tx?.paid_amount || "0.00"}
           </span>
         </div>
 
@@ -49,7 +49,7 @@ export default function TransactionList({ transactions = [] }: { transactions: T
 
           {tx.details ? (
             <span>
-              Amount: £{tx.details.amount} | Message: {tx.details.message} |
+              Amount: ${tx.details.amount} | Message: {tx.details.message} |
               Status: {tx.details.status} | Date: {tx.details.date}
             </span>
           ) : (

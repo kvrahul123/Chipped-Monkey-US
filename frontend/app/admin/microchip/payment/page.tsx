@@ -189,7 +189,7 @@ const downloadInvoice = async (row: any) => {
                           {/* <td>{microchips.microchip_id}</td> */}
 
                           <td>{microchips.payment_type}</td>
-                           <td>£{microchips.total_amount}</td>
+                           <td>${microchips.total_amount}</td>
                           <td>{microchips.date}</td>
                           <td>{microchips.package_type}</td>
                           <td style={{ fontSize: '18px' }}>

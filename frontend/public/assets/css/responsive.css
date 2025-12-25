@@ -4,11 +4,17 @@
   }
 }
 @media (max-width: 768px) {
+  .mobile_show{
+    display: block !important;
+  }
   .banner-popular-lists-ul {
     flex-direction: column;
   }
   .mobile-none {
     display: none;
+  }
+  .footer-app-store{
+    width: 165px !important;
   }
   .header-container {
     display: flex;
@@ -16,6 +22,9 @@
   }
   .header-menus,.header_user_menu{
     display: none;
+  }
+  .banner-container-content{
+    margin-top: 0px;
   }
   .header_mobile_icon{
     display: block;
@@ -63,7 +72,7 @@ height: 80px;
     padding-bottom: 7px;
   }
   .header-menu-li > a {
-    color: #ffff;
+    color: #ffff !important;
     font-size: 14px;
     display: flex;
     flex-direction: column;
@@ -80,6 +89,25 @@ height: 80px;
     height: 100px;
     padding: 15px 20px;
   }
+  #helcimPayIframe{
+    width: 100vw !important;
+    height: 100vh !important;
+    z-index: 99999 !important;
+  }
+  .hp-pay-modal.hds-o-modal.default.hds-o-modal--venti .hds-o-modal__block{
+        top: 0px !important;
+        max-height: unset !important;
+  }
+  .hds-o-modal:not(.fullscreen):not(.hds-o-modal--venti) .hds-o-modal__block{
+    height: 100vh !important;
+  }
+  .hds-o-modal.hds-o-modal--venti:not(.fullscreen) .hds-o-modal__block{
+               height: 100%;
+               top: 0px !important;
+    overflow: auto;
+    max-height: unset !important;
+  }
+
   .banner-main-container {
     padding: 20px;
     margin-top: 0em;
@@ -88,7 +116,11 @@ height: 80px;
     font-size: 18px;
   }
   .main-page-container {
-    margin-top: 20px;
+    margin: 0px 0px 0px 0px ;
+    padding: 0px;
+  }
+  .register-footer-link {
+    margin-bottom: 10px;
   }
   .register-monkey-btn > button {
     width: 100%;
@@ -235,7 +267,7 @@ margin-right: 0px;
     z-index: 100000;
   }
     .banner-heading-title > h4 {
-    font-size: 40px;
+    font-size: 34px;
     margin-top: 10px;
     line-height: 43px;
   }
@@ -315,6 +347,10 @@ margin-right: 0px;
   }
   .cm-heading-secondary.cm-faq-heading:after{
     top: 68px;
+  }
+  .underline-title{
+    font-size: 34px;
+    line-height: 45px;
   }
 }
 /* 

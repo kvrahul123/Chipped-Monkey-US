@@ -12,9 +12,17 @@ import {
   removeLocalStorageItem,
 } from "../common/LocalStorage";
 import { useEffect, useRef, useState } from "react";
+import Script from "next/script";
 const secret = process.env.NEXT_PUBLIC_HASH_SECRET as string;
 const appUrl = process.env.NEXT_PUBLIC_APP_URL;
 const googleMapsKey = process.env.NEXT_PUBLIC_GOOGLE_MAPS_API_KEY || "";
+
+
+declare global {
+  interface Window {
+    appendHelcimPayIframe?: (checkoutToken: string, allowExit?: boolean) => void;
+  }
+}
 
 export default function Checkout() {
   const [isLoggedIn, setisLoggedIn] = useState(false);
@@ -39,6 +47,15 @@ export default function Checkout() {
     terms: Yup.boolean().oneOf([true], "You must accept terms"),
   });
 
+    const openHelcimModal = (checkoutToken: string) => {
+  if (!window.appendHelcimPayIframe) {
+    toast.error("Payment service not loaded. Please refresh.");
+    return;
+  }
+
+  window.appendHelcimPayIframe(checkoutToken, true);
+    };
+  
   const fetchExistingAddress = async (setFieldValue: any) => {
     try {
       const res = await fetch(`${appUrl}frontend/order/addresses`, {
@@ -111,23 +128,11 @@ export default function Checkout() {
       });
 
       const data = await res.json();
-
-      if (data.nextUrl && data.formFields) {
-        const form = document.createElement("form");
-        form.method = "POST";
-        form.action = data.nextUrl;
-
-        for (const key in data.formFields) {
-          const input = document.createElement("input");
-          input.type = "hidden";
-          input.name = key;
-          input.value = data.formFields[key];
-          form.appendChild(input);
-        }
-
-        document.body.appendChild(form);
-        form.submit();
-      }
+    if (data.statusCode === 200) {
+      openHelcimModal(data.checkoutToken);
+    } else {
+      toast.error(data.message);
+    }
     } catch (error) {
       console.error(error);
     } finally {
@@ -603,7 +608,7 @@ export default function Checkout() {
 
                               <button
                                 type="submit"
-                                className="btn btn-primary mt-4">
+                                className="btn btn-primary mt-4 mb-4">
                                 Purchase Now
                               </button>
                             </div>

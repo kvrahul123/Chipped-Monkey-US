@@ -10,20 +10,37 @@ import { toast, ToastContainer } from "react-toastify";
 import { useRouter } from "next/navigation";
 import axios from "axios";
 import Select from "react-select";
+import { breedsByType, colorOptions } from "@/app/common/data";
 import { Loader } from "@googlemaps/js-api-loader";
+import ReactSelect from "react-select";
 const secret = process.env.NEXT_PUBLIC_HASH_SECRET as string;
 const appUrl = process.env.NEXT_PUBLIC_APP_URL; // Your API URL
 
 import { getLocalStorageItem } from "@/app/common/LocalStorage";
-import { EncryptData,DecryptData } from "@/app/common/HashData";
+import { EncryptData, DecryptData } from "@/app/common/HashData";
+
+declare global {
+  interface Window {
+    appendHelcimPayIframe?: (
+      checkoutToken: string,
+      allowExit?: boolean
+    ) => void;
+  }
+}
 
 export default function MicrochipCreatePage() {
   const router = useRouter();
   const token = getLocalStorageItem("token");
+  const [isLoading, setIsLoading] = useState(false);
   const [isPaymentCardOpen, setIsPaymentCardOpen] = useState(false);
   const addressRef = useRef(null);
-  const[microchip_paymentDetails,setmicrochip_paymentDetails]=useState([]);
-
+  const [microchip_paymentDetails, setmicrochip_paymentDetails] = useState([]);
+  const animalOptions = [
+    { value: "Dog", label: "Dog" },
+    { value: "Cat", label: "Cat" },
+    { value: "Rabbit", label: "Rabbit" },
+    { value: "Exotic", label: "Exotic animal" },
+  ];
   // Options for Pet Status
   const petStatusOptions = [
     { value: "", label: "Select Pet status" },
@@ -70,42 +87,44 @@ export default function MicrochipCreatePage() {
 
         const len = value.length;
 
-        // 1️⃣ 15-digit numeric
+        // 1️⃣ 15-digit numeric (ISO FDX-B)
         if (/^\d+$/.test(value)) {
           if (len !== 15) {
             return this.createError({
-              message: "Invalid length – 15-digit numeric microchips required.",
+              message:
+                "The length appears to be incorrect. A microchip number is typically 15 digits long", //for this exact 15 digits only numbers
             });
           }
           return true;
         }
 
-        // 2️⃣ 10-character alphanumeric
-        if (/^[A-Za-z0-9]+$/.test(value)) {
+        // 2️⃣ 10-character alphanumeric (ISO format)
+        if (/^\d{9}[A-Za-z0-9]$/.test(value)) {
+          // <-- updated regex
           if (len !== 10) {
             return this.createError({
               message:
-                "Invalid length – 10-character alphanumeric microchips required.",
+                "The length appears to be incorrect. An Alpha numeric microchip number is typically 10 digits long", // for this exact 9 digits numbers and one numeric
             });
           }
           return true;
         }
 
-        // 3️⃣ AVID format (letters, numbers, *)
-        if (/^[A-Za-z0-9*]+$/.test(value)) {
+        // 3️⃣ AVID format (legacy / non-ISO)
+        if (/^[A-Za-z]{4}(\d{5}|\d{9})$/.test(value)) {
           const count = value.replace(/\*/g, "").length;
           if (count < 9 || count > 13) {
             return this.createError({
               message:
-                "Incorrect length – AVID microchips must be 9–13 characters.",
+                "The length appears to be incorrect. An AVID microchip number is typically 9/13 digits long", //for tis exact 4 alpha and 5 numeric or 4 alpha and 9 numeric
             });
           }
           return true;
         }
-
         // If none match
         return this.createError({
-          message: "Invalid microchip number format.",
+          message:
+            "The length appears to be incorrect. A microchip number is typically 15 digits long",
         });
       }),
     pet_keeper: Yup.string().required("Pet Keeper is required"),
@@ -125,7 +144,18 @@ export default function MicrochipCreatePage() {
     color: Yup.string().required("Color is required"),
     dob: Yup.string().required("Date of Birth is required"),
     markings: Yup.string().required("Markings are required"),
-    photo: Yup.string().required("Photo is required"),
+    photo: Yup.mixed()
+      .required("Pet image is required")
+      .test("fileType", "Only image files are allowed", (value) => {
+        return (
+          !value ||
+          (value &&
+            ["image/jpeg", "image/png", "image/webp"].includes(value.type))
+        );
+      })
+      .test("fileSize", "Image size must be less than 2MB", (value) => {
+        return !value || (value && value.size <= 2 * 1024 * 1024);
+      }),
   });
 
   // Formik setup
@@ -151,7 +181,7 @@ export default function MicrochipCreatePage() {
     },
 
     validationSchema,
-    onSubmit: async (values: Values,{setSubmitting}) => {
+    onSubmit: async (values: Values, { setSubmitting }) => {
       setSubmitting(true);
       const formData = new FormData();
 
@@ -193,7 +223,7 @@ export default function MicrochipCreatePage() {
           //   response.data.message || "Microchip created successfully"
           // );
           //router.push("/customer/microchip/list");
-          
+
           setIsPaymentCardOpen(true);
         } else {
           toast.error(response.data.message);
@@ -209,52 +239,38 @@ export default function MicrochipCreatePage() {
 
   const handleBuyNow = async (selectedPlan: string) => {
     try {
-
-      let token = getLocalStorageItem("token");
-
+      setIsLoading(true);
+      const token = getLocalStorageItem("token");
 
       const res = await axios.post(
         `${appUrl}frontend/microchip/payment`,
         {
-          microchip_id: formik.values.microchipNumber, 
+          microchip_id: formik.values.microchipNumber,
           selected_plan: selectedPlan,
         },
         {
-          headers: {
-            Authorization: `Bearer ${token}`,
-          },
+          headers: { Authorization: `Bearer ${token}` },
         }
       );
 
-      // ✅ Only if API returns 200
       if (res.data.statusCode === 200) {
-        const { nextUrl, formFields } = res.data;
-
-        // Auto-submit hidden form
-        const form = document.createElement("form");
-        form.method = "POST";
-        form.action = nextUrl;
-
-        Object.entries(formFields).forEach(([key, value]) => {
-          const input = document.createElement("input");
-          input.type = "hidden";
-          input.name = key;
-          input.value = value;
-          form.appendChild(input);
-        });
-
-        document.body.appendChild(form);
-        form.submit();
+        openHelcimModal(res.data.checkoutToken);
       } else {
-        // Show toast for errors
-        toast.error(res.data.message || "Something went wrong");
+        toast.error(res.data.message);
       }
-    } catch (err: any) {
-      console.error(err);
-      toast.error(
-        err.response?.data?.message || "Failed to create payment session"
-      );
+    } catch (err) {
+      console.error("Payment initialization error", err);
+      toast.error("Payment initialization failed");
+    } finally {
+      setIsLoading(false); // stop loading
     }
+  };
+  const openHelcimModal = (checkoutToken: string) => {
+    if (!window.appendHelcimPayIframe) {
+      toast.error("Payment service not loaded. Please refresh.");
+      return;
+    }
+    window.appendHelcimPayIframe(checkoutToken, true);
   };
 
   useEffect(() => {
@@ -302,7 +318,7 @@ export default function MicrochipCreatePage() {
 
   return (
     <CommonLayout>
-            {formik.isSubmitting && (
+      {formik.isSubmitting && (
         <div className="loader-overlay">
           <div className="spinner"></div>
         </div>
@@ -525,11 +541,29 @@ export default function MicrochipCreatePage() {
                       <label htmlFor="type" className="form-label">
                         Type <span className="text-danger">*</span>
                       </label>
-                      <input
-                        type="text"
-                        className="form-control"
+                      <ReactSelect
                         id="type"
-                        {...formik.getFieldProps("type")}
+                        name="type"
+                        options={animalOptions}
+                        value={animalOptions.find(
+                          (option) => option.value === formik.values.type
+                        )}
+                        onChange={(selectedOption: any) => {
+                          formik.setFieldValue(
+                            "type",
+                            selectedOption?.value || ""
+                          );
+                          formik.setFieldValue("breed", ""); // reset breed when type changes
+                        }}
+                        onBlur={() => formik.setFieldTouched("type", true)}
+                        placeholder="Select an animal"
+                        menuPortalTarget={
+                          typeof window !== "undefined" ? document.body : null
+                        }
+                        styles={{
+                          menuPortal: (base) => ({ ...base, zIndex: 9999 }),
+                          menu: (base) => ({ ...base, zIndex: 9999 }),
+                        }}
                       />
                       {formik.touched.type && formik.errors.type && (
                         <div className="text-danger">{formik.errors.type}</div>
@@ -541,11 +575,40 @@ export default function MicrochipCreatePage() {
                       <label htmlFor="breed" className="form-label">
                         Breed <span className="text-danger">*</span>
                       </label>
-                      <input
-                        type="text"
-                        className="form-control"
+                      <ReactSelect
                         id="breed"
-                        {...formik.getFieldProps("breed")}
+                        name="breed"
+                        options={
+                          formik.values.type
+                            ? breedsByType[formik.values.type].map((breed) => ({
+                                value: breed,
+                                label: breed,
+                              }))
+                            : []
+                        }
+                        value={
+                          formik.values.breed
+                            ? {
+                                value: formik.values.breed,
+                                label: formik.values.breed,
+                              }
+                            : null
+                        }
+                        onChange={(selectedOption: any) =>
+                          formik.setFieldValue(
+                            "breed",
+                            selectedOption?.value || ""
+                          )
+                        }
+                        onBlur={() => formik.setFieldTouched("breed", true)}
+                        placeholder="Select a breed"
+                        menuPortalTarget={
+                          typeof window !== "undefined" ? document.body : null
+                        }
+                        styles={{
+                          menuPortal: (base) => ({ ...base, zIndex: 9999 }),
+                          menu: (base) => ({ ...base, zIndex: 9999 }),
+                        }}
                       />
                       {formik.touched.breed && formik.errors.breed && (
                         <div className="text-danger">{formik.errors.breed}</div>
@@ -582,11 +645,27 @@ export default function MicrochipCreatePage() {
                       <label htmlFor="color" className="form-label">
                         Color <span className="text-danger">*</span>
                       </label>
-                      <input
-                        type="text"
-                        className="form-control"
+                      <Select
                         id="color"
-                        {...formik.getFieldProps("color")}
+                        name="color"
+                        options={colorOptions}
+                        value={colorOptions.find(
+                          (option) => option.value === formik.values.color
+                        )}
+                        onChange={(selectedOption) =>
+                          formik.setFieldValue(
+                            "color",
+                            selectedOption?.value || ""
+                          )
+                        }
+                        onBlur={() => formik.setFieldTouched("color", true)}
+                        menuPortalTarget={
+                          typeof window !== "undefined" ? document.body : null
+                        }
+                        styles={{
+                          menuPortal: (base) => ({ ...base, zIndex: 9999 }),
+                          menu: (base) => ({ ...base, zIndex: 9999 }),
+                        }}
                       />
                       {formik.touched.color && formik.errors.color && (
                         <div className="text-danger">{formik.errors.color}</div>
@@ -660,99 +739,75 @@ export default function MicrochipCreatePage() {
             </form>
           ) : (
             <div className="row mt-5 payment_card">
-              <div className="col-lg-4 mb-4">
+              {/* Lifetime Registration */}
+              <div className="col-lg-6 mb-4">
                 <div className="packages-container">
                   <div className="package-container-title">
-                    <h3>Standard</h3>
-                  </div>
-                  <div className="package-container-payment">
-                    <h4 className="d-flex justify-content-center align-items-center payment-middle">
-                      <span>£</span>
-                      15.00{" "}
-                      <span className="packagepayment_type">Lifetime</span>
-                    </h4>
+                    <h3>Lifetime Registration (One-Time Payment)</h3>
                   </div>
 
                   <div className="package-container-description">
                     <ul>
-                      <li>Pet microchip registration</li>
-                      <li>Demo Video</li>
+                      <li>Includes everything in Free +</li>
+                      <li>Lost animal instant alerts (email/SMS)</li>
+                      <li>Printable “FOUND” posters with QR</li>
+                      <li>Vet / shelter notes</li>
+                      <li>Ownership transfer history</li>
+                      <li>Certificate of registration (PDF)</li>
+                      <li>Priority lookup visibility</li>
                     </ul>
                   </div>
+
+                  <div className="package-container-payment">
+                    <h4 className="d-flex justify-content-center align-items-center payment-middle">
+                      <span>$</span>49
+                    </h4>
+                  </div>
+
                   <div className="package-btn-container">
                     <button
                       type="button"
                       className="btn btn-primary"
-                      onClick={() => handleBuyNow("standard")}>
-                      Buy Now
+                      onClick={() => handleBuyNow("lifetime")}>
+                      {isLoading ? "Purchasing..." : "Buy Now"}
                     </button>
                   </div>
                 </div>
               </div>
 
-              <div className="col-lg-4 mb-4">
-                {" "}
+              {/* Annual Protection Plan */}
+              <div className="col-lg-6 mb-4">
                 <div className="packages-container">
                   <div className="package-container-title">
-                    <h3>Premium</h3>
-                  </div>
-                  <div className="package-container-payment">
-                    <h4 className="d-flex justify-content-center align-items-center payment-middle">
-                      <span>£</span>
-                      50.00 <span className="packagepayment_type">Yearly</span>
-                    </h4>
+                    <h3>Annual Protection Plan (Recurring Revenue)</h3>
                   </div>
 
                   <div className="package-container-description">
                     <ul>
-                      <li>Location pet</li>
-                      <li>Contact vet email</li>
-                      <li>Lost pet listings</li>
-                      <li>24/7 customer care</li>
-                      <li>Demo Video</li>
-                      <li>Pet microchip registration</li>
+                      <li>Includes everything above +</li>
+                      <li>24/7 lost animal response workflow</li>
+                      <li>SMS + WhatsApp alerts</li>
+                      <li>WhatsApp lost/found report</li>
+                      <li>Geo-alert radius</li>
+                      <li>Theft / dispute timestamped records</li>
+                      <li>Insurance-ready documentation</li>
+                      <li>Multi-animal dashboard</li>
+                      <li>Concierge ownership transfer</li>
                     </ul>
                   </div>
-                  <div className="package-btn-container">
-                    <button
-                      type="button"
-                      className="btn btn-primary"
-                      onClick={() => handleBuyNow("premium")}>
-                      Buy Now
-                    </button>
-                  </div>
-                </div>
-              </div>
 
-              <div className="col-lg-4 mb-4">
-                {" "}
-                <div className="packages-container">
-                  <div className="package-container-title">
-                    <h3>Platinum</h3>
-                  </div>
                   <div className="package-container-payment">
                     <h4 className="d-flex justify-content-center align-items-center payment-middle">
-                      <span>£</span>
-                      3.99 <span className="packagepayment_type">Monthly</span>
+                      <span>$</span>19.99
                     </h4>
                   </div>
 
-                  <div className="package-container-description">
-                    <ul>
-                      <li>Location pet</li>
-                      <li>Contact vet email</li>
-                      <li>Lost pet listings</li>
-                      <li>24/7 customer care</li>
-                      <li>Demo Video</li>
-                      <li>Pet microchip registration</li>
-                    </ul>
-                  </div>
                   <div className="package-btn-container">
                     <button
                       type="button"
                       className="btn btn-primary"
-                      onClick={() => handleBuyNow("platinum")}>
-                      Buy Now
+                      onClick={() => handleBuyNow("annual")}>
+                      {isLoading ? "Purchasing..." : "Enable auto-renewal"}
                     </button>
                   </div>
                 </div>

@@ -27,6 +27,7 @@ import { Uploads } from "../../entities/Uploads";
 import { BreederDetail } from "../../entities/BreederDetails";
 import multer from "multer";
 import express from "express";
+import { sendForgotPasswordEmail } from "../../utils/mail";
 
 import path from "path";
 import { Contact } from "../../entities/Contact";
@@ -73,90 +74,7 @@ interface AuthenticatedRequest extends ExpressRequest {
   user?: { userId: number; email: string };
 }
 
-async function createBillDeskPayment(amount: any, type: any, end_date: any) {
-  if (type !== "free") {
-    const headers = {
-      alg: "HS256",
-      clientid: process.env.CLIENT_ID, // Ensure this is the correct client ID
-    };
 
-    const billdeskURL = process.env.BILLDESK_URL || "";
-    const transaction_id = uuidv4(); // Generate unique transaction ID
-
-    const payload = {
-      mercid: process.env.MERCHANT_ID,
-      orderid: `Ord100${Date.now()}`, // Unique order ID
-      amount: 100, // Ensure proper format
-      order_date: moment().tz("Asia/Kolkata").format("YYYY-MM-DDTHH:mm:ssZ"), // Current time in Asia/Kolkata timezone
-      currency: "356", // for INR
-      ru: process.env.RETURN_URL,
-      additional_info: {
-        additional_info1: "q348324",
-        additional_info2: "dsa8asaasd",
-        additional_info3: "uu839939",
-        additional_info4: "NA",
-        additional_info5: "NA",
-        additional_info6: "NA",
-        additional_info7: "NA",
-      },
-      itemcode: "DIRECT",
-      device: {
-        init_channel: "internet",
-        ip: "3.108.188.177", // Static IP
-        accept_header: "text/html",
-        user_agent: "Windows 10",
-      },
-    };
-
-    const secretkey = process.env.SECRET_KEY || ""; // Live key
-    const encodedPayload = jwt.sign(payload, secretkey, {
-      algorithm: "HS256",
-      header: headers,
-    });
-
-    try {
-      const response = await axios.post(billdeskURL, encodedPayload, {
-        headers: {
-          "Content-Type": "application/jose",
-          Accept: "application/jose",
-          "BD-Traceid": transaction_id,
-          "BD-Timestamp": moment().format("YYYYMMDDHHmmss"), // Current timestamp
-        },
-      });
-
-      const result = response.data;
-      const decoded = jwt.decode(result, { complete: true }) as {
-        payload: any;
-      };
-
-      if (decoded?.payload?.status === "ACTIVE") {
-        const bdorderid = decoded?.payload?.links[1].parameters.bdorderid;
-        const token = decoded?.payload?.links[1].headers.authorization;
-
-        return { success: true, bdorderid, token };
-      } else {
-        console.log("Response error:", decoded?.payload);
-        throw new Error(
-          "BillDesk API returned an error: " + decoded?.payload?.status
-        );
-      }
-    } catch (error) {
-      console.error("Error in BillDesk API call:", error);
-      if (error) {
-        return {
-          success: false,
-          message: "Unauthorized access (Invalid credentials)",
-        };
-      }
-      return { success: false, message: error || "An unknown error occurred." };
-    }
-  } else {
-    return {
-      success: true,
-      message: "Free subscriptions don't require payment",
-    }; // No payment required for free subscriptions
-  }
-}
 
 const transporter = nodemailer.createTransport({
   host: "inficodes.com", // Your custom SMTP server (e.g., smtp.gmail.com for Gmail)
@@ -287,6 +205,110 @@ export class AuthController extends Controller {
     return { message: "Login successful", token, statusCode: 200 };
   }
 
+  @Post("/verify-reset-token")
+public async verifyResetToken(
+  @Body() body: { token: string }
+): Promise<{ message: string; statusCode: number }> {
+
+  const userRepository = AppDataSource.getRepository(User);
+
+  const user = await userRepository.findOne({
+    where: { reset_token: body.token },
+  });
+
+  if (
+    !user ||
+    !user.reset_token_expires_at ||
+    user.reset_token_expires_at < new Date()
+  ) {
+    return { message: "Invalid or expired token", statusCode: 401 };
+  }
+
+  return { message: "Token valid", statusCode: 200 };
+}
+
+
+  @Post("/reset-password")
+public async resetPassword(
+  @Body()
+  body: {
+    token: string;
+    password: string;
+    confirm_password: string;
+  }
+): Promise<{ message: string; statusCode: number }> {
+
+  if (body.password !== body.confirm_password) {
+    return { message: "Passwords do not match", statusCode: 422 };
+  }
+
+  const userRepository = AppDataSource.getRepository(User);
+
+  const user = await userRepository.findOne({
+    where: { reset_token: body.token },
+  });
+
+  if (
+    !user ||
+    !user.reset_token_expires_at ||
+    user.reset_token_expires_at < new Date()
+  ) {
+    return { message: "Invalid or expired token", statusCode: 401 };
+  }
+
+  user.password = await bcrypt.hash(body.password, 10);
+
+  // 🔥 Invalidate token
+  user.reset_token = null;
+  user.reset_token_expires_at = null;
+
+  await userRepository.save(user);
+
+  return { message: "Password reset successful", statusCode: 200 };
+}
+
+  @Post("/forgot-password")
+public async forgotPassword(
+  @Body() body: { email: string }
+): Promise<{ message: string; statusCode: number }> {
+
+  const userRepository = AppDataSource.getRepository(User);
+
+  if (!body.email) {
+    return { message: "Email is required", statusCode: 422 };
+  }
+
+  const user = await userRepository.findOneBy({ email: body.email });
+
+  // ✅ Do NOT reveal whether user exists
+  if (!user) {
+    return {
+      message: "If the email exists, a reset link has been sent",
+      statusCode: 200,
+    };
+  }
+
+  if (user.status?.toLowerCase() !== "active") {
+    return { message: "Account is not active", statusCode: 422 };
+  }
+
+  // 🔐 Generate ONE-TIME reset token
+  const resetToken = crypto.randomBytes(32).toString("hex");
+
+  user.reset_token = resetToken;
+  user.reset_token_expires_at = new Date(Date.now() + 60 * 60 * 1000); // 1 hour
+
+  await userRepository.save(user);
+
+  const resetLink = `${process.env.FRONTEND_URL}/user-login/reset-password?token=${resetToken}`;
+
+  await sendForgotPasswordEmail(user.email, resetLink,user.name || "customer");
+
+  return {
+    message: "Password reset link sent to your email",
+    statusCode: 200,
+  };
+}
   @Post("/register")
   public async Register(
     @FormField() first_name: string,

@@ -1,8 +1,48 @@
 "use client";
 import { useState, useEffect } from "react";
 const appUrl = process.env.NEXT_PUBLIC_APP_URL; // Your API URL
+import Script from "next/script";
 
 export const FaqContent = () => {
+  const faqSchema = {
+  "@context": " https://schema.org",
+  "@type": "FAQPage",
+  "mainEntity": [
+    {
+      "@type": "Question",
+      "name": "How much does registration cost at Chipped Monkey?",
+      "acceptedAnswer": {
+        "@type": "Answer",
+        "text": "Chipped Monkey offers a Lifetime Premium Registration for a one-time payment of $49, or an Annual Premium Registration for $24 per year. These plans ensure your pet's ID is visible on the AAHA network."
+      }
+    },
+    {
+      "@type": "Question",
+      "name": "Is a pet microchip a GPS tracker?",
+      "acceptedAnswer": {
+        "@type": "Answer",
+        "text": "No, a pet microchip is an RFID identification device, not a GPS. It does not provide real-time location tracking but stores a unique ID linked to your contact info."
+      }
+    },
+    {
+      "@type": "Question",
+      "name": "Does my pet need anesthesia for a microchip?",
+      "acceptedAnswer": {
+        "@type": "Answer",
+        "text": "No anesthesia is required. The microchip is implanted using a needle in a procedure that feels very similar to a routine vaccination."
+      }
+    },
+    {
+      "@type": "Question",
+      "name": "Is Chipped Monkey part of the AAHA network?",
+      "acceptedAnswer": {
+        "@type": "Answer",
+        "text": "Yes, Chipped Monkey is a participating registry in the AAHA Universal Pet Microchip Lookup, making it easier for shelters and vets to find your contact details."
+      }
+    }
+  ]
+};
+  
   const [openQuestion, setOpenQuestion] = useState<string | null>(null);
   const [pageData, setPageData] = useState<any>(null);
   const [faqs, setFaqs] = useState<FAQ[]>([]);
@@ -46,7 +86,16 @@ export const FaqContent = () => {
       faq.answer.toLowerCase().includes(searchTerm.toLowerCase())
   );
 
-  return (
+return (
+    <>
+                  <Script
+    id="faq-schema"
+    type="application/ld+json"
+    strategy="afterInteractive"
+    dangerouslySetInnerHTML={{
+      __html: JSON.stringify(faqSchema),
+    }}
+  />
     <div className="row">
       <div className="col-12">
         <h1 className="faq-title">
@@ -71,31 +120,27 @@ export const FaqContent = () => {
         />
 
         {/* FAQ List */}
-        <div className="faq-list">
-          {filteredFaqs.length > 0 ? (
-            filteredFaqs.map((faq, index) => (
-              <div
-                key={faq.question + index}
-                className={`faq-item ${
-                  openQuestion === faq.question ? "active" : ""
-                }`}>
-                <button
-                  className="faq-question"
-                  onClick={() => toggleFAQ(faq.question)}>
-                  {faq.question}
-                </button>
-                {openQuestion === faq.question && (
-                  <div className="faq-answer">
-                    <p>{faq.answer}</p>
-                  </div>
-                )}
-              </div>
-            ))
-          ) : (
-            <p>No FAQs match your search.</p>
-          )}
-        </div>
+   <>
+  {filteredFaqs.length > 0 ? (
+    filteredFaqs.map((faq, index) => (
+      <div className="cmp-faq-card" key={index}>
+        <details className="cmp-faq-details">
+          <summary className="cmp-faq-question">
+            {faq.question}
+          </summary>
+          <p className="cmp-faq-answer">
+            {faq.answer}
+          </p>
+        </details>
       </div>
+    ))
+  ) : (
+    <p>No FAQs match your search.</p>
+  )}
+        </>
+        </div>
+
+    
       <style jsx>{`
         .faq-title {
           font-size: 28px;
@@ -139,5 +184,6 @@ export const FaqContent = () => {
         }
       `}</style>
     </div>
+    </>
   );
 };

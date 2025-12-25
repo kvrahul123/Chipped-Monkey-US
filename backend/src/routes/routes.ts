@@ -102,6 +102,8 @@ const models: TsoaRoute.Models = {
             "status": {"dataType":"string"},
             "encrypt_password": {"dataType":"string"},
             "remember_token": {"dataType":"string"},
+            "reset_token": {"dataType":"union","subSchemas":[{"dataType":"string"},{"dataType":"enum","enums":[null]}]},
+            "reset_token_expires_at": {"dataType":"union","subSchemas":[{"dataType":"datetime"},{"dataType":"enum","enums":[null]}]},
             "created_at": {"dataType":"datetime"},
             "updated_at": {"dataType":"datetime"},
         },
@@ -128,7 +130,7 @@ const models: TsoaRoute.Models = {
     // WARNING: This file was auto-generated with tsoa. Please do not modify it. Re-run tsoa to re-generate this file: https://github.com/lukeautry/tsoa
     "Partial_User_": {
         "dataType": "refAlias",
-        "type": {"dataType":"nestedObjectLiteral","nestedProperties":{"id":{"dataType":"double"},"name":{"dataType":"string"},"email":{"dataType":"string"},"type":{"dataType":"string"},"company_name":{"dataType":"string"},"company_logo":{"dataType":"string"},"account_type":{"dataType":"string"},"phone":{"dataType":"string"},"otp":{"dataType":"string"},"is_sent_otp":{"dataType":"string"},"slug":{"dataType":"string"},"email_verified_at":{"dataType":"datetime"},"title":{"dataType":"string"},"surf_name":{"dataType":"string"},"emergency_number":{"dataType":"string"},"date_of_birth":{"dataType":"string"},"address_1":{"dataType":"string"},"address_2":{"dataType":"string"},"address_3":{"dataType":"string"},"company_address":{"dataType":"string"},"small_description":{"dataType":"string"},"city":{"dataType":"string"},"county":{"dataType":"string"},"country":{"dataType":"string"},"postcode":{"dataType":"string"},"password":{"dataType":"string"},"status":{"dataType":"string"},"encrypt_password":{"dataType":"string"},"remember_token":{"dataType":"string"},"created_at":{"dataType":"datetime"},"updated_at":{"dataType":"datetime"}},"validators":{}},
+        "type": {"dataType":"nestedObjectLiteral","nestedProperties":{"id":{"dataType":"double"},"name":{"dataType":"string"},"email":{"dataType":"string"},"type":{"dataType":"string"},"company_name":{"dataType":"string"},"company_logo":{"dataType":"string"},"account_type":{"dataType":"string"},"phone":{"dataType":"string"},"otp":{"dataType":"string"},"is_sent_otp":{"dataType":"string"},"slug":{"dataType":"string"},"email_verified_at":{"dataType":"datetime"},"title":{"dataType":"string"},"surf_name":{"dataType":"string"},"emergency_number":{"dataType":"string"},"date_of_birth":{"dataType":"string"},"address_1":{"dataType":"string"},"address_2":{"dataType":"string"},"address_3":{"dataType":"string"},"company_address":{"dataType":"string"},"small_description":{"dataType":"string"},"city":{"dataType":"string"},"county":{"dataType":"string"},"country":{"dataType":"string"},"postcode":{"dataType":"string"},"password":{"dataType":"string"},"status":{"dataType":"string"},"encrypt_password":{"dataType":"string"},"remember_token":{"dataType":"string"},"reset_token":{"dataType":"string"},"reset_token_expires_at":{"dataType":"datetime"},"created_at":{"dataType":"datetime"},"updated_at":{"dataType":"datetime"}},"validators":{}},
     },
     // WARNING: This file was auto-generated with tsoa. Please do not modify it. Re-run tsoa to re-generate this file: https://github.com/lukeautry/tsoa
     "Product": {
@@ -291,24 +293,6 @@ const models: TsoaRoute.Models = {
             "status": {"dataType":"string"},
             "created_at": {"dataType":"datetime"},
             "updated_at": {"dataType":"datetime"},
-        },
-        "additionalProperties": true,
-    },
-    // WARNING: This file was auto-generated with tsoa. Please do not modify it. Re-run tsoa to re-generate this file: https://github.com/lukeautry/tsoa
-    "PaymentDetailsRequest": {
-        "dataType": "refObject",
-        "properties": {
-            "orderId": {"dataType":"string","required":true},
-            "crypt": {"dataType":"union","subSchemas":[{"dataType":"string"},{"dataType":"enum","enums":[null]}]},
-        },
-        "additionalProperties": true,
-    },
-    // WARNING: This file was auto-generated with tsoa. Please do not modify it. Re-run tsoa to re-generate this file: https://github.com/lukeautry/tsoa
-    "MicrochipPaymentDetailsRequest": {
-        "dataType": "refObject",
-        "properties": {
-            "microchipID": {"dataType":"string","required":true},
-            "crypt": {"dataType":"union","subSchemas":[{"dataType":"string"},{"dataType":"enum","enums":[null]}]},
         },
         "additionalProperties": true,
     },
@@ -1920,68 +1904,6 @@ export function RegisterRoutes(app: Router,opts?:{multer?:ReturnType<typeof mult
             }
         });
         // WARNING: This file was auto-generated with tsoa. Please do not modify it. Re-run tsoa to re-generate this file: https://github.com/lukeautry/tsoa
-        app.post('/frontend/payment/details',
-            ...(fetchMiddlewares<RequestHandler>(FrontendController)),
-            ...(fetchMiddlewares<RequestHandler>(FrontendController.prototype.getPaymentDetails)),
-
-            async function FrontendController_getPaymentDetails(request: ExRequest, response: ExResponse, next: any) {
-            const args: Record<string, TsoaRoute.ParameterSchema> = {
-                    body: {"in":"body","name":"body","required":true,"ref":"PaymentDetailsRequest"},
-                    request: {"in":"request","name":"request","required":true,"dataType":"object"},
-            };
-
-            // WARNING: This file was auto-generated with tsoa. Please do not modify it. Re-run tsoa to re-generate this file: https://github.com/lukeautry/tsoa
-
-            let validatedArgs: any[] = [];
-            try {
-                validatedArgs = templateService.getValidatedArgs({ args, request, response });
-
-                const controller = new FrontendController();
-
-              await templateService.apiHandler({
-                methodName: 'getPaymentDetails',
-                controller,
-                response,
-                next,
-                validatedArgs,
-                successStatus: undefined,
-              });
-            } catch (err) {
-                return next(err);
-            }
-        });
-        // WARNING: This file was auto-generated with tsoa. Please do not modify it. Re-run tsoa to re-generate this file: https://github.com/lukeautry/tsoa
-        app.post('/frontend/microchip/payment/details',
-            ...(fetchMiddlewares<RequestHandler>(FrontendController)),
-            ...(fetchMiddlewares<RequestHandler>(FrontendController.prototype.getMicrochipPaymentDetails)),
-
-            async function FrontendController_getMicrochipPaymentDetails(request: ExRequest, response: ExResponse, next: any) {
-            const args: Record<string, TsoaRoute.ParameterSchema> = {
-                    body: {"in":"body","name":"body","required":true,"ref":"MicrochipPaymentDetailsRequest"},
-                    request: {"in":"request","name":"request","required":true,"dataType":"object"},
-            };
-
-            // WARNING: This file was auto-generated with tsoa. Please do not modify it. Re-run tsoa to re-generate this file: https://github.com/lukeautry/tsoa
-
-            let validatedArgs: any[] = [];
-            try {
-                validatedArgs = templateService.getValidatedArgs({ args, request, response });
-
-                const controller = new FrontendController();
-
-              await templateService.apiHandler({
-                methodName: 'getMicrochipPaymentDetails',
-                controller,
-                response,
-                next,
-                validatedArgs,
-                successStatus: undefined,
-              });
-            } catch (err) {
-                return next(err);
-            }
-        });
-        // WARNING: This file was auto-generated with tsoa. Please do not modify it. Re-run tsoa to re-generate this file: https://github.com/lukeautry/tsoa
         app.get('/frontend/implanters/list',
             ...(fetchMiddlewares<RequestHandler>(FrontendController)),
             ...(fetchMiddlewares<RequestHandler>(FrontendController.prototype.getImplanters)),
@@ -2362,6 +2284,37 @@ export function RegisterRoutes(app: Router,opts?:{multer?:ReturnType<typeof mult
 
               await templateService.apiHandler({
                 methodName: 'microchipPayment',
+                controller,
+                response,
+                next,
+                validatedArgs,
+                successStatus: undefined,
+              });
+            } catch (err) {
+                return next(err);
+            }
+        });
+        // WARNING: This file was auto-generated with tsoa. Please do not modify it. Re-run tsoa to re-generate this file: https://github.com/lukeautry/tsoa
+        app.post('/frontend/microchip/subscription',
+            ...(fetchMiddlewares<RequestHandler>(FrontendController)),
+            ...(fetchMiddlewares<RequestHandler>(FrontendController.prototype.microchipSubscription)),
+
+            async function FrontendController_microchipSubscription(request: ExRequest, response: ExResponse, next: any) {
+            const args: Record<string, TsoaRoute.ParameterSchema> = {
+                    request: {"in":"request","name":"request","required":true,"dataType":"object"},
+                    body: {"in":"body","name":"body","required":true,"dataType":"nestedObjectLiteral","nestedProperties":{"plan":{"dataType":"enum","enums":["annual"],"required":true},"microchip_id":{"dataType":"double","required":true}}},
+            };
+
+            // WARNING: This file was auto-generated with tsoa. Please do not modify it. Re-run tsoa to re-generate this file: https://github.com/lukeautry/tsoa
+
+            let validatedArgs: any[] = [];
+            try {
+                validatedArgs = templateService.getValidatedArgs({ args, request, response });
+
+                const controller = new FrontendController();
+
+              await templateService.apiHandler({
+                methodName: 'microchipSubscription',
                 controller,
                 response,
                 next,
@@ -2824,6 +2777,96 @@ export function RegisterRoutes(app: Router,opts?:{multer?:ReturnType<typeof mult
 
               await templateService.apiHandler({
                 methodName: 'Login',
+                controller,
+                response,
+                next,
+                validatedArgs,
+                successStatus: undefined,
+              });
+            } catch (err) {
+                return next(err);
+            }
+        });
+        // WARNING: This file was auto-generated with tsoa. Please do not modify it. Re-run tsoa to re-generate this file: https://github.com/lukeautry/tsoa
+        app.post('/auth/verify-reset-token',
+            ...(fetchMiddlewares<RequestHandler>(AuthController)),
+            ...(fetchMiddlewares<RequestHandler>(AuthController.prototype.verifyResetToken)),
+
+            async function AuthController_verifyResetToken(request: ExRequest, response: ExResponse, next: any) {
+            const args: Record<string, TsoaRoute.ParameterSchema> = {
+                    body: {"in":"body","name":"body","required":true,"dataType":"nestedObjectLiteral","nestedProperties":{"token":{"dataType":"string","required":true}}},
+            };
+
+            // WARNING: This file was auto-generated with tsoa. Please do not modify it. Re-run tsoa to re-generate this file: https://github.com/lukeautry/tsoa
+
+            let validatedArgs: any[] = [];
+            try {
+                validatedArgs = templateService.getValidatedArgs({ args, request, response });
+
+                const controller = new AuthController();
+
+              await templateService.apiHandler({
+                methodName: 'verifyResetToken',
+                controller,
+                response,
+                next,
+                validatedArgs,
+                successStatus: undefined,
+              });
+            } catch (err) {
+                return next(err);
+            }
+        });
+        // WARNING: This file was auto-generated with tsoa. Please do not modify it. Re-run tsoa to re-generate this file: https://github.com/lukeautry/tsoa
+        app.post('/auth/reset-password',
+            ...(fetchMiddlewares<RequestHandler>(AuthController)),
+            ...(fetchMiddlewares<RequestHandler>(AuthController.prototype.resetPassword)),
+
+            async function AuthController_resetPassword(request: ExRequest, response: ExResponse, next: any) {
+            const args: Record<string, TsoaRoute.ParameterSchema> = {
+                    body: {"in":"body","name":"body","required":true,"dataType":"nestedObjectLiteral","nestedProperties":{"confirm_password":{"dataType":"string","required":true},"password":{"dataType":"string","required":true},"token":{"dataType":"string","required":true}}},
+            };
+
+            // WARNING: This file was auto-generated with tsoa. Please do not modify it. Re-run tsoa to re-generate this file: https://github.com/lukeautry/tsoa
+
+            let validatedArgs: any[] = [];
+            try {
+                validatedArgs = templateService.getValidatedArgs({ args, request, response });
+
+                const controller = new AuthController();
+
+              await templateService.apiHandler({
+                methodName: 'resetPassword',
+                controller,
+                response,
+                next,
+                validatedArgs,
+                successStatus: undefined,
+              });
+            } catch (err) {
+                return next(err);
+            }
+        });
+        // WARNING: This file was auto-generated with tsoa. Please do not modify it. Re-run tsoa to re-generate this file: https://github.com/lukeautry/tsoa
+        app.post('/auth/forgot-password',
+            ...(fetchMiddlewares<RequestHandler>(AuthController)),
+            ...(fetchMiddlewares<RequestHandler>(AuthController.prototype.forgotPassword)),
+
+            async function AuthController_forgotPassword(request: ExRequest, response: ExResponse, next: any) {
+            const args: Record<string, TsoaRoute.ParameterSchema> = {
+                    body: {"in":"body","name":"body","required":true,"dataType":"nestedObjectLiteral","nestedProperties":{"email":{"dataType":"string","required":true}}},
+            };
+
+            // WARNING: This file was auto-generated with tsoa. Please do not modify it. Re-run tsoa to re-generate this file: https://github.com/lukeautry/tsoa
+
+            let validatedArgs: any[] = [];
+            try {
+                validatedArgs = templateService.getValidatedArgs({ args, request, response });
+
+                const controller = new AuthController();
+
+              await templateService.apiHandler({
+                methodName: 'forgotPassword',
                 controller,
                 response,
                 next,

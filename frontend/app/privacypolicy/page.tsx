@@ -3,7 +3,6 @@ import CommonLayout from "../frontend/layouts/CommonLayouts";
 import { generateCommonMetadata } from "../utils/metadata";
 import PrivacyPolicyContent from "./PrivacyPolicyContent";
 
-
 const frontendUrl = process.env.NEXT_PUBLIC_FRONTEND_URL;
 const appUrl = process.env.NEXT_PUBLIC_APP_URL; // Your API URL
 
@@ -21,7 +20,10 @@ export async function generateMetadata(): Promise<Metadata> {
   const dynamicKeywords = seoData
     ? seoData.meta_keywords
     : process.env.NEXT_META_KEYWORDS;
-  const dynamicImages = (seoData.image_file_name!=null && seoData.image_file_name!="")?(appUrl+"uploads/" + seoData.image_file_name) : process.env.NEXT_META_OG_IMAGE;
+  const dynamicImages =
+    seoData.image_file_name != null && seoData.image_file_name != ""
+      ? appUrl + "uploads/" + seoData.image_file_name
+      : process.env.NEXT_META_OG_IMAGE;
 
   return generateCommonMetadata(
     dynamicTitle,
@@ -32,12 +34,20 @@ export async function generateMetadata(): Promise<Metadata> {
   );
 }
 export default function PrivacyPolicy() {
-
-    return (
-        <CommonLayout>
-            <div className="main-page-container">
-                <PrivacyPolicyContent/>
+  return (
+    <CommonLayout>
+      <div className="main-page-container">
+        <div className="container">
+          <div className="row">
+            <div className="col-12">
+              <div className="chippedMonkey-page-content">
+                <h1>Privacy Policy Chipped Monkey: Your Trusted National Pet Microchip Registry</h1>
+                <PrivacyPolicyContent />
               </div>
-        </CommonLayout>
-    );
+            </div>
+          </div>
+        </div>
+      </div>
+    </CommonLayout>
+  );
 }

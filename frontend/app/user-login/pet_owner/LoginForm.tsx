@@ -75,7 +75,7 @@ export const LoginForm = () => {
         // Decide last set
         if (microchipTime > transferTime && encryptedMicrochip) {
           router.push(
-            `/pet-owners/update-pet-microchip?microchip=${encodeURIComponent(
+            `/pet-owners/pet-microchip-registration?microchip=${encodeURIComponent(
               encryptedMicrochip
             )}`
           );
@@ -144,7 +144,7 @@ export const LoginForm = () => {
                 />
               </div>
 
-              <div className="col-lg-12 col-md-12 mb-4">
+              <div className="col-lg-12 col-md-12">
                 <input
                   type="checkbox"
                   id="show_password"
@@ -152,6 +152,15 @@ export const LoginForm = () => {
                   onChange={() => setShowPassword(!showPassword)}
                 />
                 <label htmlFor="show_password">Show Password</label>
+              </div>
+              {/* Forgot Password link */}
+              <div className="col-lg-12 col-md-12 mb-3 text-end">
+                <Link
+                  href="/user-login/forgot-password"
+                  className="text-primary"
+                  style={{ textDecoration: "underline", cursor: "pointer" }}>
+                  Forgot Password?
+                </Link>
               </div>
 
               <div className="col-lg-12 col-md-12 mb-2">

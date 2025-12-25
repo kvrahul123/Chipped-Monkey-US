@@ -1,14 +1,19 @@
+import CommonLayout from "@/app/frontend/layouts/CommonLayouts";
+import Image from "next/image";
+const appUrl = process.env.NEXT_PUBLIC_APP_URL; // Your API URL
+import { generateCommonMetadata } from "@/app/utils/metadata";
 import { Metadata } from "next";
-import CommonLayout from "../frontend/layouts/CommonLayouts";
-import { generateCommonMetadata } from "../utils/metadata";
-import { TermsContent } from "./TermsContent";
+import { LoginForm } from "./LoginForm";
+import ResetPassword from "./reset_password";
+
+
+
 
 
 const frontendUrl = process.env.NEXT_PUBLIC_FRONTEND_URL;
-const appUrl = process.env.NEXT_PUBLIC_APP_URL; // Your API URL
 
 export async function generateMetadata(): Promise<Metadata> {
-  const res = await fetch(`${appUrl}frontend/pages/list/?id=2`);
+  const res = await fetch(`${appUrl}frontend/pages/list/?id=12`);
   const result = await res.json();
   const seoData = result.data ? result.data[0] : null;
 
@@ -28,25 +33,36 @@ export async function generateMetadata(): Promise<Metadata> {
     dynamicDescription,
     dynamicKeywords,
     dynamicImages,
-    `${frontendUrl}termsconditions`
+    `${frontendUrl}user-login/pet_owner`
   );
 }
 
-export default function TermsCondition() {
+
+
+  const Login = () => {
+ 
+
   return (
     <CommonLayout>
       <div className="main-page-container">
         <div className="container">
           <div className="row">
-            <div className="col-12">
-              <div className="chippedMonkey-page-content">
-                <h1>Terms & Conditions Chipped Monkey: Your Trusted National Pet Microchip Registry</h1>
-                <TermsContent />
-              </div>
+            <div className="col-lg-6 col-md-6 text-center mobile-none">
+              <Image
+                src="/assets/images/login.jpg"
+                alt="Login Image"
+                width={630}
+                quality={100}
+                height={537}
+              />
             </div>
+
+            <ResetPassword/>
           </div>
         </div>
       </div>
     </CommonLayout>
   );
-}
+  }
+
+  export default Login;

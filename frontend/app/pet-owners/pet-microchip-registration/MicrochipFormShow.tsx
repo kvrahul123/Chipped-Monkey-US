@@ -11,7 +11,7 @@ import {
 } from "@/app/common/LocalStorage";
 import { verifyToken } from "@/app/customer/common/api";
 import { RegisterForm } from "@/app/user-register/pet_owner/RegisterForm";
-import { DecryptData } from "../../common/HashData";
+import { DecryptData, EncryptData } from "../../common/HashData";
 import Link from "next/link";
 import Loader from "@/app/loader/page";
 const appUrl = process.env.NEXT_PUBLIC_APP_URL;
@@ -55,6 +55,12 @@ function MicrochipFormContent() {
     const type = await verifyToken();
     if (type) {
       setAcountType(type.account_type);
+        removeLocalStorageItem("microchip_number");
+        removeLocalStorageItem("microchip_number_time");
+    } else {
+      setIsValid(true);
+      setLocalStorageItem("microchip_number", EncryptData(microchipNumber, secret));
+      setLocalStorageItem("microchip_number_time", Date.now());
     }
   };
 
@@ -94,41 +100,30 @@ function MicrochipFormContent() {
       fetchData();
     }
     setLoadingUser(false);
-
+    removeLocalStorageItem("microchip_paymentDetails");
     fetchUserType();
   }, []);
   return (
     <>
       {!isValid ? (
-        // <MicrochipInput
-        //   onValid={(number: string) => {
-        //     setMicrochipNumber(number);
-        //     setIsValid(true);
-        //   }}
-        // />
+        <MicrochipInput
+          onValid={(number: string) => {
+            setMicrochipNumber(number);
+            setIsValid(true);
+          }}
+        />
 
-        <div>
-          <p className="text-lg" style={{ color: "#ffffff", fontSize: "18px" }}>
-            <span className="updateregister_header_content">Create account to enroll your pet</span>
-            <br />
-            <Link
-              href="/user-register/register-pet-microchip"
-              style={{ color: "#f8a131", fontSize: "20px" }}>
-              <button className="btn btn-primary my-2">
-                Create and enroll
-              </button>
-            </Link>{" "}
-          </p>
+        //        <div className="mic_form_container d-flex justify-content-center align-content-center mt-3">
+        //   <div className="mic_btn_container">
+        //     <button className="btn btn-primary mx-2">Report Lost Pets</button>
+        //   </div>
 
-          <p className="text-lg" style={{ color: "#ffffff", fontSize: "18px" }}>
-            Already have an account?{" "}
-            <Link
-              href="/user-login/pet_owner"
-              style={{ color: "#f8a131", fontSize: "20px" }}>
-              Sign in here
-            </Link>{" "}
-          </p>
-        </div>
+        //   <div className="mic_btn_container">
+        //     <button className="btn btn-secondary">Found a Lost Pet?</button>
+        //   </div>
+        // </div>
+
+     
       ) : (
         <div>
           {loadingUser ? (

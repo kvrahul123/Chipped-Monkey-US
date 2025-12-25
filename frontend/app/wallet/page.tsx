@@ -120,7 +120,7 @@ export default function Wallet() {
                 <div className="payment_inner_container">
                   <ul>
                     <li>
-                      <h3 className="wallet_amount">£{amount}</h3>
+                      <h3 className="wallet_amount">${amount}</h3>
                       <p className="wallet_amount_title">Wallet Balance</p>
                     </li>
                     <li>

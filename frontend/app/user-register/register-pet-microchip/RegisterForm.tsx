@@ -132,7 +132,7 @@ export const RegisterForm = () => {
         // Decide last set
         if (microchipTime > transferTime && encryptedMicrochip) {
           router.push(
-            `/pet-owners/update-pet-microchip?microchip=${encodeURIComponent(
+            `/pet-owners/pet-microchip-registration?microchip=${encodeURIComponent(
               encryptedMicrochip
             )}`
           );
@@ -339,6 +339,13 @@ export const RegisterForm = () => {
           );
         }}
       </Formik>
+
+      <div className="register-footer-link">
+        Already have an account?{" "}
+        <Link href="/user-login/pet_owner" className="text-decoration-none">
+          Login here
+        </Link>
+      </div>
     </div>
   );
 };

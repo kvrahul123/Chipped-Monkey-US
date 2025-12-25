@@ -17,8 +17,9 @@ export class DashboardController extends Controller {
     data: {
       userCount: number;
       orderCount: number;
-        productsCount: number;
-        microchipCount: number;
+      productsCount: number;
+      productPaymentsCount: number;
+      microchipCount: number;
       blogsCount: number;
     };
     statusCode: number;
@@ -34,12 +35,14 @@ export class DashboardController extends Controller {
       const decodedToken = decodeToken(actualToken);
 
       // Count of orders (all users)
-      const orderCount = await orderRepository.count();
+      let orderCount = 0;
+      orderCount = await orderRepository.count();
 
       let productsCount: number = 0;
       let userCount: number = 0;
       let blogsCount: number = 0;
       let microchipCount: number = 0;
+      let productPaymentsCount: number = 0;
 
       if (decodedToken && typeof decodedToken === "object") {
         const userId = Number(decodedToken.userId);
@@ -47,7 +50,7 @@ export class DashboardController extends Controller {
         if (
           decodedToken.user_type === "Admin" ||
           decodedToken.user_type === "chipped_monkey_admin" ||
-        decodedToken.user_type === "supervisor"
+          decodedToken.user_type === "supervisor"
         ) {
           // Admin counts
           productsCount = await productsRepository.count();
@@ -55,10 +58,22 @@ export class DashboardController extends Controller {
           blogsCount = await blogRepository.count();
           microchipCount = await microchipRepository.count();
         } else {
+          const result = await orderRepository
+            .createQueryBuilder("order")
+            .select("SUM(order.total_amount)", "total")
+            .where("order.user_id = :userId", { userId: String(userId) })
+            .andWhere("order.payment_status = :status", { status: "paid" })
+            .getRawOne();
+
+          const totalPayments = Number(result.total) || 0;
           // Normal user counts
           productsCount = await productsRepository.count({
             where: { id: userId },
           });
+          orderCount = await orderRepository.count({
+            where: { user_id: String(userId) },
+          });
+          productPaymentsCount = totalPayments;
           userCount = await usersRepository.count(); // or count only related users if needed
           blogsCount = await blogRepository.count(); // or filter by user if needed
           microchipCount = await microchipRepository.count({
@@ -71,7 +86,8 @@ export class DashboardController extends Controller {
           data: {
             userCount,
             orderCount,
-              productsCount,
+            productsCount,
+            productPaymentsCount,
             microchipCount,
             blogsCount,
           },
@@ -84,8 +100,9 @@ export class DashboardController extends Controller {
             userCount: 0,
             orderCount: 0,
             productsCount: 0,
-              blogsCount: 0,
-      microchipCount:0
+            productPaymentsCount: 0,
+            blogsCount: 0,
+            microchipCount: 0,
           },
           statusCode: 401,
         };
@@ -98,8 +115,9 @@ export class DashboardController extends Controller {
           userCount: 0,
           orderCount: 0,
           productsCount: 0,
-            blogsCount: 0,
-      microchipCount:0
+          productPaymentsCount: 0,
+          blogsCount: 0,
+          microchipCount: 0,
         },
         statusCode: 422,
       };

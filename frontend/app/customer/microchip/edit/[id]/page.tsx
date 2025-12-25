@@ -11,21 +11,28 @@ import axios from "axios";
 import Select from "react-select";
 import { getLocalStorageItem } from "@/app/common/LocalStorage";
 import Image from "next/image";
+import { breedsByType, colorOptions } from "@/app/common/data";
+import ReactSelect from "react-select";
+
 import { Loader } from "@googlemaps/js-api-loader";
 
 const appUrl = process.env.NEXT_PUBLIC_APP_URL;
 
 export default function MicrochipEditPage() {
   const didFetch = useRef(false);
-      const [isSubmitting, setIsSubmitting] = useState(false);
-
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const animalOptions = [
+    { value: "Dog", label: "Dog" },
+    { value: "Cat", label: "Cat" },
+    { value: "Rabbit", label: "Rabbit" },
+    { value: "Exotic", label: "Exotic animal" },
+  ];
   const router = useRouter();
   const { id } = useParams();
   const token = getLocalStorageItem("token");
   const [photoPath, setPhotoPath] = useState("");
   const [loading, setLoading] = useState(true);
-    const addressRef = useRef(null);
-
+  const addressRef = useRef(null);
 
   const petStatusOptions = [
     { value: "", label: "Select Pet status" },
@@ -63,49 +70,53 @@ export default function MicrochipEditPage() {
   };
 
   const validationSchema = Yup.object().shape({
- microchipNumber: Yup.string()
-    .required("Microchip number is required")
-    .test("microchip-format", function (value) {
-      if (!value) return false;
+    microchipNumber: Yup.string()
+      .required("Microchip number is required")
+      .test("microchip-format", function (value) {
+        if (!value) return false;
 
-      const len = value.length;
+        const len = value.length;
 
-      // 1️⃣ 15-digit numeric
-      if (/^\d+$/.test(value)) {
-        if (len !== 15) {
-          return this.createError({
-            message: "Invalid length – 15-digit numeric microchips required.",
-          });
+        // 1️⃣ 15-digit numeric (ISO FDX-B)
+        if (/^\d+$/.test(value)) {
+          if (len !== 15) {
+            return this.createError({
+              message:
+                "The length appears to be incorrect. A microchip number is typically 15 digits long", //for this exact 15 digits only numbers
+            });
+          }
+          return true;
         }
-        return true;
-      }
 
-      // 2️⃣ 10-character alphanumeric
-      if (/^[A-Za-z0-9]+$/.test(value)) {
-        if (len !== 10) {
-          return this.createError({
-            message: "Invalid length – 10-character alphanumeric microchips required.",
-          });
+        // 2️⃣ 10-character alphanumeric (ISO format)
+        if (/^\d{9}[A-Za-z0-9]$/.test(value)) {
+          // <-- updated regex
+          if (len !== 10) {
+            return this.createError({
+              message:
+                "The length appears to be incorrect. An Alpha numeric microchip number is typically 10 digits long", // for this exact 9 digits numbers and one numeric
+            });
+          }
+          return true;
         }
-        return true;
-      }
 
-      // 3️⃣ AVID format (letters, numbers, *)
-      if (/^[A-Za-z0-9*]+$/.test(value)) {
-        const count = value.replace(/\*/g, "").length;
-        if (count < 9 || count > 13) {
-          return this.createError({
-            message: "Incorrect length – AVID microchips must be 9–13 characters.",
-          });
+        // 3️⃣ AVID format (legacy / non-ISO)
+        if (/^[A-Za-z]{4}(\d{5}|\d{9})$/.test(value)) {
+          const count = value.replace(/\*/g, "").length;
+          if (count < 9 || count > 13) {
+            return this.createError({
+              message:
+                "The length appears to be incorrect. An AVID microchip number is typically 9/13 digits long", //for tis exact 4 alpha and 5 numeric or 4 alpha and 9 numeric
+            });
+          }
+          return true;
         }
-        return true;
-      }
-
-      // If none match
-      return this.createError({
-        message: "Invalid microchip number format.",
-      });
-    }),
+        // If none match
+        return this.createError({
+          message:
+            "The length appears to be incorrect. A microchip number is typically 15 digits long",
+        });
+      }),
     pet_keeper: Yup.string().required("Pet Keeper is required"),
     phone_number: Yup.string()
       .matches(/^\d+$/, "Phone Number must contain only digits")
@@ -123,6 +134,18 @@ export default function MicrochipEditPage() {
     color: Yup.string().required("Color is required"),
     dob: Yup.string().required("Date of Birth is required"),
     markings: Yup.string().required("Markings are required"),
+    photo: Yup.mixed()
+      .nullable()
+      .test("fileType", "Only image files are allowed", (value) => {
+        return (
+          !value ||
+          (value &&
+            ["image/jpeg", "image/png", "image/webp"].includes(value.type))
+        );
+      })
+      .test("fileSize", "Image size must be less than 2MB", (value) => {
+        return !value || (value && value.size <= 2 * 1024 * 1024);
+      }),
   });
 
   const formik = useFormik<Values>({
@@ -219,7 +242,7 @@ export default function MicrochipEditPage() {
         setLoading(false);
       } catch (err) {
         console.error(err);
-        router.push('/customer/microchip/list');
+        router.push("/customer/microchip/list");
         toast.error("Failed to load microchip data");
         setLoading(false);
       }
@@ -227,56 +250,53 @@ export default function MicrochipEditPage() {
 
     fetchData();
 
-          const loader = new Loader({
-        apiKey: process.env.NEXT_PUBLIC_GOOGLE_MAPS_API_KEY,
-        libraries: ["places"]
-      });
-    
-    
-      loader.load().then(() => {
-  setTimeout(() => {
-    if (!addressRef.current) return;
-
-    const autocomplete = new google.maps.places.Autocomplete(
-      addressRef.current,
-      {
-        fields: ["address_components", "formatted_address", "geometry"],
-        componentRestrictions: { country: "gb" },
-        types: ["address"],
-      }
-    );
-
-    autocomplete.addListener("place_changed", () => {
-      const place = autocomplete.getPlace();
-      if (!place.address_components) return;
-
-      const comp = {};
-      place.address_components.forEach((c) => {
-        comp[c.types[0]] = c.long_name;
-      });
-
-      const postcode = comp.postal_code || "";
-      const city = comp.post_town || comp.locality || "";
-      const county =
-        comp.administrative_area_level_2 ||
-        comp.administrative_area_level_1 || "";
-      const country = comp.country || "United Kingdom";
-
-      formik.setFieldValue("address", place.formatted_address);
-      formik.setFieldValue("county", county);
-      formik.setFieldValue("postcode", postcode);
-      formik.setFieldValue("country", country);
+    const loader = new Loader({
+      apiKey: process.env.NEXT_PUBLIC_GOOGLE_MAPS_API_KEY,
+      libraries: ["places"],
     });
-  }, 500); 
-});
 
+    loader.load().then(() => {
+      setTimeout(() => {
+        if (!addressRef.current) return;
+
+        const autocomplete = new google.maps.places.Autocomplete(
+          addressRef.current,
+          {
+            fields: ["address_components", "formatted_address", "geometry"],
+            componentRestrictions: { country: "gb" },
+            types: ["address"],
+          }
+        );
+
+        autocomplete.addListener("place_changed", () => {
+          const place = autocomplete.getPlace();
+          if (!place.address_components) return;
+
+          const comp = {};
+          place.address_components.forEach((c) => {
+            comp[c.types[0]] = c.long_name;
+          });
+
+          const postcode = comp.postal_code || "";
+          const city = comp.post_town || comp.locality || "";
+          const county =
+            comp.administrative_area_level_2 ||
+            comp.administrative_area_level_1 ||
+            "";
+          const country = comp.country || "United Kingdom";
+
+          formik.setFieldValue("address", place.formatted_address);
+          formik.setFieldValue("county", county);
+          formik.setFieldValue("postcode", postcode);
+          formik.setFieldValue("country", country);
+        });
+      }, 500);
+    });
   }, [id]);
 
-
-  
   return (
     <CommonLayout>
-            {isSubmitting && (
+      {isSubmitting && (
         <div className="loader-overlay">
           <div className="spinner"></div>
         </div>
@@ -296,7 +316,6 @@ export default function MicrochipEditPage() {
             </div>
           </div>
 
-          
           <form onSubmit={formik.handleSubmit}>
             <div className="page-table-container w-100">
               <div className="card-body">
@@ -381,15 +400,15 @@ export default function MicrochipEditPage() {
                     <textarea
                       className="form-control"
                       id="address"
-                       autoComplete="off"
-                    ref={addressRef}
+                      autoComplete="off"
+                      ref={addressRef}
                       {...formik.getFieldProps("address")}
                     />
                     {formik.touched.address && formik.errors.address && (
                       <div className="text-danger">{formik.errors.address}</div>
                     )}
                   </div>
-                 {/* County */}
+                  {/* County */}
                   <div className="col-12 mb-3">
                     <label htmlFor="county" className="form-label">
                       County <span className="text-danger">*</span>
@@ -489,11 +508,29 @@ export default function MicrochipEditPage() {
                     <label htmlFor="type" className="form-label">
                       Type <span className="text-danger">*</span>
                     </label>
-                    <input
-                      type="text"
-                      className="form-control"
+                    <ReactSelect
                       id="type"
-                      {...formik.getFieldProps("type")}
+                      name="type"
+                      options={animalOptions}
+                      value={animalOptions.find(
+                        (option) => option.value === formik.values.type
+                      )}
+                      onChange={(selectedOption: any) => {
+                        formik.setFieldValue(
+                          "type",
+                          selectedOption?.value || ""
+                        );
+                        formik.setFieldValue("breed", ""); // reset breed when type changes
+                      }}
+                      onBlur={() => formik.setFieldTouched("type", true)}
+                      placeholder="Select an animal"
+                      menuPortalTarget={
+                        typeof window !== "undefined" ? document.body : null
+                      }
+                      styles={{
+                        menuPortal: (base) => ({ ...base, zIndex: 9999 }),
+                        menu: (base) => ({ ...base, zIndex: 9999 }),
+                      }}
                     />
                     {formik.touched.type && formik.errors.type && (
                       <div className="text-danger">{formik.errors.type}</div>
@@ -505,11 +542,40 @@ export default function MicrochipEditPage() {
                     <label htmlFor="breed" className="form-label">
                       Breed <span className="text-danger">*</span>
                     </label>
-                    <input
-                      type="text"
-                      className="form-control"
+                    <ReactSelect
                       id="breed"
-                      {...formik.getFieldProps("breed")}
+                      name="breed"
+                      options={
+                        formik.values.type
+                          ? breedsByType[formik.values.type].map((breed) => ({
+                              value: breed,
+                              label: breed,
+                            }))
+                          : []
+                      }
+                      value={
+                        formik.values.breed
+                          ? {
+                              value: formik.values.breed,
+                              label: formik.values.breed,
+                            }
+                          : null
+                      }
+                      onChange={(selectedOption: any) =>
+                        formik.setFieldValue(
+                          "breed",
+                          selectedOption?.value || ""
+                        )
+                      }
+                      onBlur={() => formik.setFieldTouched("breed", true)}
+                      placeholder="Select a breed"
+                      menuPortalTarget={
+                        typeof window !== "undefined" ? document.body : null
+                      }
+                      styles={{
+                        menuPortal: (base) => ({ ...base, zIndex: 9999 }),
+                        menu: (base) => ({ ...base, zIndex: 9999 }),
+                      }}
                     />
                     {formik.touched.breed && formik.errors.breed && (
                       <div className="text-danger">{formik.errors.breed}</div>
@@ -543,11 +609,27 @@ export default function MicrochipEditPage() {
                     <label htmlFor="color" className="form-label">
                       Color <span className="text-danger">*</span>
                     </label>
-                    <input
-                      type="text"
-                      className="form-control"
+                    <Select
                       id="color"
-                      {...formik.getFieldProps("color")}
+                      name="color"
+                      options={colorOptions}
+                      value={colorOptions.find(
+                        (option) => option.value === formik.values.color
+                      )}
+                      onChange={(selectedOption) =>
+                        formik.setFieldValue(
+                          "color",
+                          selectedOption?.value || ""
+                        )
+                      }
+                      onBlur={() => formik.setFieldTouched("color", true)}
+                      menuPortalTarget={
+                        typeof window !== "undefined" ? document.body : null
+                      }
+                      styles={{
+                        menuPortal: (base) => ({ ...base, zIndex: 9999 }),
+                        menu: (base) => ({ ...base, zIndex: 9999 }),
+                      }}
                     />
                     {formik.touched.color && formik.errors.color && (
                       <div className="text-danger">{formik.errors.color}</div>
@@ -564,7 +646,7 @@ export default function MicrochipEditPage() {
                       className="form-control"
                       id="dob"
                       {...formik.getFieldProps("dob")}
-                       max={new Date().toISOString().split("T")[0]}
+                      max={new Date().toISOString().split("T")[0]}
                     />
                     {formik.touched.dob && formik.errors.dob && (
                       <div className="text-danger">{formik.errors.dob}</div>

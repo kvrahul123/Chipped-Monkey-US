@@ -1,10 +1,11 @@
-
-import CommonLayout from "../frontend/layouts/CommonLayouts";
-
+import CommonLayout from "@/app/frontend/layouts/CommonLayouts";
+import Image from "next/image";
+const appUrl = process.env.NEXT_PUBLIC_APP_URL; // Your API URL
+import { generateCommonMetadata } from "@/app/utils/metadata";
 import { Metadata } from "next";
-import { generateCommonMetadata } from "../utils/metadata";
-import { ImplantersLists } from "./ImplantersLists";
-const appUrl = process.env.NEXT_PUBLIC_APP_URL;
+import { LoginForm } from "./LoginForm";
+import ForgotPassword from "./ForgotForm";
+
 
 
 
@@ -12,7 +13,7 @@ const appUrl = process.env.NEXT_PUBLIC_APP_URL;
 const frontendUrl = process.env.NEXT_PUBLIC_FRONTEND_URL;
 
 export async function generateMetadata(): Promise<Metadata> {
-  const res = await fetch(`${appUrl}frontend/pages/list/?id=19`);
+  const res = await fetch(`${appUrl}frontend/pages/list/?id=12`);
   const result = await res.json();
   const seoData = result.data ? result.data[0] : null;
 
@@ -32,22 +33,36 @@ export async function generateMetadata(): Promise<Metadata> {
     dynamicDescription,
     dynamicKeywords,
     dynamicImages,
-    `${frontendUrl}implanters`
+    `${frontendUrl}user-login/pet_owner`
   );
 }
-export default function Implanters() {
+
+
+
+  const Login = () => {
+ 
 
   return (
     <CommonLayout>
       <div className="main-page-container">
         <div className="container">
-            
+          <div className="row">
+            <div className="col-lg-6 col-md-6 text-center mobile-none">
+              <Image
+                src="/assets/images/login.jpg"
+                alt="Login Image"
+                width={630}
+                quality={100}
+                height={537}
+              />
+            </div>
 
-
-            <ImplantersLists/>
-
+            <ForgotPassword/>
+          </div>
         </div>
       </div>
     </CommonLayout>
   );
-}
+  }
+
+  export default Login;

@@ -4,6 +4,10 @@ import * as Yup from "yup";
 import Swal from "sweetalert2";
 import { useEffect, useState, useRef } from "react";
 import { Loader } from "@googlemaps/js-api-loader";
+import { Autocomplete, Select, TextField } from "@mui/material";
+import Script from "next/script";
+import ReactSelect from "react-select"; // default import
+import { breedsByType, colorOptions } from "./data";
 import {
   getLocalStorageItem,
   removeLocalStorageItem,
@@ -17,10 +21,27 @@ const appUrl = process.env.NEXT_PUBLIC_APP_URL; // Your API URL
 const googleMapsKey = process.env.NEXT_PUBLIC_GOOGLE_MAPS_API_KEY || "";
 const secret = process.env.NEXT_PUBLIC_HASH_SECRET as string;
 
+declare global {
+  interface Window {
+    appendHelcimPayIframe?: (
+      checkoutToken: string,
+      allowExit?: boolean
+    ) => void;
+  }
+}
+
 export default function MicrochipForm(microchip_number: any) {
   const router = useRouter();
   const [isPaymentCardOpen, setIsPaymentCardOpen] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [isLoading, setIsLoading] = useState(false);
+
+  const animalOptions = [
+    { value: "Dog", label: "Dog" },
+    { value: "Cat", label: "Cat" },
+    { value: "Rabbit", label: "Rabbit" },
+    { value: "Exotic", label: "Exotic animal" },
+  ];
 
   const Decryptmicrochip_payment = DecryptData(
     getLocalStorageItem("microchip_paymentDetails") || "",
@@ -36,42 +57,44 @@ export default function MicrochipForm(microchip_number: any) {
 
         const len = value.length;
 
-        // 1️⃣ 15-digit numeric
+        // 1️⃣ 15-digit numeric (ISO FDX-B)
         if (/^\d+$/.test(value)) {
           if (len !== 15) {
             return this.createError({
-              message: "Invalid length – 15-digit numeric microchips required.",
+              message:
+                "The length appears to be incorrect. A microchip number is typically 15 digits long", //for this exact 15 digits only numbers
             });
           }
           return true;
         }
 
-        // 2️⃣ 10-character alphanumeric
-        if (/^[A-Za-z0-9]+$/.test(value)) {
+        // 2️⃣ 10-character alphanumeric (ISO format)
+        if (/^\d{9}[A-Za-z0-9]$/.test(value)) {
+          // <-- updated regex
           if (len !== 10) {
             return this.createError({
               message:
-                "Invalid length – 10-character alphanumeric microchips required.",
+                "The length appears to be incorrect. An Alpha numeric microchip number is typically 10 digits long", // for this exact 9 digits numbers and one numeric
             });
           }
           return true;
         }
 
-        // 3️⃣ AVID format (letters, numbers, *)
-        if (/^[A-Za-z0-9*]+$/.test(value)) {
+        // 3️⃣ AVID format (legacy / non-ISO)
+        if (/^[A-Za-z]{4}(\d{5}|\d{9})$/.test(value)) {
           const count = value.replace(/\*/g, "").length;
           if (count < 9 || count > 13) {
             return this.createError({
               message:
-                "Incorrect length – AVID microchips must be 9–13 characters.",
+                "The length appears to be incorrect. An AVID microchip number is typically 9/13 digits long", //for tis exact 4 alpha and 5 numeric or 4 alpha and 9 numeric
             });
           }
           return true;
         }
-
         // If none match
         return this.createError({
-          message: "Invalid microchip number format.",
+          message:
+            "The length appears to be incorrect. A microchip number is typically 15 digits long",
         });
       }),
     pet_keeper: Yup.string().required("Pet keeper is required"),
@@ -85,7 +108,7 @@ export default function MicrochipForm(microchip_number: any) {
     pet_name: Yup.string().required("Pet name is required"),
     pet_status: Yup.string().required("Pet status is required"),
     type: Yup.string().required("Type of animal is required"),
-    breed: Yup.string(),
+    breed: Yup.string().required("Breed is required"),
     sex: Yup.string().required("Sex is required"),
     color: Yup.string(),
     dob: Yup.date(),
@@ -152,11 +175,11 @@ export default function MicrochipForm(microchip_number: any) {
         setIsPaymentCardOpen(true);
         fileInputRef.current.value = "";
       } else {
-              Swal.fire({
-        icon: "error",
-        title: "Error",
-        text: data.message,
-      });
+        Swal.fire({
+          icon: "error",
+          title: "Error",
+          text: data.message,
+        });
       }
     } catch (err) {
       console.error("Error submitting form:", err);
@@ -170,59 +193,85 @@ export default function MicrochipForm(microchip_number: any) {
     }
   };
 
-  const handleBuyNow = async (selectedPlan: string) => {
-    try {
-      let microchip_paymentDetails = DecryptData(
+  const openHelcimModal = (checkoutToken: string) => {
+    if (!window.appendHelcimPayIframe) {
+      toast.error("Payment service not loaded. Please refresh.");
+      return;
+    }
+
+    window.appendHelcimPayIframe(checkoutToken, true);
+  };
+
+const handleBuyNow = async (selectedPlan: string) => {
+  try {
+    const microchip_paymentDetails = JSON.parse(
+      DecryptData(
         getLocalStorageItem("microchip_paymentDetails") || "",
         secret
-      );
-      let token = getLocalStorageItem("token");
-      microchip_paymentDetails = JSON.parse(microchip_paymentDetails);
-      const microchipId = microchip_paymentDetails?.microchip_number;
+      )
+    );
 
-      const res = await axios.post(
-        `${appUrl}frontend/microchip/payment`,
-        {
-          microchip_id: microchipId,
-          selected_plan: selectedPlan,
-        },
-        {
-          headers: {
-            Authorization: `Bearer ${token}`,
-          },
-        }
-      );
+    setIsLoading(true);
+    const token = getLocalStorageItem("token");
 
-      // ✅ Only if API returns 200
-      if (res.data.statusCode === 200) {
-        const { nextUrl, formFields } = res.data;
+    // 🔥 Choose API based on plan
+    const url =
+      selectedPlan === "annual"
+        ? `${appUrl}frontend/microchip/subscription`
+        : `${appUrl}frontend/microchip/payment`;
 
-        // Auto-submit hidden form
-        const form = document.createElement("form");
-        form.method = "POST";
-        form.action = nextUrl;
+    const payload =
+      selectedPlan === "annual"
+        ? {
+            microchip_id: microchip_paymentDetails.microchip_number,
+            plan: "annual",
+          }
+        : {
+            microchip_id: microchip_paymentDetails.microchip_number,
+            selected_plan: selectedPlan, // lifetime
+          };
 
-        Object.entries(formFields).forEach(([key, value]) => {
-          const input = document.createElement("input");
-          input.type = "hidden";
-          input.name = key;
-          input.value = value;
-          form.appendChild(input);
-        });
+    const res = await axios.post(url, payload, {
+      headers: { Authorization: `Bearer ${token}` },
+    });
 
-        document.body.appendChild(form);
-        form.submit();
-      } else {
-        // Show toast for errors
-        toast.error(res.data.message || "Something went wrong");
-      }
-    } catch (err: any) {
-      console.error(err);
-      toast.error(
-        err.response?.data?.message || "Failed to create payment session"
-      );
+    if (res.data.statusCode === 200) {
+      openHelcimModal(res.data.checkoutToken);
+    } else {
+      toast.error(res.data.message);
     }
-  };
+  } catch (err) {
+    console.error("Payment initialization error", err);
+    toast.error("Payment initialization failed");
+  } finally {
+    setIsLoading(false);
+  }
+};
+
+
+  useEffect(() => {
+    const handler = (event: MessageEvent) => {
+      if (!event.data?.eventName) return;
+
+      if (event.data.eventStatus === "SUCCESS") {
+        console.log("✅ Payment success", JSON.parse(event.data.eventMessage));
+        toast.success("Payment successful!");
+        removeHelcimIframe();
+      }
+
+      if (event.data.eventStatus === "ABORTED") {
+        console.error("❌ Payment failed", event.data.eventMessage);
+        toast.error("Payment failed");
+      }
+
+      if (event.data.eventStatus === "HIDE") {
+        console.log("ℹ️ Payment modal closed");
+      }
+    };
+
+    window.addEventListener("message", handler);
+    return () => window.removeEventListener("message", handler);
+  }, []);
 
   useEffect(() => {
     if (Decryptmicrochip_payment != null && Decryptmicrochip_payment !== "") {
@@ -326,70 +375,69 @@ export default function MicrochipForm(microchip_number: any) {
                 <Form autoComplete="off">
                   {/* Microchip Number */}
                   <div className="form-floating mb-4">
-                    <Field
-                      id="microchip_number"
-                      name="microchip_number"
-                      type="text"
-                      className="form-control"
-                      placeholder="Microchip number"
+                    <TextField
+                      label="Microchip number"
+                      fullWidth
+                      value={values.microchip_number}
+                      onChange={(e) =>
+                        setFieldValue("microchip_number", e.target.value)
+                      }
                     />
+
                     <ErrorMessage
                       name="microchip_number"
                       component="div"
                       className="text-danger"
                     />
-                    <label htmlFor="microchip_number">Microchip number</label>
                   </div>
 
                   {/* Pet Keeper */}
                   <div className="form-floating mb-4">
-                    <Field
-                      id="pet_keeper"
-                      name="pet_keeper"
-                      type="text"
-                      className="form-control"
-                      placeholder="Registering pet keeper"
+                    <TextField
+                      label="Registering pet keeper"
+                      fullWidth
+                      value={values.pet_keeper}
+                      onChange={(e) =>
+                        setFieldValue("pet_keeper", e.target.value)
+                      }
                     />
                     <ErrorMessage
                       name="pet_keeper"
                       component="div"
                       className="text-danger"
                     />
-                    <label htmlFor="pet_keeper">Registering pet keeper</label>
                   </div>
 
                   {/* Phone Number */}
                   <div className="form-floating mb-4">
-                    <Field
-                      id="phone_number"
-                      name="phone_number"
-                      type="text"
-                      className="form-control"
-                      placeholder="Keeper's phone number"
+                    <TextField
+                      label="Keeper's phone number"
+                      fullWidth
+                      value={values.phone_number}
+                      onChange={(e) =>
+                        setFieldValue("phone_number", e.target.value)
+                      }
                     />
                     <ErrorMessage
                       name="phone_number"
                       component="div"
                       className="text-danger"
                     />
-                    <label htmlFor="phone_number">Keeper's phone number</label>
                   </div>
 
                   {/* Email */}
                   <div className="form-floating mb-4">
-                    <Field
-                      id="email"
-                      name="email"
-                      type="email"
-                      className="form-control"
-                      placeholder="Email address"
+                    <TextField
+                      label="Email address"
+                      fullWidth
+                      value={values.email}
+                      onChange={(e) => setFieldValue("email", e.target.value)}
                     />
                     <ErrorMessage
                       name="email"
                       component="div"
                       className="text-danger"
                     />
-                    <label htmlFor="email">Email address</label>
                   </div>
 
                   {/* Google Address or Manual Entry Toggle */}
@@ -432,125 +480,123 @@ export default function MicrochipForm(microchip_number: any) {
                     <>
                       {/* Company */}
                       <div className="form-floating mb-4">
-                        <Field
-                          id="company"
-                          name="company"
-                          type="text"
-                          className="form-control"
-                          placeholder="Company (optional)"
+                        <TextField
+                          label="Company (optional)"
+                          fullWidth
+                          value={values.company}
+                          onChange={(e) =>
+                            setFieldValue("company", e.target.value)
+                          }
                         />
                         <ErrorMessage
                           name="company"
                           component="div"
                           className="text-danger"
                         />
-                        <label htmlFor="company">Company (optional)</label>
                       </div>
 
                       {/* Address Line 1 */}
                       <div className="form-floating mb-4">
-                        <Field
-                          id="address_line1"
-                          name="address_line1"
-                          type="text"
-                          className="form-control"
-                          placeholder="Address Line 1"
+                        <TextField
+                          label="Address Line 1"
+                          fullWidth
+                          value={values.address_line1}
+                          onChange={(e) =>
+                            setFieldValue("address_line1", e.target.value)
+                          }
                         />
                         <ErrorMessage
                           name="address_line1"
                           component="div"
                           className="text-danger"
                         />
-                        <label htmlFor="address_line1">Address Line 1</label>
                       </div>
 
                       {/* Address Line 2 */}
                       <div className="form-floating mb-4">
-                        <Field
-                          id="address_line2"
-                          name="address_line2"
-                          type="text"
-                          className="form-control"
-                          placeholder="Address Line 2"
+                        <TextField
+                          label="Address Line 2"
+                          fullWidth
+                          value={values.address_line2}
+                          onChange={(e) =>
+                            setFieldValue("address_line2", e.target.value)
+                          }
                         />
                         <ErrorMessage
                           name="address_line2"
                           component="div"
                           className="text-danger"
                         />
-                        <label htmlFor="address_line2">Address Line 2</label>
                       </div>
                     </>
                   )}
 
                   {/* County */}
                   <div className="form-floating mb-4">
-                    <Field
-                      id="county"
-                      name="county"
-                      type="text"
-                      className="form-control"
-                      placeholder="County"
+                    <TextField
+                      label="County"
+                      fullWidth
+                      value={values.county}
+                      onChange={(e) => setFieldValue("county", e.target.value)}
                     />
                     <ErrorMessage
                       name="county"
                       component="div"
                       className="text-danger"
                     />
-                    <label htmlFor="county">County</label>
                   </div>
 
                   {/* Postcode */}
                   <div className="form-floating mb-4">
-                    <Field
-                      id="postcode"
-                      name="postcode"
-                      type="text"
-                      className="form-control"
-                      placeholder="Postcode"
+                    <TextField
+                      label="Postcode"
+                      fullWidth
+                      value={values.postcode}
+                      onChange={(e) =>
+                        setFieldValue("postcode", e.target.value)
+                      }
                     />
                     <ErrorMessage
                       name="postcode"
                       component="div"
                       className="text-danger"
                     />
-                    <label htmlFor="country">Postcode</label>
                   </div>
 
                   {/* Country */}
                   <div className="form-floating mb-4">
-                    <Field
-                      id="country"
-                      name="country"
-                      type="text"
-                      className="form-control"
-                      placeholder="Country"
+                    <TextField
+                      label="Country"
+                      fullWidth
+                      value={values.country}
+                      onChange={(e) => setFieldValue("country", e.target.value)}
                     />
                     <ErrorMessage
                       name="country"
                       component="div"
                       className="text-danger"
-                    />
-                    <label htmlFor="country">Country</label>
+                    />{" "}
                   </div>
 
                   <h1>Pet's Information</h1>
 
                   {/* Pet Name */}
                   <div className="form-floating mb-4">
-                    <Field
-                      id="pet_name"
+                    <TextField
                       name="pet_name"
-                      type="text"
-                      className="form-control"
-                      placeholder="Pet's name"
+                      label="Pet Name"
+                      fullWidth
+                      value={values.pet_name}
+                      onChange={(e) =>
+                        setFieldValue("pet_name", e.target.value)
+                      }
                     />
+
                     <ErrorMessage
                       name="pet_name"
                       component="div"
                       className="text-danger"
                     />
-                    <label htmlFor="pet_name">Pet's name</label>
                   </div>
 
                   {/* Pet Status */}
@@ -575,36 +621,62 @@ export default function MicrochipForm(microchip_number: any) {
 
                   {/* Type */}
                   <div className="form-floating mb-4">
-                    <Field
-                      id="type"
-                      name="type"
-                      type="text"
-                      className="form-control"
-                      placeholder="Type of animal"
+                    <ReactSelect
+                      options={animalOptions}
+                      value={animalOptions.find(
+                        (option) => option.value === values.type
+                      )}
+                      onChange={(selectedOption: any) => {
+                        setFieldValue("type", selectedOption?.value);
+                        setFieldValue("breed", ""); // reset breed when type changes
+                      }}
+                      placeholder="Select an animal"
+                      menuPortalTarget={document.body}
+                      styles={{
+                        menuPortal: (base) => ({ ...base, zIndex: 9999 }),
+                        menu: (base) => ({ ...base, zIndex: 9999 }),
+                      }}
                     />
+
                     <ErrorMessage
                       name="type"
                       component="div"
                       className="text-danger"
                     />
-                    <label htmlFor="type">Type of animal</label>
                   </div>
 
                   {/* Breed */}
                   <div className="form-floating mb-4">
-                    <Field
-                      id="breed"
-                      name="breed"
-                      type="text"
-                      className="form-control"
-                      placeholder="Breed"
+                    <ReactSelect
+                      options={
+                        values.type
+                          ? breedsByType[values.type].map((breed) => ({
+                              value: breed,
+                              label: breed,
+                            }))
+                          : []
+                      }
+                      value={
+                        values.breed
+                          ? { value: values.breed, label: values.breed }
+                          : null
+                      }
+                      onChange={(selectedOption: any) =>
+                        setFieldValue("breed", selectedOption?.value)
+                      }
+                      placeholder="Select a breed"
+                      menuPortalTarget={document.body}
+                      styles={{
+                        menuPortal: (base) => ({ ...base, zIndex: 9999 }),
+                        menu: (base) => ({ ...base, zIndex: 9999 }),
+                      }}
                     />
+
                     <ErrorMessage
                       name="breed"
                       component="div"
                       className="text-danger"
                     />
-                    <label htmlFor="breed">Breed</label>
                   </div>
 
                   {/* Sex */}
@@ -630,55 +702,59 @@ export default function MicrochipForm(microchip_number: any) {
 
                   {/* Color */}
                   <div className="form-floating mb-4">
-                    <Field
-                      id="color"
-                      name="color"
-                      type="text"
-                      className="form-control"
-                      placeholder="Color"
+                    <ReactSelect
+                      options={colorOptions}
+                      value={colorOptions.find(
+                        (option) => option.value === values.color
+                      )}
+                      onChange={(selectedOption: any) =>
+                        setFieldValue("color", selectedOption?.value || "")
+                      }
+                      placeholder="Select color"
+                      menuPortalTarget={document.body}
+                      styles={{
+                        menuPortal: (base) => ({ ...base, zIndex: 9999 }),
+                        menu: (base) => ({ ...base, zIndex: 9999 }),
+                      }}
                     />
                     <ErrorMessage
                       name="color"
                       component="div"
                       className="text-danger"
                     />
-                    <label htmlFor="color">Color</label>
                   </div>
 
                   {/* Date of Birth */}
                   <div className="form-floating mb-4">
-                    <Field
-                      id="dob"
-                      name="dob"
+                    <TextField
+                      label="Pet's Date of Birth"
+                      fullWidth
                       type="date"
-                      className="form-control"
-                      max={new Date().toISOString().split("T")[0]}
+                      value={values.dob}
+                      onChange={(e) => setFieldValue("dob", e.target.value)}
                     />
                     <ErrorMessage
                       name="dob"
                       component="div"
                       className="text-danger"
                     />
-                    <label htmlFor="dob">Pet's Date of Birth</label>
                   </div>
 
                   {/* Markings */}
                   <div className="form-floating mb-4">
-                    <Field
-                      id="markings"
-                      name="markings"
-                      type="text"
-                      className="form-control"
-                      placeholder="Any distinguishing markings?"
+                    <TextField
+                      label=" Any distinguishing markings?"
+                      fullWidth
+                      value={values.markings}
+                      onChange={(e) =>
+                        setFieldValue("markings", e.target.value)
+                      }
                     />
                     <ErrorMessage
                       name="markings"
                       component="div"
                       className="text-danger"
                     />
-                    <label htmlFor="markings">
-                      Any distinguishing markings?
-                    </label>
                   </div>
 
                   {/* Photo */}
@@ -710,98 +786,75 @@ export default function MicrochipForm(microchip_number: any) {
         </div>
       ) : (
         <div className="row mt-5 payment_card">
-          <div className="col-lg-12 mb-4">
+          {/* Lifetime Registration */}
+          <div className="col-lg-6 mb-4">
             <div className="packages-container">
               <div className="package-container-title">
-                <h3>Standard</h3>
-              </div>
-              <div className="package-container-payment">
-                <h4 className="d-flex justify-content-center align-items-center payment-middle">
-                  <span>£</span>
-                  15.00 <span className="packagepayment_type">Lifetime</span>
-                </h4>
+                <h3>Lifetime Registration (One-Time Payment)</h3>
               </div>
 
               <div className="package-container-description">
                 <ul>
-                  <li>Pet microchip registration</li>
-                  <li>Demo Video</li>
+                  <li>Includes everything in Free +</li>
+                  <li>Lost animal instant alerts (email/SMS)</li>
+                  <li>Printable “FOUND” posters with QR</li>
+                  <li>Vet / shelter notes</li>
+                  <li>Ownership transfer history</li>
+                  <li>Certificate of registration (PDF)</li>
+                  <li>Priority lookup visibility</li>
                 </ul>
               </div>
+
+              <div className="package-container-payment">
+                <h4 className="d-flex justify-content-center align-items-center payment-middle">
+                  <span>$</span>49
+                </h4>
+              </div>
+
               <div className="package-btn-container">
                 <button
                   type="button"
                   className="btn btn-primary"
-                  onClick={() => handleBuyNow("standard")}>
-                  Buy Now
+                  onClick={() => handleBuyNow("lifetime")}>
+                  {isLoading ? "Purchasing..." : "Buy Now"}
                 </button>
               </div>
             </div>
           </div>
 
-          <div className="col-lg-12 mb-4">
-            {" "}
+          {/* Annual Protection Plan */}
+          <div className="col-lg-6 mb-4">
             <div className="packages-container">
               <div className="package-container-title">
-                <h3>Premium</h3>
-              </div>
-              <div className="package-container-payment">
-                <h4 className="d-flex justify-content-center align-items-center payment-middle">
-                  <span>£</span>
-                  50.00 <span className="packagepayment_type">Yearly</span>
-                </h4>
+                <h3>Annual Protection Plan (Recurring Revenue)</h3>
               </div>
 
               <div className="package-container-description">
                 <ul>
-                  <li>Location pet</li>
-                  <li>Contact vet email</li>
-                  <li>Lost pet listings</li>
-                  <li>24/7 customer care</li>
-                  <li>Demo Video</li>
-                  <li>Pet microchip registration</li>
+                  <li>Includes everything above +</li>
+                  <li>24/7 lost animal response workflow</li>
+                  <li>SMS + WhatsApp alerts</li>
+                  <li>WhatsApp lost/found report</li>
+                  <li>Geo-alert radius</li>
+                  <li>Theft / dispute timestamped records</li>
+                  <li>Insurance-ready documentation</li>
+                  <li>Multi-animal dashboard</li>
+                  <li>Concierge ownership transfer</li>
                 </ul>
               </div>
-              <div className="package-btn-container">
-                <button
-                  type="button"
-                  className="btn btn-primary"
-                  onClick={() => handleBuyNow("premium")}>
-                  Buy Now
-                </button>
-              </div>
-            </div>
-          </div>
 
-          <div className="col-lg-12 mb-4">
-            {" "}
-            <div className="packages-container">
-              <div className="package-container-title">
-                <h3>Platinum</h3>
-              </div>
               <div className="package-container-payment">
                 <h4 className="d-flex justify-content-center align-items-center payment-middle">
-                  <span>£</span>
-                  3.99 <span className="packagepayment_type">Monthly</span>
+                  <span>$</span>19.99
                 </h4>
               </div>
 
-              <div className="package-container-description">
-                <ul>
-                  <li>Location pet</li>
-                  <li>Contact vet email</li>
-                  <li>Lost pet listings</li>
-                  <li>24/7 customer care</li>
-                  <li>Demo Video</li>
-                  <li>Pet microchip registration</li>
-                </ul>
-              </div>
               <div className="package-btn-container">
                 <button
                   type="button"
                   className="btn btn-primary"
-                  onClick={() => handleBuyNow("platinum")}>
-                  Buy Now
+                  onClick={() => handleBuyNow("annual")}>
+                  {isLoading ? "Purchasing..." : "Enable auto-renewal"}
                 </button>
               </div>
             </div>

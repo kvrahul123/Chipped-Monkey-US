@@ -14,7 +14,7 @@ export function generateCommonMetadata(
   const fullTitle = title ? `${title}` : "Chipped Monkey";
   const fullDescription = description
     ? stripHtmlTags(description)
-    : "Register and manage your pet’s microchip with Chipped Monkey, the UK’s trusted uk-compliant database. 24/7 reunification support UK";
+    : "Register your pet's microchip with Chipped Monkey, a proud AAHA Universal Lookup participant. Secure, lifetime national recovery database for all chip brands.";
 
   return {
     title: {
@@ -48,11 +48,11 @@ export function generateCommonMetadata(
       creator: "@yourhandle",
     },
     robots: {
-      index: false,
-      follow: false,
+      index: true,
+      follow: true,
       googleBot: {
-        index: false,
-        follow: false,
+        index: true,
+        follow: true,
         "max-video-preview": -1,
         "max-image-preview": "large",
         "max-snippet": -1,

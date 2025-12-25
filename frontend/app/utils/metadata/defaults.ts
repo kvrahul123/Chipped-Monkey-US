@@ -1,7 +1,7 @@
 export const DEFAULT_METADATA = {
   siteName: 'Chipped Monkey',
-  description: 'Register and manage your pet’s microchip with Chipped Monkey, the UK’s trusted uk-compliant database. 24/7 reunification support UK',
-  keywords: ['my app', 'platform', 'services'],
+  description: "Register your pet's microchip with Chipped Monkey, a proud AAHA Universal Lookup participant. Secure, lifetime national recovery database for all chip brands.",
+  keywords: ['Chipped Monkey','Microchip Registry','Pet Recovery','AAHA Universal Lookup','Pet Microchip Registration','Lost Pet Recovery','Secure Pet Database'],
   company: 'Chipped Monkey',
   twitterHandle: '@yourhandle',
   verificationCodes: {

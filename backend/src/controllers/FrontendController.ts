@@ -19,6 +19,7 @@ import { Contact } from "../../entities/Contact";
 import multer from "multer";
 import path from "path";
 import express from "express";
+import { initializeHelcimPayment } from "../../utils/initializeHelcimPayment";
 import { Gender } from "../../entities/Gender";
 import { User } from "../../entities/User";
 import { Pages } from "../../entities/Pages";
@@ -48,43 +49,12 @@ import {
   externalSources,
   checkExternalMicrochip,
 } from "../../utils/ExternalMicrochip";
+import { initializeHelcimSubscription } from "../../utils/initializeHelcimSubscription";
+import axios from "axios";
 
 require("dotenv").config();
 export interface OpayoTransactionResponse {
   nextUrl: string;
-}
-const O_PAYO_FORM_CONFIG = {
-  isProduction: process.env.OPAYA_PRODUCTION || "false",
-  encryptPassword: process.env.OPAYA_ENCRYPT_PASSWORD || "",
-  vendor: process.env.OPAYA_VENDOR_NAME || "",
-  protocol: "3.00",
-  txType: "PAYMENT",
-};
-
-// Opayo Endpoints
-const SANDBOX_ENDPOINT =
-  "https://test.sagepay.com/gateway/service/vspform-register.vsp";
-const PRODUCTION_ENDPOINT =
-  "https://live.opayo.eu.nc4.upg.star/gateway/service/vpsformgateway.cgi";
-
-export interface PaymentDetailsRequest {
-  orderId: string;
-  crypt?: string | null; // <-- ALLOWS null & optional
-}
-
-export interface MicrochipPaymentDetailsRequest {
-  microchipID: string;
-  crypt?: string | null; // <-- ALLOWS null & optional
-}
-
-export interface OpayoTransactionResponse {
-  nextUrl: string;
-  formFields: {
-    VPSProtocol: string;
-    TxType: string;
-    Vendor: string;
-    Crypt: string;
-  };
 }
 
 // ===== Multer Storage Setup =====
@@ -115,9 +85,7 @@ interface MulterRequest extends express.Request {
 @Route("frontend")
 export class FrontendController extends Controller {
   @Post("/microchip/create")
-  public async createMicrochip(
-    @Request() request: MulterRequest
-  ): Promise<{
+  public async createMicrochip(@Request() request: MulterRequest): Promise<{
     message: string;
     data?: Contact;
     statusCode: number;
@@ -211,6 +179,7 @@ export class FrontendController extends Controller {
               statusCode: 409,
             });
           }
+          console.log("decodedToken.userId::" + decodedToken.userId);
           await assignMicrochipRepository.update(
             { microchip_number: microchip_number }, // condition (match)
             { used_by: decodedToken.userId } // fields to update
@@ -294,8 +263,8 @@ export class FrontendController extends Controller {
           message: `Microchip number already exists with Chipped Monkey`,
           exists: true,
           data: {
-             microchipNumber:microchip_number,
-            existingMicrochip:existingMicrochip,
+            microchipNumber: microchip_number,
+            existingMicrochip: existingMicrochip,
             isRegistered: true,
             ownerLastUpdateDate: existingMicrochip.updated_at || null,
             isDistributed: false, // assume local DB does not track distribution
@@ -307,64 +276,64 @@ export class FrontendController extends Controller {
       }
 
       // 2️⃣ Check external sources
-      const sources = externalSources(microchip_number);
+      // const sources = externalSources(microchip_number);
 
-      const cleanParams = (params: Record<string, any>) => {
-        const cleaned: Record<string, string> = {};
-        for (const key in params) {
-          const value = params[key];
-          if (value !== undefined && value !== null) {
-            cleaned[key] = String(value);
-          }
-        }
-        return cleaned;
-      };
+      // const cleanParams = (params: Record<string, any>) => {
+      //   const cleaned: Record<string, string> = {};
+      //   for (const key in params) {
+      //     const value = params[key];
+      //     if (value !== undefined && value !== null) {
+      //       cleaned[key] = String(value);
+      //     }
+      //   }
+      //   return cleaned;
+      // };
 
-      for (const source of sources) {
-        try {
-          const cleanedParams = cleanParams(source.params);
-          const query = new URLSearchParams(cleanedParams);
-          const response = await fetch(`${source.url}?${query.toString()}`);
-          const text = await response.json(); // assume API returns JSON
+      // for (const source of sources) {
+      //   try {
+      //     const cleanedParams = cleanParams(source.params);
+      //     const query = new URLSearchParams(cleanedParams);
+      //     const response = await fetch(`${source.url}?${query.toString()}`);
+      //     const text = await response.json(); // assume API returns JSON
 
-          // If the microchip is registered or distributed
-          if (text.isRegistered || text.isDistributed) {
-            const msgParts: string[] = [];
-            if (text.isRegistered)
-              msgParts.push(`registered on ${source.name}`);
-            if (text.isDistributed)
-              msgParts.push(`distributed by ${source.name}`);
+      //     // If the microchip is registered or distributed
+      //     if (text.isRegistered || text.isDistributed) {
+      //       const msgParts: string[] = [];
+      //       if (text.isRegistered)
+      //         msgParts.push(`registered on ${source.name}`);
+      //       if (text.isDistributed)
+      //         msgParts.push(`distributed by ${source.name}`);
 
-            return {
-              message:
-                `Microchip number is ${msgParts.join(" and ")}` +
-                (source.phone_number
-                  ? `. Contact: ${source.phone_number}`
-                  : ""),
-              exists: true,
-              data: {
-                 microchipNumber:microchip_number,
-                isRegistered: !!text.isRegistered,
-                ownerLastUpdateDate: text.ownerLastUpdateDate || null,
-                isDistributed: !!text.isDistributed,
-                registeredWith: source.name,
-              },
-              externalDatabase: true,
-              statusCode: 200,
-            };
-          }
-        } catch (e) {
-          console.error(`Error checking ${source.name}:`, e);
-          continue;
-        }
-      }
+      //       return {
+      //         message:
+      //           `Microchip number is ${msgParts.join(" and ")}` +
+      //           (source.phone_number
+      //             ? `. Contact: ${source.phone_number}`
+      //             : ""),
+      //         exists: true,
+      //         data: {
+      //           microchipNumber: microchip_number,
+      //           isRegistered: !!text.isRegistered,
+      //           ownerLastUpdateDate: text.ownerLastUpdateDate || null,
+      //           isDistributed: !!text.isDistributed,
+      //           registeredWith: source.name,
+      //         },
+      //         externalDatabase: true,
+      //         statusCode: 200,
+      //       };
+      //     }
+      //   } catch (e) {
+      //     console.error(`Error checking ${source.name}:`, e);
+      //     continue;
+      //   }
+      // }
 
       // 3️⃣ Not found anywhere
       return {
         message: "This Microchip is not registered in any US database",
         exists: false,
         data: {
-          microchipNumber:microchip_number,
+          microchipNumber: microchip_number,
           isRegistered: false,
           ownerLastUpdateDate: null,
           isDistributed: false,
@@ -379,7 +348,7 @@ export class FrontendController extends Controller {
         message: "Failed to check microchip",
         exists: false,
         data: {
-           microchipNumber:"",
+          microchipNumber: "",
           isRegistered: false,
           ownerLastUpdateDate: null,
           isDistributed: false,
@@ -412,240 +381,6 @@ export class FrontendController extends Controller {
       return {
         message: "Failed to fetch genders",
         data: [],
-        statusCode: 500,
-      };
-    }
-  }
-
-  @Post("/payment/details")
-  public async getPaymentDetails(
-    @Body() body: PaymentDetailsRequest,
-    @Request() request: any
-  ): Promise<{ message: string; data: any; statusCode: number }> {
-    try {
-      const { orderId, crypt } = body;
-
-      // Get and decode token
-      const actualToken = getTokenFromRequest(request);
-      const decodedToken = decodeToken(actualToken);
-      if (!decodedToken || !decodedToken.userId) {
-        return { message: "Invalid token", statusCode: 401, data: null };
-      }
-      const userId = decodedToken.userId;
-
-      if (!orderId) {
-        return { message: "orderId is required", statusCode: 400, data: null };
-      }
-
-      const orderRepository = AppDataSource.getRepository(Order);
-      const orderDetailsRepository = AppDataSource.getRepository(OrderProducts);
-
-      // -----------------------------
-      // Decrypt the crypt string
-      // -----------------------------
-      let decryptedData: Record<string, string> | null = null;
-      try {
-        decryptedData = decryptOpayoData(
-          crypt || "",
-          O_PAYO_FORM_CONFIG.encryptPassword
-        );
-
-        if (decryptedData != null) {
-          const orderToUpdate = await orderRepository.findOne({
-            where: { vendorTxCode: decryptedData["VendorTxCode"] },
-          });
-          if (orderToUpdate) {
-            orderToUpdate.payment_encrypted_response = crypt;
-            orderToUpdate.payment_response = JSON.stringify(decryptedData);
-            orderToUpdate.payment_type = decryptedData["CardType"];
-            if (decryptedData["Status"] === "OK") {
-              orderToUpdate.payment_status = "paid";
-            }
-            await orderRepository.save(orderToUpdate);
-          }
-        }
-      } catch (decryptError) {
-        console.error("Failed to decrypt Opayo data:", decryptError);
-      }
-
-      // Fetch order
-      const order = await orderRepository.findOne({
-        where: { order_id: orderId },
-      });
-
-      if (!order || order.user_id != userId) {
-        return {
-          message: "Order not found or not purchased by this user",
-          statusCode: 404,
-          data: null,
-        };
-      }
-
-      // Fetch order items
-      const items = await orderDetailsRepository.find({
-        where: { order_id: String(order.id) },
-      });
-
-      return {
-        message: "Payment details fetched successfully",
-        statusCode: 200,
-        data: { order, items, decryptedData },
-      };
-    } catch (error) {
-      console.error("Error fetching payment details:", error);
-      return {
-        message: "Failed to fetch payment details",
-        data: error,
-        statusCode: 500,
-      };
-    }
-  }
-
-  @Post("/microchip/payment/details")
-  public async getMicrochipPaymentDetails(
-    @Body() body: MicrochipPaymentDetailsRequest,
-    @Request() request: any
-  ): Promise<{ message: string; data: any; statusCode: number }> {
-    try {
-      const { microchipID, crypt } = body;
-
-      // Validate token
-      const actualToken = getTokenFromRequest(request);
-      const decodedToken = decodeToken(actualToken);
-
-      if (!decodedToken || !decodedToken.userId) {
-        return { message: "Invalid token", statusCode: 401, data: null };
-      }
-
-      const userId = decodedToken.userId;
-
-      if (!microchipID) {
-        return {
-          message: "Microchip ID is required",
-          statusCode: 400,
-          data: null,
-        };
-      }
-
-      // ORIGINAL repositories kept exactly as your code
-      const microchipRepository = AppDataSource.getRepository(Contact);
-      const packageRepository = AppDataSource.getRepository(PackageDetails);
-
-      // ADDED -> Microchip Payment table repository
-      const microchipPaymentRepo =
-        AppDataSource.getRepository(MicrochipPayment);
-
-      let decryptedData: Record<string, string> | null = null;
-
-      // -----------------------------
-      // Decrypt the crypt string
-      // -----------------------------
-      try {
-        decryptedData = decryptOpayoData(
-          crypt || "",
-          O_PAYO_FORM_CONFIG.encryptPassword
-        );
-
-        if (decryptedData != null) {
-          // -----------------------------
-          // UPDATE IN CONTACT TABLE (YOUR ORIGINAL LOGIC)
-          // -----------------------------
-          const orderToUpdate = await microchipRepository.findOne({
-            where: {
-              vendorTxCode: decryptedData["VendorTxCode"],
-              microchip_number: microchipID,
-              user_id: userId,
-            },
-          });
-
-          if (orderToUpdate) {
-            orderToUpdate.payment_encrypted_response = crypt;
-            orderToUpdate.payment_response = JSON.stringify(decryptedData);
-            orderToUpdate.payment_type = decryptedData["CardType"];
-            if (decryptedData["Status"] === "OK") {
-              orderToUpdate.payment_status = "paid";
-              orderToUpdate.status = "active";
-            }
-            await microchipRepository.save(orderToUpdate);
-          }
-
-          // -----------------------------
-          // UPDATE IN MICROCHIP_PAYMENT TABLE (NEW ADDED)
-          // -----------------------------
-          const payUpdate = await microchipPaymentRepo.findOne({
-            where: {
-              vendor_id: decryptedData["VendorTxCode"],
-              user_id: userId,
-            },
-          });
-
-          if (payUpdate) {
-            payUpdate.payment_encrypted_response = String(crypt);
-            payUpdate.payment_response = JSON.stringify(decryptedData);
-            payUpdate.payment_type = decryptedData["CardType"];
-
-            if (decryptedData["Status"] === "OK") {
-              payUpdate.payment_status = "paid";
-              payUpdate.status = "active";
-            }
-
-            await microchipPaymentRepo.save(payUpdate);
-          }
-
-          // -----------------------------
-          // UPDATE MICROCHIP_PAYMENT_DETAILS TABLE
-          // -----------------------------
-          const detailsRepo = AppDataSource.getRepository(
-            MicrochipPaymentDetails
-          );
-
-          const detailsRecord = await detailsRepo.findOne({
-            where: {
-              microchip_order_id: payUpdate?.id || 0,
-            },
-          });
-
-          if (detailsRecord) {
-            detailsRecord.status =
-              decryptedData["Status"] === "OK" ? "paid" : "failed";
-            detailsRecord.amount =
-              payUpdate?.total_amount || detailsRecord.amount;
-            await detailsRepo.save(detailsRecord);
-          }
-        }
-      } catch (decryptError) {
-        console.error("Failed to decrypt Opayo data:", decryptError);
-      }
-
-      // -----------------------------
-      // Fetch contact record (your original code)
-      // -----------------------------
-      const order = await microchipRepository.findOne({
-        where: { microchip_number: microchipID, user_id: userId },
-      });
-
-      if (!order || order.user_id != userId) {
-        return {
-          message: "Microchip not found or not owned by this user",
-          statusCode: 404,
-          data: null,
-        };
-      }
-
-      const packageDetails = await packageRepository.findOne({
-        where: { id: order?.selected_plan },
-      });
-
-      return {
-        message: "Payment details fetched successfully",
-        statusCode: 200,
-        data: { order, decryptedData, packageDetails },
-      };
-    } catch (error) {
-      console.error("Error fetching payment details:", error);
-      return {
-        message: "Failed to fetch payment details",
-        data: error,
         statusCode: 500,
       };
     }
@@ -1367,7 +1102,7 @@ export class FrontendController extends Controller {
           city: body.city,
           country: body.country,
           pincode: body.pincode,
-          total_amount: totalAmount,
+          total_amount: Number(totalAmount) || 0,
           discount_amount: body.discount_amount || 0,
           payment_status: "un_paid",
           status: "active",
@@ -1427,77 +1162,22 @@ export class FrontendController extends Controller {
       const orderId = txResult.orderId;
       const totalAmount = txResult.totalAmount;
 
-      // vendorTxCode should use the returned orderId
-      const vendorTxCode = txResult.vendorTxCode;
-
-      const paymentData: Record<string, string> = {
-        VendorTxCode: vendorTxCode,
-        ReferrerID: "",
-        Amount: String(totalAmount.toFixed(2)), // use saved totalAmount
-        Currency: "GBP",
-        Description: `Order Payment #${orderId}`,
-
-        CustomerName: body.name,
-        CustomerEMail: body.email,
-        VendorEMail: "",
-        SendEMail: "1",
-        eMailMessage: "",
-
-        BillingSurname: body.name.split(" ").pop() || "",
-        BillingFirstnames: body.name.split(" ")[0] || "",
-        BillingAddress1: body.address,
-        BillingAddress2: "",
-        BillingCity: body.city,
-        BillingPostCode: body.pincode,
-        BillingCountry: "GB",
-        BillingState: "",
-        BillingPhone: String(body.phone_number || ""),
-
-        DeliveryFirstnames: body.name.split(" ")[0] || "",
-        DeliverySurname: body.name.split(" ").pop() || "",
-        DeliveryAddress1: body.address,
-        DeliveryAddress2: "",
-        DeliveryCity: body.city,
-        DeliveryPostCode: body.pincode,
-        DeliveryCountry: "GB",
-        DeliveryState: "",
-        DeliveryPhone: String(body.phone_number || ""),
-
-        Language: "",
-        Website: "",
-
-        // Success/Failure should reference the real orderId so you can identify it later
-        SuccessURL: `${process.env.FRONTEND_URL}payment/${orderId}`,
-        FailureURL: `${process.env.FRONTEND_URL}payment/${orderId}`,
-      };
-
       // 4️⃣ Build data string WITHOUT URL-encoding the Success/Failure (Opayo expects raw)
-      const dataString = Object.entries(paymentData)
-        .map(([key, value]) => `${key}=${value}`)
-        .join("&");
 
-      // 5️⃣ Encrypt (uses RC4-based encryptOpayoData you already implemented)
-      const crypt = encryptOpayoData(
-        dataString,
-        O_PAYO_FORM_CONFIG.encryptPassword
-      );
-
-      // 6️⃣ Determine endpoint (support both boolean and string "true"/"false")
-      const isProd = O_PAYO_FORM_CONFIG.isProduction == "true";
-      const formEndpoint = isProd ? PRODUCTION_ENDPOINT : SANDBOX_ENDPOINT;
+      const checkoutToken = await initializeHelcimPayment({
+        amount: Number(totalAmount),
+        currency: "USD",
+        description: `Product Purchase - Order ID: ${orderId}`,
+        returnUrl: process.env.HELCIM_RETURN_URL || "",
+        cancelUrl: process.env.HELCIM_CANCEL_URL || "",
+      });
 
       // 7️⃣ Return nextUrl + formFields so frontend can auto-submit the form
       return {
         statusCode: 200,
         message: "Order placed successfully",
         orderId,
-        nextUrl: formEndpoint,
-        formFields: {
-          VPSProtocol: "3.00",
-          TxType: "PAYMENT",
-          Vendor: O_PAYO_FORM_CONFIG.vendor,
-          Crypt: crypt,
-        },
+        checkoutToken,
       };
     } catch (error) {
       console.error("❌ Error saving order:", error);
@@ -1515,30 +1195,21 @@ export class FrontendController extends Controller {
     await queryRunner.startTransaction();
 
     try {
-      // 1️⃣ Validate User Token
-      let userId = "";
-      try {
-        const actualToken = getTokenFromRequest(request);
-        const decodedToken = decodeToken(actualToken);
-
-        if (
-          !decodedToken ||
-          typeof decodedToken !== "object" ||
-          !decodedToken.userId
-        ) {
-          return { message: "Invalid token", statusCode: 401 };
-        }
-        userId = decodedToken.userId;
-      } catch {
-        return { message: "Token missing or invalid", statusCode: 401 };
+      // 1️⃣ Auth
+      const actualToken = getTokenFromRequest(request);
+      const decodedToken = decodeToken(actualToken);
+      if (!decodedToken?.userId) {
+        return { statusCode: 401, message: "Invalid token" };
       }
 
-      // 2️⃣ Repositories from transaction
+      const userId = decodedToken.userId;
+
+      // 2️⃣ Repositories
       const microchipRepo = queryRunner.manager.getRepository(Contact);
       const packageRepo = queryRunner.manager.getRepository(PackageDetails);
       const paymentRepo = queryRunner.manager.getRepository(MicrochipPayment);
 
-      // 3️⃣ Fetch microchip
+      // 3️⃣ Validate Microchip
       const microchip = await microchipRepo.findOne({
         where: {
           microchip_number: String(body.microchip_id),
@@ -1550,7 +1221,7 @@ export class FrontendController extends Controller {
         return { statusCode: 404, message: "Microchip not found" };
       }
 
-      // 4️⃣ Fetch package
+      // 4️⃣ Package
       const packageData = await packageRepo.findOne({
         where: { package_name: ILike(body.selected_plan) },
       });
@@ -1559,39 +1230,26 @@ export class FrontendController extends Controller {
         return { statusCode: 404, message: "Package not found" };
       }
 
-      const amount = Number(packageData.price || 0);
-
-      // 5️⃣ Generate VendorTxCode
-      const vendorTxCode = `MC_${microchip.id}_${Date.now()}`;
-      microchip.vendorTxCode = vendorTxCode;
-      microchip.payment_status = "un_paid";
-      microchip.selected_plan = Number(packageData.id);
-
-      // 6️⃣ Save microchip (INSIDE TRANSACTION)
-      await microchipRepo.save(microchip);
-
-      // 7️⃣ Generate Order ID
-      const randomOrderId = `ORD-${Math.floor(
-        100000000 + Math.random() * 900000000
+      // 6️⃣ Save pending payment
+      const randomOrderId = `MC-${Date.now()}-${Math.floor(
+        Math.random() * 1000
       )}`;
+      const amount = packageData.price;
 
-      // 8️⃣ Create payment record
       const paymentEntry = paymentRepo.create({
         order_id: randomOrderId,
         user_id: Number(userId),
-        vendor_id: vendorTxCode,
-        payment_type: "",
+        payment_type: "purchase",
         payment_response: null,
         payment_encrypted_response: null,
         date: new Date().toISOString().slice(0, 10),
-        total_amount: amount,
+        total_amount: Number(amount),
         package_id: packageData.id,
         payment_status: "un_paid",
         status: "active",
       });
 
       await paymentRepo.save(paymentEntry);
-
       const detailsRepo = queryRunner.manager.getRepository(
         MicrochipPaymentDetails
       );
@@ -1599,69 +1257,136 @@ export class FrontendController extends Controller {
       const detailsEntry = detailsRepo.create({
         microchip_order_id: paymentEntry.id, // link to main table
         microchip_id: String(microchip.id), // old microchip id stored here
-        amount: amount,
+        amount:Number(amount),
         status: "un_paid",
       });
-
       await detailsRepo.save(detailsEntry);
-
-      // 9️⃣ Prepare Opayo payment data
-      const paymentData = {
-        VendorTxCode: vendorTxCode,
-        ReferrerID: "",
-        Amount: amount.toFixed(2),
-        Currency: "GBP",
-        Description: `Microchip Registration #${microchip.id}`,
-        CustomerName: microchip.pet_keeper,
-        CustomerEMail: microchip.email,
-        SendEMail: "1",
-        BillingSurname: microchip.pet_keeper?.split(" ").pop() || "",
-        BillingFirstnames: microchip.pet_keeper?.split(" ")[0] || "",
-        BillingAddress1: microchip.address,
-        BillingCity: microchip.county,
-        BillingPostCode: microchip.postcode,
-        BillingCountry: "GB",
-        BillingPhone: microchip.phone_number,
-        DeliveryFirstnames: microchip.pet_keeper?.split(" ")[0] || "",
-        DeliverySurname: microchip.pet_keeper?.split(" ").pop() || "",
-        DeliveryAddress1: microchip.address,
-        DeliveryCity: microchip.county,
-        DeliveryPostCode: microchip.postcode,
-        DeliveryCountry: "GB",
-        DeliveryPhone: microchip.phone_number,
-        SuccessURL: `${process.env.FRONTEND_URL}chip/payment/${microchip.microchip_number}`,
-        FailureURL: `${process.env.FRONTEND_URL}chip/payment/${microchip.microchip_number}`,
-      };
-
-      const dataString = Object.entries(paymentData)
-        .map(([key, value]) => `${key}=${value}`)
-        .join("&");
-
-      const crypt = encryptOpayoData(
-        dataString,
-        O_PAYO_FORM_CONFIG.encryptPassword
-      );
-      const isProd = O_PAYO_FORM_CONFIG.isProduction == "true";
-      const formEndpoint = isProd ? PRODUCTION_ENDPOINT : SANDBOX_ENDPOINT;
-
-      // 🔥 COMMIT TRANSACTION — EVERYTHING SUCCESSFUL
       await queryRunner.commitTransaction();
+
+      const checkoutToken = await initializeHelcimPayment({
+        amount: Number(packageData.price),
+        currency: "USD",
+        description: `Microchip Payment #${microchip.microchip_number}`,
+        returnUrl: process.env.HELCIM_RETURN_URL || "",
+        cancelUrl: process.env.HELCIM_CANCEL_URL || "",
+      });
 
       return {
         statusCode: 200,
-        message: "Payment session created",
-        nextUrl: formEndpoint,
-        formFields: {
-          VPSProtocol: "3.00",
-          TxType: "PAYMENT",
-          Vendor: O_PAYO_FORM_CONFIG.vendor,
-          Crypt: crypt,
-        },
+        checkoutToken,
       };
     } catch (err) {
       await queryRunner.rollbackTransaction();
-      console.error("❌ Error creating microchip payment:", err);
-      return { statusCode: 500, message: "Error creating payment" };
+      console.error(err);
+      return { statusCode: 500, message: "Payment failed" };
+    } finally {
+      await queryRunner.release();
+    }
+  }
+
+  @Post("/microchip/subscription")
+  public async microchipSubscription(
+    @Request() request: any,
+    @Body() body: { microchip_id: number; plan: "annual" }
+  ): Promise<any> {
+    const queryRunner = AppDataSource.createQueryRunner();
+    await queryRunner.connect();
+    await queryRunner.startTransaction();
+
+    // Helper function for early rollback
+    const rollbackAndReturn = async (payload: any) => {
+      try {
+        await queryRunner.rollbackTransaction();
+      } catch (e) {
+        console.error("Rollback failed:", e);
+      }
+      return payload;
+    };
+
+    try {
+      // 1️⃣ Auth
+      const actualToken = getTokenFromRequest(request);
+      const decodedToken = decodeToken(actualToken);
+      if (!decodedToken?.userId) {
+        return await rollbackAndReturn({
+          statusCode: 401,
+          message: "Invalid token",
+        });
+      }
+      const userId = decodedToken.userId;
+
+      // 2️⃣ Repositories
+      const microchipRepo = queryRunner.manager.getRepository(Contact);
+      const packageRepo = queryRunner.manager.getRepository(PackageDetails);
+      const paymentRepo = queryRunner.manager.getRepository(MicrochipPayment);
+
+      // 3️⃣ Validate Microchip
+      const microchip = await microchipRepo.findOne({
+        where: {
+          microchip_number: String(body.microchip_id),
+          user_id: Number(userId),
+        },
+      });
+      if (!microchip) {
+        return await rollbackAndReturn({
+          statusCode: 404,
+          message: "Microchip not found",
+        });
+      }
+
+      // 4️⃣ Validate Package (annual)
+      const packageData = await packageRepo.findOne({
+        where: { package_name: ILike("annual") },
+      });
+      if (!packageData) {
+        return await rollbackAndReturn({
+          statusCode: 404,
+          message: "Package not found",
+        });
+      }
+
+      // 5️⃣ Create pending subscription payment
+      const orderId = `SUB-${Date.now()}-${Math.floor(Math.random() * 1000)}`;
+
+      const paymentEntry = paymentRepo.create({
+        order_id: orderId,
+        user_id: Number(userId),
+        payment_type: "subscription",
+        payment_status: "pending",
+        total_amount: Number(packageData.price),
+        package_id: packageData.id,
+        status: "active",
+      });
+
+      await paymentRepo.save(paymentEntry);
+
+      // ✅ Commit transaction only after all DB operations succeed
+      await queryRunner.commitTransaction();
+
+      // 6️⃣ HELCIM – CREATE SUBSCRIPTION CHECKOUT
+const checkoutToken = await initializeHelcimSubscription({
+  dateActivated: "2025-12-23",
+  paymentPlanId: 12345,
+  customerCode: "CUST-001",
+  recurringAmount: 19.99,
+  paymentMethod: "card",
+  useCustomSetupAmount: false, // optional
+});
+console.log(checkoutToken);
+
+
+      return {
+        statusCode: 200,
+        checkoutToken,
+      };
+    } catch (err) {
+      console.error("Subscription error:", err);
+      try {
+        await queryRunner.rollbackTransaction();
+      } catch (e) {
+        console.error("Rollback failed:", e);
+      }
+      return { statusCode: 500, message: "Subscription setup failed" };
     } finally {
       await queryRunner.release();
     }

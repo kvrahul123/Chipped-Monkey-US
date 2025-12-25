@@ -90,6 +90,11 @@ export class User {
 
   @Column({ type: 'varchar', length: 100, nullable: true })
   remember_token?: string;
+@Column({type:"text", nullable: true })
+reset_token?: string | null;
+
+@Column({ type: "timestamp", nullable: true })
+reset_token_expires_at?: Date | null;
 
   @Column({ type: 'timestamp', nullable: true })
   created_at?: Date;

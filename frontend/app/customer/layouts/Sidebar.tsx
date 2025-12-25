@@ -33,7 +33,7 @@ export default function Sidebar() {
   };
 
   const logout = () => {
-    removeLocalStorageItem("token");
+      localStorage.clear();
     router.push("/user-login/pet_owner");
   };
 

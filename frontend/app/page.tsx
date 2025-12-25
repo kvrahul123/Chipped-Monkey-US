@@ -2,6 +2,7 @@
 import { useCallback, useEffect, useState } from "react";
 import Slider from "react-slick";
 import parse from "html-react-parser";
+import Script from "next/script";
 import "slick-carousel/slick/slick.css";
 import { Html5Qrcode } from "html5-qrcode";
 import "slick-carousel/slick/slick-theme.css";
@@ -19,6 +20,38 @@ const appUrl = process.env.NEXT_PUBLIC_APP_URL;
 const secret = process.env.NEXT_PUBLIC_HASH_SECRET as string;
 
 export default function Home() {
+
+  const faqSchema = {
+  "@context": "https://schema.org",
+  "@type": "FAQPage",
+  "mainEntity": [
+    {
+      "@type": "Question",
+      "name": "How do I register a pet microchip with Chipped Monkey?",
+      "acceptedAnswer": {
+        "@type": "Answer",
+        "text": "Visit ChippedMonkey.com and enter your pet’s microchip ID. Our national registry supports all brands, including HomeAgain, Avid, and AKC Reunite, providing lifetime protection."
+      }
+    },
+    {
+      "@type": "Question",
+      "name": "Is Chipped Monkey part of the AAHA network?",
+      "acceptedAnswer": {
+        "@type": "Answer",
+        "text": "Yes, Chipped Monkey is a participant in the AAHA Universal Pet Microchip Lookup. This allows veterinarians and shelters nationwide to find owner information instantly."
+      }
+    },
+    {
+      "@type": "Question",
+      "name": "Does Chipped Monkey work for all microchip brands?",
+      "acceptedAnswer": {
+        "@type": "Answer",
+        "text": "Yes, we are a universal registry. We support all chip frequencies including 125kHz, 128kHz, and 134.2kHz ISO standards."
+      }
+    }
+  ]
+};
+  
   const route = useRouter();
   const [microchipData, setMicrochipData] = useState<any>(null); // store fetched data
 
@@ -179,42 +212,44 @@ export default function Home() {
 
         const len = value.length;
 
-        // 1️⃣ 15-digit numeric
+        // 1️⃣ 15-digit numeric (ISO FDX-B)
         if (/^\d+$/.test(value)) {
           if (len !== 15) {
             return this.createError({
-              message: "Invalid length – 15-digit numeric microchips required.",
+              message:
+                "The length appears to be incorrect. A microchip number is typically 15 digits long", //for this exact 15 digits only numbers
             });
           }
           return true;
         }
 
-        // 2️⃣ 10-character alphanumeric
-        if (/^[A-Za-z0-9]+$/.test(value)) {
+        // 2️⃣ 10-character alphanumeric (ISO format)
+        if (/^\d{9}[A-Za-z0-9]$/.test(value)) {
+          // <-- updated regex
           if (len !== 10) {
             return this.createError({
               message:
-                "Invalid length – 10-character alphanumeric microchips required.",
+                "The length appears to be incorrect. An Alpha numeric microchip number is typically 10 digits long", // for this exact 9 digits numbers and one numeric
             });
           }
           return true;
         }
 
-        // 3️⃣ AVID format (letters, numbers, *)
-        if (/^[A-Za-z0-9*]+$/.test(value)) {
+        // 3️⃣ AVID format (legacy / non-ISO)
+        if (/^[A-Za-z]{4}(\d{5}|\d{9})$/.test(value)) {
           const count = value.replace(/\*/g, "").length;
           if (count < 9 || count > 13) {
             return this.createError({
               message:
-                "Incorrect length – AVID microchips must be 9–13 characters.",
+                "The length appears to be incorrect. An AVID microchip number is typically 9/13 digits long", //for tis exact 4 alpha and 5 numeric or 4 alpha and 9 numeric
             });
           }
           return true;
         }
-
         // If none match
         return this.createError({
-          message: "Invalid microchip number format.",
+          message:
+            "The length appears to be incorrect. A microchip number is typically 15 digits long",
         });
       }),
   });
@@ -227,42 +262,44 @@ export default function Home() {
 
         const len = value.length;
 
-        // 1️⃣ 15-digit numeric
+        // 1️⃣ 15-digit numeric (ISO FDX-B)
         if (/^\d+$/.test(value)) {
           if (len !== 15) {
             return this.createError({
-              message: "Invalid length – 15-digit numeric microchips required.",
+              message:
+                "The length appears to be incorrect. A microchip number is typically 15 digits long", //for this exact 15 digits only numbers
             });
           }
           return true;
         }
 
-        // 2️⃣ 10-character alphanumeric
-        if (/^[A-Za-z0-9]+$/.test(value)) {
+        // 2️⃣ 10-character alphanumeric (ISO format)
+        if (/^\d{9}[A-Za-z0-9]$/.test(value)) {
+          // <-- updated regex
           if (len !== 10) {
             return this.createError({
               message:
-                "Invalid length – 10-character alphanumeric microchips required.",
+                "The length appears to be incorrect. An Alpha numeric microchip number is typically 10 digits long", // for this exact 9 digits numbers and one numeric
             });
           }
           return true;
         }
 
-        // 3️⃣ AVID format (letters, numbers, *)
-        if (/^[A-Za-z0-9*]+$/.test(value)) {
+        // 3️⃣ AVID format (legacy / non-ISO)
+        if (/^[A-Za-z]{4}(\d{5}|\d{9})$/.test(value)) {
           const count = value.replace(/\*/g, "").length;
           if (count < 9 || count > 13) {
             return this.createError({
               message:
-                "Incorrect length – AVID microchips must be 9–13 characters.",
+                "The length appears to be incorrect. An AVID microchip number is typically 9/13 digits long", //for tis exact 4 alpha and 5 numeric or 4 alpha and 9 numeric
             });
           }
           return true;
         }
-
         // If none match
         return this.createError({
-          message: "Invalid microchip number format.",
+          message:
+            "The length appears to be incorrect. A microchip number is typically 15 digits long",
         });
       }),
   });
@@ -302,7 +339,7 @@ export default function Home() {
       } else {
         if (formType == "registerForm") {
           route.push(
-            `/pet-owners/update-pet-microchip?microchip=${encodeURIComponent(
+            `/pet-owners/pet-microchip-registration?microchip=${encodeURIComponent(
               encryptedMicrochip
             )}`
           );
@@ -345,6 +382,14 @@ export default function Home() {
 
   return (
     <div>
+              <Script
+    id="faq-schema"
+    type="application/ld+json"
+    strategy="afterInteractive"
+    dangerouslySetInnerHTML={{
+      __html: JSON.stringify(faqSchema),
+    }}
+  />
       <CommonLayout>
         <div className="banner-main-container">
           {/* Modal */}
@@ -437,11 +482,11 @@ export default function Home() {
             </div>
             <div className="col-12 col-md-6">
               <div className="banner-heading-title">
-                <span>Start Your Registration</span>
                 <h4>
                   The Smart Choice
                   <br /> for Your Pet's <b>Forever ID</b>
                 </h4>
+                                <span>Start Your Registration</span>
               </div>
               <div className="banner-heading-form-container">
                 <Formik
@@ -533,7 +578,7 @@ export default function Home() {
                 </Formik>
 
                 <div className="banner-container-content">
-                  <p>Don't Just Love Your Pet—Safeguard Them.</p>
+                  <p className="index_hightlight banner-heading-title"><h4>Don't Just Love Your <b>Pet—Safeguard Them.</b></h4></p>
                   <p>
                     As a devoted pet owner, you take every step to ensure your
                     furry family member is happy and healthy. But what happens
@@ -745,7 +790,7 @@ export default function Home() {
             </div>
 
             <div className="col-12 col-md-4 mb-3">
-              <Link href="/pet-owners/update-pet-microchip">
+              <Link href="/pet-owners/pet-microchip-registration">
                 <section className="text-center index-section-1 ">
                   <div className="text-center">
                     <Image
@@ -786,129 +831,169 @@ export default function Home() {
 
         <div className="container">
           <div className="row mt-5">
-            <div className="col-lg-6 col-md-12 mb-5">
-              <h3 className="index-head-3">Why Choose us ?</h3>
-              <p>
-                Microchipping your pet ensures their safety and aids in their
-                return if they go missing. The chip stores only a unique
-                15-digit number, required for pet insurance and serving as
-                lifelong identification.
+            <div className="col-lg-6 col-md-12 mb-5 why-choose-container">
+              <h3 className="why-choose-title underline-title">
+                Your Pet’s Safest Path Home, <b>Worldwide</b>
+              </h3>
+
+              <h1 className="why-choose-subtitle">
+                Trusted International Pet Microchip Database – ChippedMonkey.com
+              </h1>
+
+              <p className="why-choose-intro">
+                For over{" "}
+                <strong className="cm-highlight-secondary">25 years</strong>,
+                ChippedMonkey has been the trusted name in pet identification,
+                helping reunite lost pets with their families across the USA,
+                UK, Europe, and Australia. Your pet's microchip is their
+                lifelong, unloseable ID, and our world-class, multi-country
+                database is the essential link that ensures they are found and
+                returned quickly, no matter where you are.
               </p>
-              <section id="moreContent">
-                <p>
-                  At{" "}
-                  <a
-                    href="http://localhost/chipped_monkey"
-                    target="_blank"
-                    rel="noopener noreferrer">
-                    ChippedMonkey.com
-                  </a>
-                  , we understand that your pet’s safety and identification are
-                  of utmost importance. Choosing the right pet microchip
-                  database service is essential for ensuring your beloved
-                  companion can be quickly and safely reunited with you if lost.
+
+              <section id="moreContent" className="why-choose-more">
+                <h4 className="why-choose-heading">
+                  A Quarter Century of Global Pet Safety
+                </h4>
+
+                <p className="why-choose-text">
+                  When life takes you and your furry companion across borders—or
+                  just around the corner—you need an identification system that
+                  works everywhere. ChippedMonkey.com is built on 25+ years of
+                  experience in the pet industry, providing a secure, compliant,
+                  and internationally recognized database for pet owners in the
+                  UK, USA, Australia, and throughout Europe.
                 </p>
 
-                <ol style={{ paddingLeft: "12px" }}>
+                <ul className="why-choose-list">
                   <li>
-                    <h3>Easy and Fast Pet Microchip Registration UK</h3>
-                    <p>
-                      Our platform offers a simple, user-friendly process to
-                      register your pet’s microchip online in the UK quickly.
-                      Whether you have a new puppy, kitten, or are updating your
-                      existing pet’s microchip details, ChippedMonkey.com lets
-                      you do it all with just a few clicks, saving you time and
-                      hassle.
-                    </p>
+                    <strong className="cm-highlight-secondary">
+                      Global Peace of Mind:
+                    </strong>{" "}
+                    Register once and your pet's ID is instantly accessible to
+                    vets and shelters in four major international regions.
                   </li>
+                  <li>
+                    <strong className="cm-highlight-secondary">
+                      Compliant & Current:
+                    </strong>{" "}
+                    We adhere to evolving laws, including the UK's compulsory
+                    microchipping requirements, helping you avoid legal
+                    penalties.
+                  </li>
+                  <li>
+                    <strong className="cm-highlight-secondary">
+                      Seamless Transfers:
+                    </strong>{" "}
+                    Effortlessly handle microchip keepershhip transfers when
+                    rehoming, adopting, or selling a pet, ensuring the new
+                    owner's details are instantly compliant.
+                  </li>
+                </ul>
 
-                  <li>
-                    <h3>Secure and Trusted Microchip Database UK</h3>
-                    <p>
-                      Security and privacy are our top priorities. Our system
-                      uses the latest encryption and secure data handling
-                      protocols to protect your personal information and your
-                      pet’s microchip registration data. You can rest assured
-                      your details are safe with us.
-                    </p>
-                  </li>
+                <h4 className="why-choose-heading">
+                  Why Choose ChippedMonkey for Registration?
+                </h4>
 
-                  <li>
-                    <h3>Update Microchip Details Anytime, Anywhere</h3>
-                    <p>
-                      Life changes — and so can your contact information. We
-                      make it easy for UK pet keepers to update microchip
-                      details online at any time, ensuring your pet’s microchip
-                      record stays current. Accurate contact details improve the
-                      chances of a speedy reunion if your pet is lost.
-                    </p>
-                  </li>
+                <p className="why-choose-text">
+                  Fast, Secure, and Trusted UK Pet Microchip Registration &
+                  Global Updates ​Your pet is family. Their safety is our
+                  singular focus. We combine cutting-edge security with a deeply
+                  humanized approach, making the technical process of
+                  registration simple and stress-free for you.
+                </p>
 
-                  <li>
-                    <h3>Hassle-Free Microchip keepership Transfers</h3>
+                <div className="why-choose-cards">
+                  <div className="why-choose-card">
+                    <h5>Quick & Easy Online Registration</h5>
                     <p>
-                      If you’re rehoming, adopting, or selling a pet,
-                      transferring microchip keepership is vital. Our quick and
-                      straightforward keepership transfer process means new
-                      keepers can immediately take responsibility for the pet’s
-                      microchip record, keeping your pet protected for life.
+                      Register a new puppy, kitten, or update existing microchip
+                      details through our simple, user-friendly online process —
+                      completed in just minutes.
                     </p>
-                  </li>
+                  </div>
 
-                  <li>
-                    <h3>Dedicated UK-Based Customer Support</h3>
+                  <div className="why-choose-card">
+                    <h5>Trusted by Vets and Shelters Worldwide</h5>
                     <p>
-                      Got questions about pet microchip registration in the UK?
-                      Need help with updating your details or keepership
-                      transfer? Our friendly, knowledgeable UK-based customer
-                      service team is ready to assist you by phone or email —
-                      ensuring you never feel alone in managing your pet’s
-                      microchip registration.
+                      Integrated with veterinary clinics, shelters, and rescue
+                      centers globally, ensuring lost pets are identified
+                      quickly and owners contacted without delay.
                     </p>
-                  </li>
+                  </div>
 
-                  <li>
-                    <h3>Comprehensive Compliance with UK Microchipping Laws</h3>
+                  <div className="why-choose-card">
+                    <h5>Secure & Private Data Handling</h5>
                     <p>
-                      We stay fully up-to-date with evolving UK pet
-                      microchipping legislation, including compulsory
-                      microchipping requirements for dogs and cats.
-                      ChippedMonkey.com ensures your pet’s microchip
-                      registration meets legal standards, helping you avoid
-                      fines and penalties.
+                      Your data is protected using advanced encryption and
+                      secure protocols, safeguarding both your personal
+                      information and your pet’s lifelong identification record.
                     </p>
-                  </li>
+                  </div>
 
-                  <li>
-                    <h3>
-                      Trusted by UK Vets, Shelters, and Animal Welfare
-                      Organisations
-                    </h3>
+                  <div className="why-choose-card">
+                    <h5>Update Details Anytime, Anywhere</h5>
                     <p>
-                      Our database is integrated with UK veterinary clinics,
-                      animal shelters, and rescue centres nationwide, making it
-                      easier than ever for lost pets to be scanned and
-                      identified quickly. When you register with
-                      ChippedMonkey.com, you’re joining a network dedicated to
-                      improving pet recovery rates across the UK.
+                      Update contact information 24/7 when you move, change
+                      numbers, or travel internationally — accurate details
+                      ensure faster reunions.
                     </p>
-                  </li>
+                  </div>
 
-                  <li>
-                    <h3>Compatible with All ISO-Compliant Pet Microchips</h3>
+                  <div className="why-choose-card">
+                    <h5>Dedicated USA & Global Support</h5>
                     <p>
-                      Whether your pet’s microchip was implanted by your vet, a
-                      shelter, or a breeder, ChippedMonkey.com supports all ISO
-                      11784/11785-compliant microchips widely used in the UK and
-                      internationally, ensuring your pet’s chip can be
-                      registered and found.
+                      Our knowledgeable support team assists with registration,
+                      compliance, and keepership transfers via phone or email
+                      whenever you need help.
                     </p>
+                  </div>
+                </div>
+
+                <h4 className="why-choose-heading">
+                  The Lifesaving Power of a Microchip
+                </h4>
+
+                <p className="why-choose-text">
+                  Microchipping is Your Pet's Permanent, Unloseable ID
+                  ​Microchipping your pet with a registered 15-digit
+                  ISO-standard chip is the most reliable way to guarantee their
+                  safety and aid in their return if they ever go missing.
+                </p>
+
+                <ul className="why-choose-list">
+                  <li>
+                    <strong>Permanent ID:</strong> Unlike collars or tags that
+                    can fall off or become illegible, a microchip is a permanent
+                    form of identification implanted safely under the skin
+                    (often between the shoulder blades).
                   </li>
-                </ol>
+                  <li>
+                    <strong>Proof of Ownership:</strong> A registered microchip
+                    is indisputable proof of ownership, providing essential
+                    support in cases of theft or dispute. ​Significantly Higher
+                    Reunion Rates: Studies consistently show that microchipped
+                    pets are significantly more likely to be reunited with their
+                    owners compared to non-chipped animals.
+                  </li>
+                  <li>
+                    <strong>Higher Reunion Rates:</strong> Microchipped pets are{" "}
+                    significantly more likely to be returned home than those
+                    without.
+                  </li>
+                </ul>
+
+                <p className="why-choose-cta">
+                  ​Join the thousands of pet owners across the USA, canada,
+                  Europe, and Australia who trust ChippedMonkey.com to protect
+                  their family. Your pet's safe return is just a few clicks
+                  away.
+                </p>
               </section>
+
               <button
                 id="readMoreBtn"
-                style={{ margin: "10px 0px;" }}
+                style={{ margin: "10px 0px" }}
                 onClick={toggleContent}
                 className="btn btn-primary read_more_btn">
                 Read More

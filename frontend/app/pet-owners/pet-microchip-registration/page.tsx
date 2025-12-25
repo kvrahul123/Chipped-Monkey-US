@@ -12,7 +12,6 @@ export async function generateMetadata(): Promise<Metadata> {
   const res = await fetch(`${appUrl}frontend/pages/list/?id=5`);
   const result = await res.json();
   const seoData = result.data ? result.data[0] : null;
-  console.log("seoData", JSON.stringify(seoData));
 
   const dynamicTitle = seoData
     ? seoData.meta_title
@@ -33,9 +32,10 @@ export async function generateMetadata(): Promise<Metadata> {
     dynamicDescription,
     dynamicKeywords,
     dynamicImages,
-    `${frontendUrl}pet-owners/update-pet-microchip`
+    `${frontendUrl}pet-owners/pet-microchip-registration`
   );
 }
+
 
 export default function UpdatePetMicrochip() {
   return (
@@ -195,10 +195,10 @@ export default function UpdatePetMicrochip() {
               </div> */}
 
               <div className="cm-content-wrapper">
-                <h1 className="cm-heading-primary">
+                <h1 className="cm-heading-primary underline-title">
                   Welcome to ChippedMonkey:
                   <br />
-                  Complete Your Pet's Protection!
+                  Complete Your <b>Pet's Protection!</b>
                 </h1>
                 <p className="cm-intro-text">
                   You've taken the first crucial step by microchipping your pet.
@@ -210,9 +210,9 @@ export default function UpdatePetMicrochip() {
                 <blockquote className="cm-quote-box cm-quote-emphasis">
                   <p className="cm-quote-text">
                     Registering your pet's microchip with ChippedMonkey is the
-                    <span className="cm-highlight-secondary">
+                    <span className="cm-highlight-secondary">{" "}
                       essential link
-                    </span>
+                    </span>{" "}
                     between a lost pet and a happy reunion.
                   </p>
                 </blockquote>
@@ -288,7 +288,7 @@ export default function UpdatePetMicrochip() {
                   </table>
                 </div>
 
-                <h2 className="cm-faq-heading">
+                <h2 className="cm-faq-heading cm-sub-heading">
                   How ChippedMonkey Makes Registration Easy
                 </h2>
                 <p className="cm-standard-text">
@@ -331,7 +331,7 @@ export default function UpdatePetMicrochip() {
                   </p>
                 </div>
 
-                <h2>Ready to Complete Your Pet's ID?</h2>
+                <h2 className="cm-sub-heading">Ready to Complete Your Pet's ID?</h2>
                 <p className="cm-standard-text">
                   Don't wait until it's too late. Microchip registration is the
                   most important step after implantation.
@@ -344,7 +344,7 @@ export default function UpdatePetMicrochip() {
                   <strong>to secure their journey home.</strong>
                 </p>
 
-                <h2>
+                <h2 className="cm-sub-heading">
                   Your Questions About Pet Microchip Registration, Answered
                 </h2>
                 <p className="cm-standard-text">

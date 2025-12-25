@@ -39,6 +39,14 @@ h6,
   color: #343f52;
   font-family: "Archivo Narrow", sans-serif;
 }
+.chippedMonkey_page.no-scroll {
+  overflow: hidden;
+  height: 100vh;
+}
+.desktop_none{
+  display: none !important;
+}
+
 .h2,
 h2 {
   font-size: 1.3rem;
@@ -295,7 +303,10 @@ ul.header-menu-ul {
   flex-wrap: wrap;
   gap: 1rem;
 }
-
+.footer_menu_title{
+  font-size: 15px;
+  margin-top: 3px;
+}
 .address-card {
   flex: 1 1 calc(50% - 1rem);
   display: flex;
@@ -367,6 +378,24 @@ ul.header-menu-ul {
 .paymenttype_radio {
   display: none;
 }
+.index_hightlight {
+    color: #faa130;
+    font-size: 20px;
+}
+.index_hightlight > h4{
+  font-size: 21px !important;
+}
+
+.index_hightlight.banner-heading-title > h4 b::after{
+  bottom: -12px !important;
+}
+.truncate_text{
+   overflow: hidden;
+  max-width: 100%;
+  text-overflow: ellipsis;
+  width: fit-content;
+  white-space: nowrap;
+}
 .checkout_table th {
   background: #f0dbdb;
   font-weight: 500;
@@ -374,14 +403,17 @@ ul.header-menu-ul {
 /** Checkout Table **/
 .banner-heading-title > span {
   color: #000000;
-  font-size: 16px;
+    font-size: 18px;
+    font-weight: 500;
+    margin: 3px 0px;
+    display: block;
 }
 .banner-heading-title > h4 {
   font-size: 65px;
   color: #000000;
   font-weight: 800;
   line-height: 55px;
-  margin: 9px 0px 28px;
+  margin: 9px 0px 15px;
 }
 .banner-heading-title > h4 b {
   font-weight: 800;
@@ -632,7 +664,7 @@ li.banner-popular-title-li {
   text-align: center;
 }
 .package-container-description {
-  height: calc(100% - 120px);
+  height: calc(100% - 180px);
 }
 
 .package-container-description > ul > li {
@@ -777,6 +809,21 @@ li.banner-popular-title-li {
 .btn-primary:hover {
   background-color: #0846a9;
   border-color: #0846a9;
+}
+
+.btn-secondary {
+  color: #fff;
+  border-color: #faa130;
+  background-color: #faa130;
+  border-radius: 50px;
+  padding: 0.3em 2em;
+}
+.text-danger{
+  text-align: left;
+}
+.btn-secondary:hover {
+  background-color: #ee9d37;
+  border-color: #ee9d37;
 }
 .form-search {
   background-color: #233645 !important;
@@ -1597,9 +1644,34 @@ button.wallet_btn.wallet_table {
   font-weight: 300;
   height: 60px;
 }
+.registe-monkey-new  .form-lost input{
+  height: 55px;
+  margin-bottom: unset;
+  border: 1px solid #414141;
+  padding: 0px 20px;
+  border-radius: 5px;
+}
 .registe-monkey-new input:focus,
 .registe-monkey-new input:active {
   background: #ffff !important;
+}
+.MuiInputLabel-root {
+  background: #fff;
+}
+.MuiAutocomplete-input{
+  border: unset !important;
+}
+.MuiOutlinedInput-root {
+  /* padding: 0px !important; */
+}
+.register-footer-link{
+  margin-top: 20px;
+}
+
+.registe-monkey-new  .form-lost input:focus,
+.registe-monkey-new  .form-lost input:active
+{
+  box-shadow: none !important;
 }
 .registe-monkey-new select {
   border: 1px solid #414141;
@@ -1937,7 +2009,6 @@ button.wallet_btn.wallet_table {
 }
 
 .paymentPage-body {
-  font-family: "Arial", sans-serif;
   background-color: var(--paymentPage-light-bg);
   color: var(--paymentPage-text-color);
   margin: 0;
@@ -2150,6 +2221,7 @@ button.wallet_btn.wallet_table {
   display: flex;
   flex-direction: column;
   align-items: center;
+  text-align: center;
   color: #033a95;
 }
 
@@ -2270,7 +2342,6 @@ button.wallet_btn.wallet_table {
   max-width: 100%;
   margin: 0 auto;
   padding: 20px;
-  font-family: sans-serif; /* Use your site's font */
 }
 
 /* Headings */
@@ -2382,14 +2453,18 @@ tr:nth-child(even) .cm-table-cell {
 }
 
 .cm-step-item {
-  background: #fcf4a3; /* Secondary Color */
+  background: #fcfbec; /* Secondary Color */
   border-radius: 5px;
   padding: 15px;
   margin-bottom: 10px;
   display: flex;
   align-items: center;
 }
-
+.cm-sub-heading{
+  font-size: 25px;
+  font-weight: 400;
+  
+}
 .cm-step-number {
   font-size: 1.5em;
   font-weight: bold;
@@ -2417,8 +2492,8 @@ tr:nth-child(even) .cm-table-cell {
   text-align: center;
   margin: 30px 0;
   padding: 15px;
-  border: 2px dashed #5b84b1; /* Primary Color */
-  background-color: #fcf4a3; /* Secondary Color */
+    border: 2px dashed #3a6fa8;
+    background-color: #d2e8ff;
 }
 
 /* FAQ Section Header (used in the main body) */
@@ -2550,3 +2625,311 @@ tr:nth-child(even) .cm-table-cell {
   color: #555;
   background-color: #fcfcfc;
 }
+
+
+
+
+.underline-title {
+    font-size: 40px;
+    color: #000000;
+    font-weight: 800;
+    line-height: 55px;
+    margin: 9px 0px 28px;
+}
+.underline-title > b{
+      position: relative;
+
+}
+.underline-title > b:before{
+  content: "";
+    position: absolute;
+    background: url(../images/line.png);
+    width: 100%;
+    height: 17px;
+    background-size: cover;
+    left: 0;
+    bottom: -9px;
+    background-repeat: no-repeat;
+}
+
+.why-choose-container {
+  padding-right: 40px;
+}
+
+.why-choose-title {
+  font-size: 36px;
+  font-weight: 800;
+  color: #000;
+  margin-bottom: 8px;
+}
+
+.why-choose-subtitle {
+  font-size: 21px;
+  font-weight: 600;
+  color: #1e4fd8;
+  margin-bottom: 18px;
+}
+
+.why-choose-intro {
+  font-size: 17px;
+  color: #444;
+  line-height: 1.7;
+}
+
+.why-choose-heading {
+  font-size: 20px;
+  font-weight: 700;
+  margin: 22px 0 12px;
+  color: #111;
+}
+
+.why-choose-text {
+  font-size: 17px;
+  color: #555;
+  line-height: 1.7;
+}
+
+.why-choose-list {
+  padding-left: 0;
+  list-style: none;
+  margin: 16px 0;
+}
+
+.why-choose-list li {
+  font-size: 17px;
+  color: #333;
+  margin-bottom: 12px;
+  position: relative;
+  padding-left: 20px;
+}
+
+.why-choose-list li::before {
+  content: "✓";
+  position: absolute;
+  left: 0;
+  color: #1e4fd8;
+  font-weight: bold;
+}
+
+.why-choose-cards {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+  gap: 16px;
+  margin: 20px 0;
+}
+
+.why-choose-card {
+  background: #f8f9ff;
+  border: 1px solid #e4e8ff;
+  border-radius: 12px;
+  padding: 16px;
+  transition: transform 0.2s;
+}
+
+.why-choose-card:hover {
+  transform: translateY(-3px);
+}
+
+.why-choose-card h5 {
+  font-size:17px;
+  font-weight: 700;
+  margin-bottom: 6px;
+  color: #1e4fd8;
+}
+
+.why-choose-card p {
+  font-size: 16px;
+  color: #555;
+  margin-bottom: 0;
+}
+
+.why-choose-cta {
+  font-size: 16px;
+  font-weight: 700;
+  color: #111;
+  margin-top: 20px;
+  border-left: 4px solid #1e4fd8;
+  padding-left: 15px;
+}
+
+.why-choose-readmore {
+  margin-top: 15px;
+  border-radius: 25px;
+  padding: 8px 22px;
+}
+
+
+
+.stepsall ul {
+  margin-top: 10px;
+  list-style-type: none; /* remove default bullets */
+  margin-left: 0; /* reset margin */
+  padding-left: 20px; /* space for icons */
+}
+
+.stepsall li {
+  position: relative;
+  margin-bottom: 10px;
+  padding-left: 30px; /* space for icon */
+  color: #4a5568;
+  line-height: 5px;
+  font-size: 1rem;
+}
+
+.stepsall li::before {
+  content: "✔"; /* You can replace with emoji ✔, •, or custom icon */
+  position: absolute;
+  left: 0;
+  top: 0;
+  color: #f6ad55; /* Accent color */
+  font-weight: bold;
+  font-size: 1.1rem;
+}
+
+
+/* Inner content */
+.chippedMonkey-page-content {
+    font-size: 16px;
+}
+
+/* Paragraphs */
+.chippedMonkey-page-content p {
+    margin-bottom: 16px;
+    text-align: justify;
+}
+
+/* Headings */
+.chippedMonkey-page-content b, 
+.chippedMonkey-page-content i, 
+.chippedMonkey-page-content u {
+    color: #1a1a1a;
+}
+
+/* Bold headings */
+.chippedMonkey-page-content b {
+    font-weight: 700;
+}
+
+/* Italic */
+.chippedMonkey-page-content i {
+    font-style: italic;
+}
+
+/* Underline */
+.chippedMonkey-page-content u {
+    text-decoration: underline;
+}
+
+/* Lists */
+.chippedMonkey-page-content ul {
+    margin: 16px 0 16px 20px;
+    padding: 0;
+    list-style-type: disc;
+}
+
+.chippedMonkey-page-content li {
+    margin-bottom: 8px;
+}
+
+/* Links (if any) */
+.chippedMonkey-page-content a {
+    color: #007bff;
+    text-decoration: none;
+}
+
+.chippedMonkey-page-content a:hover {
+    text-decoration: underline;
+}
+
+/* Buttons inside content */
+.chippedMonkey-page-content .btn {
+    background-color: #007bff;
+    color: #fff;
+    border: none;
+    border-radius: 6px;
+    padding: 10px 18px;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    font-size: 15px;
+    margin-top: 10px;
+}
+
+.chippedMonkey-page-content .btn:hover {
+    background-color: #0056b3;
+}
+
+.why-microchip-page {
+  margin: 0 auto;
+  padding: 48px 20px;
+  line-height: 1.7;
+}
+
+.why-microchip-hero {
+  margin-bottom: 56px;
+}
+
+.why-microchip-title {
+  font-size: 2.4rem;
+  font-weight: 700;
+  margin-bottom: 20px;
+}
+
+.why-microchip-intro,
+.why-microchip-subintro {
+  font-size: 1.1rem;
+  color: #444;
+  margin-bottom: 16px;
+}
+
+.why-microchip-section {
+  margin-bottom: 48px;
+}
+
+.why-microchip-highlight {
+  background: #f9fafb;
+  padding: 24px;
+  border-radius: 14px;
+}
+
+.why-microchip-section-title {
+  font-size: 1.6rem;
+  font-weight: 600;
+  margin-bottom: 16px;
+}
+
+.why-microchip-text {
+  margin-bottom: 16px;
+}
+
+.why-microchip-list,
+.why-microchip-pricing {
+  padding-left: 20px;
+}
+
+.why-microchip-list li,
+.why-microchip-pricing li {
+  margin-bottom: 12px;
+}
+
+.why-microchip-faq-item {
+  margin-bottom: 24px;
+}
+
+.why-microchip-faq-item h3 {
+  font-size: 1.1rem;
+  font-weight: 600;
+  margin-bottom: 8px;
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+    .main-page-container {
+        padding: 20px;
+        margin: 20px;
+    }
+    .chippedMonkey-page-content {
+        font-size: 15px;
+    }
+}
+
+

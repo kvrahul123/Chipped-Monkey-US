@@ -2,7 +2,7 @@
 import { getLocalStorageItem } from "@/app/common/LocalStorage";
 import Image from "next/image";
 import Link from "next/link";
-import { usePathname } from "next/navigation";
+import { usePathname, useRouter } from "next/navigation";
 import { verifyToken } from "@/app/customer/common/api";
 const appUrl = process.env.NEXT_PUBLIC_APP_URL;
 import { useEffect, useState } from "react";
@@ -14,7 +14,7 @@ export default function Header() {
   const [isLoggedIn, setisLoggedIn] = useState(false);
   let userToken = getLocalStorageItem("token");
   const [accountType, setAcountType] = useState<string | null>(null);
-
+  const router = useRouter();
   const [userDetails, setuserDetails] = useState([]);
   const fetchUserType = async () => {
     const type = await verifyToken();
@@ -22,15 +22,29 @@ export default function Header() {
       setAcountType(type.account_type);
     }
   };
-
+  const logout = () => {
+    localStorage.clear();
+    router.push("/user-login/pet_owner");
+  };
   const toggleMenu = () => {
-    setIsMenuOpen(!isMenuOpen);
+    const nextState = !isMenuOpen;
+    setIsMenuOpen(nextState);
 
     const headerMenu = document.querySelector(".header-menus");
     const menuIcon = document.querySelector(".menu-icon");
-    headerMenu?.classList.toggle("active");
-    menuIcon?.classList.toggle("active");
+    const pageWrapper = document.querySelector(".chippedMonkey_page");
+
+    if (nextState) {
+      headerMenu?.classList.add("active");
+      menuIcon?.classList.add("active");
+      pageWrapper?.classList.add("no-scroll"); // 🔒 lock background
+    } else {
+      headerMenu?.classList.remove("active");
+      menuIcon?.classList.remove("active");
+      pageWrapper?.classList.remove("no-scroll"); // 🔓 unlock
+    }
   };
+
   const fetchData = async () => {
     try {
       const response = await fetch(`${appUrl}auth/validate-token`, {
@@ -84,7 +98,7 @@ export default function Header() {
           <ul className="header-menu-ul">
             <li>
               <div className="header-menu-li">
-                <Link href="/pet-owners/update-pet-microchip">
+                <Link href="/pet-owners/pet-microchip-registration">
                   <span className="header-menu-li-title">
                     Update/Register Microchip
                   </span>
@@ -98,13 +112,7 @@ export default function Header() {
                 </Link>
               </div>
             </li>
-            <li>
-              <div className="header-menu-li">
-                <Link href="/implanters">
-                  <span className="header-menu-li-title">Implanters</span>
-                </Link>
-              </div>
-            </li>
+
             <li>
               <div className="header-menu-li">
                 <Link href="/contact">
@@ -112,12 +120,61 @@ export default function Header() {
                 </Link>
               </div>
             </li>
-            {(accountType == "1" || accountType == "3") && (
-              <li>
+
+            <li className="desktop_none mobile_show">
+              <div className="header-menu-li">
+                <Link href="/about_us">
+                  <span className="header-menu-li-title">About Us</span>
+                </Link>
+              </div>
+            </li>
+
+            <li className="desktop_none mobile_show">
+              <div className="header-menu-li">
+                <Link href="/privacypolicy">
+                  <span className="header-menu-li-title">Privacy Policy</span>
+                </Link>
+              </div>
+            </li>
+
+            <li className="desktop_none mobile_show">
+              <div className="header-menu-li">
+                <Link href="/termsconditions">
+                  <span className="header-menu-li-title">
+                    Terms & Conditions
+                  </span>
+                </Link>
+              </div>
+            </li>
+
+            <li className="desktop_none mobile_show">
+              <div className="header-menu-li">
+                <Link href="/refundpolicy">
+                  <span className="header-menu-li-title">
+                    Refund and Return Policy
+                  </span>
+                </Link>
+              </div>
+            </li>
+
+            <li className="desktop_none mobile_show">
+              <div className="header-menu-li">
+                <Link href="/frequently-asked-questions">
+                  <span className="header-menu-li-title">Faq</span>
+                </Link>
+              </div>
+            </li>
+
+            {userDetails?.user_type && (
+              <li className="desktop_none mobile_show">
                 <div className="header-menu-li">
-                  <Link href="/wallet">
-                    <span className="header-menu-li-title">Wallet</span>
-                  </Link>
+                  <a
+                    onClick={(e) => {
+                      e.preventDefault(); // Prevent default link behavior
+                      logout(); // Call logout function
+                    }}>
+                    <span className="header-menu-li-title">Logout</span>
+                  </a>
                 </div>
               </li>
             )}

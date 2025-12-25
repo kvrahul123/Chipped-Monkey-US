@@ -153,7 +153,7 @@ const PaymentSuccess = () => {
                   <div className="mpaymentPage-detail-item mpaymentPage-detail-item-total">
                     <span>Total Paid:</span>
                     <span className="mpaymentPage-detail-value-total">
-                      £{packageDetails.price}
+                      ${packageDetails.price}
                     </span>
                   </div>
                 </div>
