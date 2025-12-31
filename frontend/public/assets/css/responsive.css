@@ -231,7 +231,7 @@ margin-right: 0px;
     width: 100% !important;
   }
   .footer {
-    padding: 0.5rem 0rem;
+    padding: 0.5rem 0rem 130px;
   }
   .header-bg {
     padding: 0px;
@@ -352,6 +352,40 @@ margin-right: 0px;
     font-size: 34px;
     line-height: 45px;
   }
+
+    .lostPets-filter{
+    display: none;
+  }
+  .lostPets-filter.active{
+    display: block;
+  }
+      .lostPets-filter.active {
+        display: block;
+        position: absolute;
+        top: 0px;
+        height: 100%;
+        z-index: 99999;
+        left: 0px;
+        width: 300px;
+    }
+
+      .page-title-container{
+        display: flex;
+    justify-content: space-between;
+  }
+  .page-title-filter {
+  display: flex;
+  justify-content: flex-end;
+}
+
+
+.filter-icon {
+  width: 23px;
+  height: 23px;
+  stroke: currentColor;
+  margin-top: 10px;
+}
+
 }
 /* 
 @media(max-width:1550px){

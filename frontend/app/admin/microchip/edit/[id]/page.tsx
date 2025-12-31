@@ -11,8 +11,9 @@ import axios from "axios";
 import Select from "react-select";
 import { getLocalStorageItem } from "@/app/common/LocalStorage";
 import Image from "next/image";
+import CreatableSelect from "react-select/creatable";
 const appUrl = process.env.NEXT_PUBLIC_APP_URL;
-import { breedsByType,colorOptions } from "@/app/common/data";
+import { breedsByType, colorOptions } from "@/app/common/data";
 import ReactSelect from "react-select";
 export default function MicrochipEditPage() {
   const didFetch = useRef(false);
@@ -21,7 +22,7 @@ export default function MicrochipEditPage() {
   const token = getLocalStorageItem("token");
   const [photoPath, setPhotoPath] = useState("");
   const [loading, setLoading] = useState(true);
-    const animalOptions = [
+  const animalOptions = [
     { value: "Dog", label: "Dog" },
     { value: "Cat", label: "Cat" },
     { value: "Rabbit", label: "Rabbit" },
@@ -61,14 +62,14 @@ export default function MicrochipEditPage() {
   };
 
   const validationSchema = Yup.object().shape({
- microchipNumber: Yup.string()
-    .required("Microchip number is required")
-    .test("microchip-format", function (value) {
-      if (!value) return false;
+    microchipNumber: Yup.string()
+      .required("Microchip number is required")
+      .test("microchip-format", function (value) {
+        if (!value) return false;
 
-      const len = value.length;
+        const len = value.length;
 
-       // 1️⃣ 15-digit numeric (ISO FDX-B)
+        // 1️⃣ 15-digit numeric (ISO FDX-B)
         if (/^\d+$/.test(value)) {
           if (len !== 15) {
             return this.createError({
@@ -107,7 +108,7 @@ export default function MicrochipEditPage() {
           message:
             "The length appears to be incorrect. A microchip number is typically 15 digits long",
         });
-    }),
+      }),
     pet_keeper: Yup.string().required("Pet Keeper is required"),
     phone_number: Yup.string()
       .matches(/^\d+$/, "Phone Number must contain only digits")
@@ -124,18 +125,17 @@ export default function MicrochipEditPage() {
     dob: Yup.string().required("Date of Birth is required"),
     markings: Yup.string().required("Markings are required"),
     photo: Yup.mixed()
-          .nullable()
-          .test("fileType", "Only image files are allowed", (value) => {
-            return (
-              !value ||
-              (value &&
-                ["image/jpeg", "image/png", "image/webp"].includes(value.type))
-            );
-          })
-          .test("fileSize", "Image size must be less than 2MB", (value) => {
-            return !value || (value && value.size <= 2 * 1024 * 1024);
-          }),
-      
+      .nullable()
+      .test("fileType", "Only image files are allowed", (value) => {
+        return (
+          !value ||
+          (value &&
+            ["image/jpeg", "image/png", "image/webp"].includes(value.type))
+        );
+      })
+      .test("fileSize", "Image size must be less than 2MB", (value) => {
+        return !value || (value && value.size <= 2 * 1024 * 1024);
+      }),
   });
 
   const formik = useFormik<Values>({
@@ -402,85 +402,95 @@ export default function MicrochipEditPage() {
                     )}
                   </div>
 
-                    {/* Type */}
-                    <div className="col-12 mb-3">
-                      <label htmlFor="type" className="form-label">
-                        Type <span className="text-danger">*</span>
-                      </label>
-                      <ReactSelect
-                        id="type"
-                        name="type"
-                        options={animalOptions}
-                        value={animalOptions.find(
-                          (option) => option.value === formik.values.type
-                        )}
-                        onChange={(selectedOption: any) => {
-                          formik.setFieldValue(
-                            "type",
-                            selectedOption?.value || ""
-                          );
-                          formik.setFieldValue("breed", ""); // reset breed when type changes
-                        }}
-                        onBlur={() => formik.setFieldTouched("type", true)}
-                        placeholder="Select an animal"
-                       menuPortalTarget={
-  typeof window !== "undefined" ? document.body : null
-}
-
-                        styles={{
-                          menuPortal: (base) => ({ ...base, zIndex: 9999 }),
-                          menu: (base) => ({ ...base, zIndex: 9999 }),
-                        }}
-                      />
-                      {formik.touched.type && formik.errors.type && (
-                        <div className="text-danger">{formik.errors.type}</div>
+                  {/* Type */}
+                  <div className="col-12 mb-3">
+                    <label htmlFor="type" className="form-label">
+                      Type <span className="text-danger">*</span>
+                    </label>
+                    <ReactSelect
+                      id="type"
+                      name="type"
+                      options={animalOptions}
+                      value={animalOptions.find(
+                        (option) => option.value === formik.values.type
                       )}
-                    </div>
-
-                    {/* Breed */}
-                    <div className="col-12 mb-3">
-                      <label htmlFor="breed" className="form-label">
-                        Breed <span className="text-danger">*</span>
-                      </label>
-                      <ReactSelect
-                        id="breed"
-                        name="breed"
-                        options={
-                          formik.values.type
-                            ? breedsByType[formik.values.type].map((breed) => ({
-                                value: breed,
-                                label: breed,
-                              }))
-                            : []
-                        }
-                        value={
-                          formik.values.breed
-                            ? {
-                                value: formik.values.breed,
-                                label: formik.values.breed,
-                              }
-                            : null
-                        }
-                        onChange={(selectedOption: any) =>
-                          formik.setFieldValue(
-                            "breed",
-                            selectedOption?.value || ""
-                          )
-                        }
-                        onBlur={() => formik.setFieldTouched("breed", true)}
+                      onChange={(selectedOption: any) => {
+                        formik.setFieldValue(
+                          "type",
+                          selectedOption?.value || ""
+                        );
+                        formik.setFieldValue("breed", ""); // reset breed when type changes
+                      }}
+                      onBlur={() => formik.setFieldTouched("type", true)}
+                      placeholder="Select an animal"
                       menuPortalTarget={
-  typeof window !== "undefined" ? document.body : null
-}
+                        typeof window !== "undefined" ? document.body : null
+                      }
+                      styles={{
+                        menuPortal: (base) => ({ ...base, zIndex: 9999 }),
+                        menu: (base) => ({ ...base, zIndex: 9999 }),
+                      }}
+                    />
+                    {formik.touched.type && formik.errors.type && (
+                      <div className="text-danger">{formik.errors.type}</div>
+                    )}
+                  </div>
+                  {/* Breed */}
+                  <div className="col-12 mb-3">
+                    <label htmlFor="breed" className="form-label">
+                      Breed <span className="text-danger">*</span>
+                    </label>
 
-                        styles={{
-                          menuPortal: (base) => ({ ...base, zIndex: 9999 }),
-                          menu: (base) => ({ ...base, zIndex: 9999 }),
-                        }}
-                      />
-                      {formik.touched.breed && formik.errors.breed && (
-                        <div className="text-danger">{formik.errors.breed}</div>
-                      )}
-                    </div>
+                    <CreatableSelect
+                      id="breed"
+                      name="breed"
+                      options={
+                        formik.values.type && breedsByType[formik.values.type]
+                          ? breedsByType[formik.values.type].map((breed) => ({
+                              value: breed,
+                              label: breed,
+                            }))
+                          : []
+                      }
+                      value={
+                        formik.values.breed
+                          ? {
+                              value: formik.values.breed,
+                              label: formik.values.breed,
+                            }
+                          : null
+                      }
+                      onChange={(selectedOption: any) =>
+                        formik.setFieldValue(
+                          "breed",
+                          selectedOption?.value || ""
+                        )
+                      }
+                      onCreateOption={(inputValue: string) => {
+                        // allow manual breed input
+                        formik.setFieldValue("breed", inputValue);
+                      }}
+                      onBlur={() => formik.setFieldTouched("breed", true)}
+                      placeholder={
+                        formik.values.type
+                          ? "Select or type a breed"
+                          : "Select animal first"
+                      }
+                      isDisabled={!formik.values.type}
+                      isClearable
+                      menuPortalTarget={
+                        typeof window !== "undefined" ? document.body : null
+                      }
+                      styles={{
+                        menuPortal: (base) => ({ ...base, zIndex: 9999 }),
+                        menu: (base) => ({ ...base, zIndex: 9999 }),
+                      }}
+                    />
+
+                    {formik.touched.breed && formik.errors.breed && (
+                      <div className="text-danger">{formik.errors.breed}</div>
+                    )}
+                  </div>
 
                   {/* Sex */}
                   <div className="col-12 mb-3">
@@ -509,26 +519,28 @@ export default function MicrochipEditPage() {
                     <label htmlFor="color" className="form-label">
                       Color <span className="text-danger">*</span>
                     </label>
-  <Select
-    id="color"
-    name="color"
-    options={colorOptions}
-    value={colorOptions.find(
-      (option) => option.value === formik.values.color
-    )}
-    onChange={(selectedOption) =>
-      formik.setFieldValue("color", selectedOption?.value || "")
-    }
-    onBlur={() => formik.setFieldTouched("color", true)}
-   menuPortalTarget={
-  typeof window !== "undefined" ? document.body : null
-}
-
-    styles={{
-      menuPortal: (base) => ({ ...base, zIndex: 9999 }),
-      menu: (base) => ({ ...base, zIndex: 9999 }),
-    }}
-  />
+                    <Select
+                      id="color"
+                      name="color"
+                      options={colorOptions}
+                      value={colorOptions.find(
+                        (option) => option.value === formik.values.color
+                      )}
+                      onChange={(selectedOption) =>
+                        formik.setFieldValue(
+                          "color",
+                          selectedOption?.value || ""
+                        )
+                      }
+                      onBlur={() => formik.setFieldTouched("color", true)}
+                      menuPortalTarget={
+                        typeof window !== "undefined" ? document.body : null
+                      }
+                      styles={{
+                        menuPortal: (base) => ({ ...base, zIndex: 9999 }),
+                        menu: (base) => ({ ...base, zIndex: 9999 }),
+                      }}
+                    />
                     {formik.touched.color && formik.errors.color && (
                       <div className="text-danger">{formik.errors.color}</div>
                     )}
@@ -544,7 +556,7 @@ export default function MicrochipEditPage() {
                       className="form-control"
                       id="dob"
                       {...formik.getFieldProps("dob")}
-                       max={new Date().toISOString().split("T")[0]}
+                      max={new Date().toISOString().split("T")[0]}
                     />
                     {formik.touched.dob && formik.errors.dob && (
                       <div className="text-danger">{formik.errors.dob}</div>

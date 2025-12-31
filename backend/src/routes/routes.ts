@@ -2477,6 +2477,66 @@ export function RegisterRoutes(app: Router,opts?:{multer?:ReturnType<typeof mult
             }
         });
         // WARNING: This file was auto-generated with tsoa. Please do not modify it. Re-run tsoa to re-generate this file: https://github.com/lukeautry/tsoa
+        app.post('/frontend/lost_found/list',
+            ...(fetchMiddlewares<RequestHandler>(FrontendController)),
+            ...(fetchMiddlewares<RequestHandler>(FrontendController.prototype.getLostFoundPets)),
+
+            async function FrontendController_getLostFoundPets(request: ExRequest, response: ExResponse, next: any) {
+            const args: Record<string, TsoaRoute.ParameterSchema> = {
+                    request: {"in":"request","name":"request","required":true,"dataType":"object"},
+            };
+
+            // WARNING: This file was auto-generated with tsoa. Please do not modify it. Re-run tsoa to re-generate this file: https://github.com/lukeautry/tsoa
+
+            let validatedArgs: any[] = [];
+            try {
+                validatedArgs = templateService.getValidatedArgs({ args, request, response });
+
+                const controller = new FrontendController();
+
+              await templateService.apiHandler({
+                methodName: 'getLostFoundPets',
+                controller,
+                response,
+                next,
+                validatedArgs,
+                successStatus: undefined,
+              });
+            } catch (err) {
+                return next(err);
+            }
+        });
+        // WARNING: This file was auto-generated with tsoa. Please do not modify it. Re-run tsoa to re-generate this file: https://github.com/lukeautry/tsoa
+        app.get('/frontend/lost_found/details/:id',
+            ...(fetchMiddlewares<RequestHandler>(FrontendController)),
+            ...(fetchMiddlewares<RequestHandler>(FrontendController.prototype.getLostFoundPetById)),
+
+            async function FrontendController_getLostFoundPetById(request: ExRequest, response: ExResponse, next: any) {
+            const args: Record<string, TsoaRoute.ParameterSchema> = {
+                    id: {"in":"path","name":"id","required":true,"dataType":"double"},
+            };
+
+            // WARNING: This file was auto-generated with tsoa. Please do not modify it. Re-run tsoa to re-generate this file: https://github.com/lukeautry/tsoa
+
+            let validatedArgs: any[] = [];
+            try {
+                validatedArgs = templateService.getValidatedArgs({ args, request, response });
+
+                const controller = new FrontendController();
+
+              await templateService.apiHandler({
+                methodName: 'getLostFoundPetById',
+                controller,
+                response,
+                next,
+                validatedArgs,
+                successStatus: undefined,
+              });
+            } catch (err) {
+                return next(err);
+            }
+        });
+        // WARNING: This file was auto-generated with tsoa. Please do not modify it. Re-run tsoa to re-generate this file: https://github.com/lukeautry/tsoa
         app.get('/filemanager/photos',
             ...(fetchMiddlewares<RequestHandler>(FileManagerController)),
             ...(fetchMiddlewares<RequestHandler>(FileManagerController.prototype.getFiles)),

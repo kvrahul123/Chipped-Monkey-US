@@ -155,7 +155,7 @@ export const ProductPage = ({ slug }: { slug: string }) => {
         {/* RIGHT COLUMN - PRODUCT DETAILS */}
         <div className="col-md-6 col-12 product-details">
           <h1 className="product-title">{product ? product.title : ""}</h1>
-          <div className="product-price">£ {product ? product.price : 0.0}</div>
+          <div className="product-price">$ {product ? product.price : 0.0}</div>
 
           <div className="product-rating">
             ⭐⭐⭐⭐⭐ <span>(0 ratings)</span>

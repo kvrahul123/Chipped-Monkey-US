@@ -209,7 +209,7 @@ export default function Footer() {
 
             <div className="col-2">
               {!isLoggedIn ? (
-                <Link href="/user-register/register-pet-microchip">
+                <Link href="/user-login/pet_owner">
                   <Image
                     src="/assets/images/user-icon.png"
                     alt="home"

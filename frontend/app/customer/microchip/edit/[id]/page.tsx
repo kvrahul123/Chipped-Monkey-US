@@ -11,6 +11,8 @@ import axios from "axios";
 import Select from "react-select";
 import { getLocalStorageItem } from "@/app/common/LocalStorage";
 import Image from "next/image";
+import CreatableSelect from "react-select/creatable";
+
 import { breedsByType, colorOptions } from "@/app/common/data";
 import ReactSelect from "react-select";
 
@@ -542,11 +544,12 @@ export default function MicrochipEditPage() {
                     <label htmlFor="breed" className="form-label">
                       Breed <span className="text-danger">*</span>
                     </label>
-                    <ReactSelect
+
+                    <CreatableSelect
                       id="breed"
                       name="breed"
                       options={
-                        formik.values.type
+                        formik.values.type && breedsByType[formik.values.type]
                           ? breedsByType[formik.values.type].map((breed) => ({
                               value: breed,
                               label: breed,
@@ -567,8 +570,18 @@ export default function MicrochipEditPage() {
                           selectedOption?.value || ""
                         )
                       }
+                      onCreateOption={(inputValue: string) => {
+                        // allow manual breed input
+                        formik.setFieldValue("breed", inputValue);
+                      }}
                       onBlur={() => formik.setFieldTouched("breed", true)}
-                      placeholder="Select a breed"
+                      placeholder={
+                        formik.values.type
+                          ? "Select or type a breed"
+                          : "Select animal first"
+                      }
+                      isDisabled={!formik.values.type}
+                      isClearable
                       menuPortalTarget={
                         typeof window !== "undefined" ? document.body : null
                       }
@@ -577,6 +590,7 @@ export default function MicrochipEditPage() {
                         menu: (base) => ({ ...base, zIndex: 9999 }),
                       }}
                     />
+
                     {formik.touched.breed && formik.errors.breed && (
                       <div className="text-danger">{formik.errors.breed}</div>
                     )}

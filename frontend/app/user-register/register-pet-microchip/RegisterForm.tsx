@@ -6,6 +6,8 @@ import { toast, ToastContainer } from "react-toastify";
 import { Formik, Form, Field, ErrorMessage, FormikHelpers } from "formik";
 import * as Yup from "yup";
 import { Suspense } from "react";
+import ReCAPTCHA from "react-google-recaptcha";
+
 import {
   getLocalStorageItem,
   removeLocalStorageItem,
@@ -24,9 +26,12 @@ interface FormValues {
   emergency_number: string;
   password: string;
   confirm_password: string;
+  recaptcha: string;
 }
 
 export const RegisterForm = () => {
+  const siteKey = process.env.NEXT_PUBLIC_RECAPTCHA_SITE_KEY || "";
+
   const router = useRouter();
   const [selectedType, setSelectedType] = useState("");
 
@@ -43,16 +48,12 @@ export const RegisterForm = () => {
     }
   }, []);
 
-
   let token = getLocalStorageItem("token");
   useEffect(() => {
     if (token) {
       router.push("/customer/dashboard");
     }
   }, [token]);
-
-
-
 
   const validationSchema = Yup.object({
     first_name: Yup.string().required("First name is required"),
@@ -75,6 +76,7 @@ export const RegisterForm = () => {
     confirm_password: Yup.string()
       .oneOf([Yup.ref("password")], "Passwords must match")
       .required("Confirm password is required"),
+    recaptcha: Yup.string().required("Please verify you are not a robot"),
   });
 
   const handleSubmit = async (
@@ -82,27 +84,27 @@ export const RegisterForm = () => {
     { setSubmitting, setFieldError, resetForm }: FormikHelpers<FormValues> // Use FormikHelpers type
   ) => {
     const formData = new FormData();
-  formData.append("first_name", values.first_name);
-  formData.append("surf_name", values.surf_name);
-  formData.append("email", values.email);
-  formData.append("phone", values.phone);
-  formData.append("emergency_number", values.emergency_number);
-  formData.append("password", values.password);
-  formData.append("confirm_password", values.confirm_password);
+    formData.append("first_name", values.first_name);
+    formData.append("surf_name", values.surf_name);
+    formData.append("email", values.email);
+    formData.append("phone", values.phone);
+    formData.append("emergency_number", values.emergency_number);
+    formData.append("password", values.password);
+    formData.append("confirm_password", values.confirm_password);
 
-  // 🔹 Backend-required fields (send empty/default)
-  formData.append("account_type", "0");          // default: Pet keeper
-  formData.append("title", "");                  // empty
-  formData.append("date_of_birth", "");          // empty
-  formData.append("address_1", "");
-  formData.append("address_2", "");
-  formData.append("address_3", "");
-  formData.append("city", "");
-  formData.append("county", "");
-  formData.append("country", "United Kingdom");  // safe default
-  formData.append("postcode", "");
-  formData.append("breeder_check", "0");         // false
-  formData.append("implanter_radio", "");        // empty
+    // 🔹 Backend-required fields (send empty/default)
+    formData.append("account_type", "0"); // default: Pet keeper
+    formData.append("title", ""); // empty
+    formData.append("date_of_birth", ""); // empty
+    formData.append("address_1", "");
+    formData.append("address_2", "");
+    formData.append("address_3", "");
+    formData.append("city", "");
+    formData.append("county", "");
+    formData.append("country", "United Kingdom"); // safe default
+    formData.append("postcode", "");
+    formData.append("breeder_check", "0"); // false
+    formData.append("implanter_radio", ""); // empty
 
     try {
       const response = await fetch(`${appUrl}auth/register`, {
@@ -178,6 +180,7 @@ export const RegisterForm = () => {
           emergency_number: "",
           password: "",
           confirm_password: "",
+          recaptcha: "",
         }}
         validationSchema={validationSchema}
         onSubmit={handleSubmit}>
@@ -327,6 +330,17 @@ export const RegisterForm = () => {
                 />
                 <ErrorMessage
                   name="confirm_password"
+                  component="div"
+                  className="text-danger"
+                />
+              </div>
+              <div className="mb-3">
+                <ReCAPTCHA
+                  sitekey={siteKey}
+                  onChange={(value) => setFieldValue("recaptcha", value)}
+                />
+                <ErrorMessage
+                  name="recaptcha"
                   component="div"
                   className="text-danger"
                 />

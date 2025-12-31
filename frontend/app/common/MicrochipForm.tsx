@@ -8,6 +8,9 @@ import { Autocomplete, Select, TextField } from "@mui/material";
 import Script from "next/script";
 import ReactSelect from "react-select"; // default import
 import { breedsByType, colorOptions } from "./data";
+import ReCAPTCHA from "react-google-recaptcha";
+import CreatableSelect from "react-select/creatable";
+
 import {
   getLocalStorageItem,
   removeLocalStorageItem,
@@ -31,6 +34,7 @@ declare global {
 }
 
 export default function MicrochipForm(microchip_number: any) {
+  const siteKey = process.env.NEXT_PUBLIC_RECAPTCHA_SITE_KEY || "";
   const router = useRouter();
   const [isPaymentCardOpen, setIsPaymentCardOpen] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -128,6 +132,7 @@ export default function MicrochipForm(microchip_number: any) {
     company: Yup.string(),
     address_line1: Yup.string(),
     address_line2: Yup.string(),
+    recaptcha: Yup.string().required("Please verify you are not a robot"),
   });
 
   const handleSubmit = async (
@@ -202,52 +207,51 @@ export default function MicrochipForm(microchip_number: any) {
     window.appendHelcimPayIframe(checkoutToken, true);
   };
 
-const handleBuyNow = async (selectedPlan: string) => {
-  try {
-    const microchip_paymentDetails = JSON.parse(
-      DecryptData(
-        getLocalStorageItem("microchip_paymentDetails") || "",
-        secret
-      )
-    );
+  const handleBuyNow = async (selectedPlan: string) => {
+    try {
+      const microchip_paymentDetails = JSON.parse(
+        DecryptData(
+          getLocalStorageItem("microchip_paymentDetails") || "",
+          secret
+        )
+      );
 
-    setIsLoading(true);
-    const token = getLocalStorageItem("token");
+      setIsLoading(true);
+      const token = getLocalStorageItem("token");
 
-    // 🔥 Choose API based on plan
-    const url =
-      selectedPlan === "annual"
-        ? `${appUrl}frontend/microchip/subscription`
-        : `${appUrl}frontend/microchip/payment`;
+      // 🔥 Choose API based on plan
+      const url =
+        selectedPlan === "annual"
+          ? `${appUrl}frontend/microchip/subscription`
+          : `${appUrl}frontend/microchip/payment`;
 
-    const payload =
-      selectedPlan === "annual"
-        ? {
-            microchip_id: microchip_paymentDetails.microchip_number,
-            plan: "annual",
-          }
-        : {
-            microchip_id: microchip_paymentDetails.microchip_number,
-            selected_plan: selectedPlan, // lifetime
-          };
+      const payload =
+        selectedPlan === "annual"
+          ? {
+              microchip_id: microchip_paymentDetails.microchip_number,
+              plan: "annual",
+            }
+          : {
+              microchip_id: microchip_paymentDetails.microchip_number,
+              selected_plan: selectedPlan, // lifetime
+            };
 
-    const res = await axios.post(url, payload, {
-      headers: { Authorization: `Bearer ${token}` },
-    });
+      const res = await axios.post(url, payload, {
+        headers: { Authorization: `Bearer ${token}` },
+      });
 
-    if (res.data.statusCode === 200) {
-      openHelcimModal(res.data.checkoutToken);
-    } else {
-      toast.error(res.data.message);
+      if (res.data.statusCode === 200) {
+        openHelcimModal(res.data.checkoutToken);
+      } else {
+        toast.error(res.data.message);
+      }
+    } catch (err) {
+      console.error("Payment initialization error", err);
+      toast.error("Payment initialization failed");
+    } finally {
+      setIsLoading(false);
     }
-  } catch (err) {
-    console.error("Payment initialization error", err);
-    toast.error("Payment initialization failed");
-  } finally {
-    setIsLoading(false);
-  }
-};
-
+  };
 
   useEffect(() => {
     const handler = (event: MessageEvent) => {
@@ -318,6 +322,7 @@ const handleBuyNow = async (selectedPlan: string) => {
               company: "",
               address_line1: "",
               address_line2: "",
+              recaptcha: "",
             }}
             validationSchema={validationSchema}
             onSubmit={handleSubmit}>
@@ -647,9 +652,9 @@ const handleBuyNow = async (selectedPlan: string) => {
 
                   {/* Breed */}
                   <div className="form-floating mb-4">
-                    <ReactSelect
+                    <CreatableSelect
                       options={
-                        values.type
+                        values.type && breedsByType[values.type]
                           ? breedsByType[values.type].map((breed) => ({
                               value: breed,
                               label: breed,
@@ -662,9 +667,19 @@ const handleBuyNow = async (selectedPlan: string) => {
                           : null
                       }
                       onChange={(selectedOption: any) =>
-                        setFieldValue("breed", selectedOption?.value)
+                        setFieldValue("breed", selectedOption?.value || "")
                       }
-                      placeholder="Select a breed"
+                      onCreateOption={(inputValue: string) => {
+                        // allow manual breed entry
+                        setFieldValue("breed", inputValue);
+                      }}
+                      placeholder={
+                        values.type
+                          ? "Select or type a breed"
+                          : "Select animal first"
+                      }
+                      isDisabled={!values.type}
+                      isClearable
                       menuPortalTarget={document.body}
                       styles={{
                         menuPortal: (base) => ({ ...base, zIndex: 9999 }),
@@ -775,7 +790,17 @@ const handleBuyNow = async (selectedPlan: string) => {
                       className="text-danger"
                     />
                   </div>
-
+                  <div className="mb-3">
+                    <ReCAPTCHA
+                      sitekey={siteKey}
+                      onChange={(value) => setFieldValue("recaptcha", value)}
+                    />
+                    <ErrorMessage
+                      name="recaptcha"
+                      component="div"
+                      className="text-danger"
+                    />
+                  </div>
                   <button type="submit" className="btn btn-primary text-white">
                     Register
                   </button>

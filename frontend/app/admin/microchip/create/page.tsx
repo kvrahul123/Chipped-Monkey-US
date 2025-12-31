@@ -11,7 +11,8 @@ import { useRouter } from "next/navigation";
 import axios from "axios";
 import Select from "react-select";
 import { Loader } from "@googlemaps/js-api-loader";
-import { breedsByType,colorOptions } from "@/app/common/data";
+import CreatableSelect from "react-select/creatable";
+import { breedsByType, colorOptions } from "@/app/common/data";
 import ReactSelect from "react-select";
 const appUrl = process.env.NEXT_PUBLIC_APP_URL; // Your API URL
 
@@ -21,7 +22,7 @@ export default function MicrochipCreatePage() {
   const router = useRouter();
   const token = getLocalStorageItem("token");
   const addressRef = useRef(null);
-    const animalOptions = [
+  const animalOptions = [
     { value: "Dog", label: "Dog" },
     { value: "Cat", label: "Cat" },
     { value: "Rabbit", label: "Rabbit" },
@@ -66,14 +67,14 @@ export default function MicrochipCreatePage() {
 
   // Yup validation schema
   const validationSchema = Yup.object().shape({
- microchipNumber: Yup.string()
-    .required("Microchip number is required")
-    .test("microchip-format", function (value) {
-      if (!value) return false;
+    microchipNumber: Yup.string()
+      .required("Microchip number is required")
+      .test("microchip-format", function (value) {
+        if (!value) return false;
 
-      const len = value.length;
+        const len = value.length;
 
-       // 1️⃣ 15-digit numeric (ISO FDX-B)
+        // 1️⃣ 15-digit numeric (ISO FDX-B)
         if (/^\d+$/.test(value)) {
           if (len !== 15) {
             return this.createError({
@@ -112,7 +113,7 @@ export default function MicrochipCreatePage() {
           message:
             "The length appears to be incorrect. A microchip number is typically 15 digits long",
         });
-    }),
+      }),
     pet_keeper: Yup.string().required("Pet Keeper is required"),
     phone_number: Yup.string()
       .matches(/^\d+$/, "Phone Number must contain only digits")
@@ -130,7 +131,7 @@ export default function MicrochipCreatePage() {
     color: Yup.string().required("Color is required"),
     dob: Yup.string().required("Date of Birth is required"),
     markings: Yup.string().required("Markings are required"),
-photo: Yup.mixed()
+    photo: Yup.mixed()
       .required("Pet image is required")
       .test("fileType", "Only image files are allowed", (value) => {
         return (
@@ -259,7 +260,6 @@ photo: Yup.mixed()
           formik.setFieldValue("postcode", postcode);
           formik.setFieldValue("country", country);
         });
-      
       });
     }, 500);
   }, [addressRef]);
@@ -468,51 +468,51 @@ photo: Yup.mixed()
                     )}
                   </div>
 
-                                   {/* Type */}
-                    <div className="col-12 mb-3">
-                      <label htmlFor="type" className="form-label">
-                        Type <span className="text-danger">*</span>
-                      </label>
-                      <ReactSelect
-                        id="type"
-                        name="type"
-                        options={animalOptions}
-                        value={animalOptions.find(
-                          (option) => option.value === formik.values.type
-                        )}
-                        onChange={(selectedOption: any) => {
-                          formik.setFieldValue(
-                            "type",
-                            selectedOption?.value || ""
-                          );
-                          formik.setFieldValue("breed", ""); // reset breed when type changes
-                        }}
-                        onBlur={() => formik.setFieldTouched("type", true)}
-                        placeholder="Select an animal"
-                       menuPortalTarget={
-  typeof window !== "undefined" ? document.body : null
-}
-
-                        styles={{
-                          menuPortal: (base) => ({ ...base, zIndex: 9999 }),
-                          menu: (base) => ({ ...base, zIndex: 9999 }),
-                        }}
-                      />
-                      {formik.touched.type && formik.errors.type && (
-                        <div className="text-danger">{formik.errors.type}</div>
+                  {/* Type */}
+                  <div className="col-12 mb-3">
+                    <label htmlFor="type" className="form-label">
+                      Type <span className="text-danger">*</span>
+                    </label>
+                    <ReactSelect
+                      id="type"
+                      name="type"
+                      options={animalOptions}
+                      value={animalOptions.find(
+                        (option) => option.value === formik.values.type
                       )}
-                    </div>
+                      onChange={(selectedOption: any) => {
+                        formik.setFieldValue(
+                          "type",
+                          selectedOption?.value || ""
+                        );
+                        formik.setFieldValue("breed", ""); // reset breed when type changes
+                      }}
+                      onBlur={() => formik.setFieldTouched("type", true)}
+                      placeholder="Select an animal"
+                      menuPortalTarget={
+                        typeof window !== "undefined" ? document.body : null
+                      }
+                      styles={{
+                        menuPortal: (base) => ({ ...base, zIndex: 9999 }),
+                        menu: (base) => ({ ...base, zIndex: 9999 }),
+                      }}
+                    />
+                    {formik.touched.type && formik.errors.type && (
+                      <div className="text-danger">{formik.errors.type}</div>
+                    )}
+                  </div>
 
                     {/* Breed */}
                     <div className="col-12 mb-3">
                       <label htmlFor="breed" className="form-label">
                         Breed <span className="text-danger">*</span>
                       </label>
-                      <ReactSelect
+
+                      <CreatableSelect
                         id="breed"
                         name="breed"
                         options={
-                          formik.values.type
+                          formik.values.type && breedsByType[formik.values.type]
                             ? breedsByType[formik.values.type].map((breed) => ({
                                 value: breed,
                                 label: breed,
@@ -533,17 +533,27 @@ photo: Yup.mixed()
                             selectedOption?.value || ""
                           )
                         }
+                        onCreateOption={(inputValue: string) => {
+                          // manual breed entry
+                          formik.setFieldValue("breed", inputValue);
+                        }}
                         onBlur={() => formik.setFieldTouched("breed", true)}
-                        placeholder="Select a breed"
-                    menuPortalTarget={
-  typeof window !== "undefined" ? document.body : null
-}
-
+                        placeholder={
+                          formik.values.type
+                            ? "Select or type a breed"
+                            : "Select animal first"
+                        }
+                        isDisabled={!formik.values.type}
+                        isClearable
+                        menuPortalTarget={
+                          typeof window !== "undefined" ? document.body : null
+                        }
                         styles={{
                           menuPortal: (base) => ({ ...base, zIndex: 9999 }),
                           menu: (base) => ({ ...base, zIndex: 9999 }),
                         }}
                       />
+
                       {formik.touched.breed && formik.errors.breed && (
                         <div className="text-danger">{formik.errors.breed}</div>
                       )}
@@ -576,26 +586,28 @@ photo: Yup.mixed()
                     <label htmlFor="color" className="form-label">
                       Color <span className="text-danger">*</span>
                     </label>
-  <Select
-    id="color"
-    name="color"
-    options={colorOptions}
-    value={colorOptions.find(
-      (option) => option.value === formik.values.color
-    )}
-    onChange={(selectedOption) =>
-      formik.setFieldValue("color", selectedOption?.value || "")
-    }
-    onBlur={() => formik.setFieldTouched("color", true)}
-menuPortalTarget={
-  typeof window !== "undefined" ? document.body : null
-}
-
-    styles={{
-      menuPortal: (base) => ({ ...base, zIndex: 9999 }),
-      menu: (base) => ({ ...base, zIndex: 9999 }),
-    }}
-  />
+                    <Select
+                      id="color"
+                      name="color"
+                      options={colorOptions}
+                      value={colorOptions.find(
+                        (option) => option.value === formik.values.color
+                      )}
+                      onChange={(selectedOption) =>
+                        formik.setFieldValue(
+                          "color",
+                          selectedOption?.value || ""
+                        )
+                      }
+                      onBlur={() => formik.setFieldTouched("color", true)}
+                      menuPortalTarget={
+                        typeof window !== "undefined" ? document.body : null
+                      }
+                      styles={{
+                        menuPortal: (base) => ({ ...base, zIndex: 9999 }),
+                        menu: (base) => ({ ...base, zIndex: 9999 }),
+                      }}
+                    />
                     {formik.touched.color && formik.errors.color && (
                       <div className="text-danger">{formik.errors.color}</div>
                     )}

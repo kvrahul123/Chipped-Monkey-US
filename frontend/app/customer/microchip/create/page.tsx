@@ -12,6 +12,8 @@ import axios from "axios";
 import Select from "react-select";
 import { breedsByType, colorOptions } from "@/app/common/data";
 import { Loader } from "@googlemaps/js-api-loader";
+import CreatableSelect from "react-select/creatable";
+
 import ReactSelect from "react-select";
 const secret = process.env.NEXT_PUBLIC_HASH_SECRET as string;
 const appUrl = process.env.NEXT_PUBLIC_APP_URL; // Your API URL
@@ -575,11 +577,12 @@ export default function MicrochipCreatePage() {
                       <label htmlFor="breed" className="form-label">
                         Breed <span className="text-danger">*</span>
                       </label>
-                      <ReactSelect
+
+                      <CreatableSelect
                         id="breed"
                         name="breed"
                         options={
-                          formik.values.type
+                          formik.values.type && breedsByType[formik.values.type]
                             ? breedsByType[formik.values.type].map((breed) => ({
                                 value: breed,
                                 label: breed,
@@ -600,8 +603,18 @@ export default function MicrochipCreatePage() {
                             selectedOption?.value || ""
                           )
                         }
+                        onCreateOption={(inputValue: string) => {
+                          // manual breed entry
+                          formik.setFieldValue("breed", inputValue);
+                        }}
                         onBlur={() => formik.setFieldTouched("breed", true)}
-                        placeholder="Select a breed"
+                        placeholder={
+                          formik.values.type
+                            ? "Select or type a breed"
+                            : "Select animal first"
+                        }
+                        isDisabled={!formik.values.type}
+                        isClearable
                         menuPortalTarget={
                           typeof window !== "undefined" ? document.body : null
                         }
@@ -610,6 +623,7 @@ export default function MicrochipCreatePage() {
                           menu: (base) => ({ ...base, zIndex: 9999 }),
                         }}
                       />
+
                       {formik.touched.breed && formik.errors.breed && (
                         <div className="text-danger">{formik.errors.breed}</div>
                       )}

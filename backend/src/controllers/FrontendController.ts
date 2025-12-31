@@ -1927,4 +1927,70 @@ console.log(checkoutToken);
       }
     }
   }
+
+  
+@Post("/lost_found/list")
+public async getLostFoundPets(
+  @Request() request: any
+): Promise<{ message: string; data?: any; statusCode: number }> {
+  try {
+    const microchipRepository = AppDataSource.getRepository(Contact);
+
+    const result = await microchipRepository.find({
+      where: {
+        status: "active",
+      },
+      order: {
+        created_at: "DESC",
+      },
+    });
+
+    return {
+      message: "Lost & Found pets fetched successfully",
+      data: result,
+      statusCode: 200,
+    };
+  } catch (error) {
+    console.error(error);
+    return {
+      message: "Failed to fetch lost & found pets",
+      statusCode: 422,
+    };
+  }
+}
+@Get("/lost_found/details/{id}")
+public async getLostFoundPetById(
+  @Path() id: number
+): Promise<{ message: string; data?: any; statusCode: number }> {
+  try {
+    const contactRepository = AppDataSource.getRepository(Contact);
+
+    const result = await contactRepository.findOne({
+      where: {
+        id: id,
+        status: "active",
+      },
+    });
+
+    if (!result) {
+      return {
+        message: "Pet not found",
+        statusCode: 404,
+      };
+    }
+
+    return {
+      message: "Lost & Found pet fetched successfully",
+      data: result,
+      statusCode: 200,
+    };
+  } catch (error) {
+    console.error(error);
+    return {
+      message: "Failed to fetch pet details",
+      statusCode: 422,
+    };
+  }
+}
+
 }
