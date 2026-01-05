@@ -51,7 +51,13 @@
   </url>
 
   <url>
-    <loc>https://chippedmonkey.com/termsconditions</loc>
+    <loc>https://chippedmonkey.com/user-agreement</loc>
+    <changefreq>yearly</changefreq>
+    <priority>0.3</priority>
+  </url>
+
+    <url>
+    <loc>https://chippedmonkey.com/terms-conditions</loc>
     <changefreq>yearly</changefreq>
     <priority>0.3</priority>
   </url>

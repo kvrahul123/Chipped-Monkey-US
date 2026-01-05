@@ -139,10 +139,18 @@ export default function Header() {
 
             <li className="desktop_none mobile_show">
               <div className="header-menu-li">
-                <Link href="/termsconditions">
+                <Link href="/terms-conditions">
                   <span className="header-menu-li-title">
                     Terms & Conditions
                   </span>
+                </Link>
+              </div>
+            </li>
+
+            <li className="desktop_none mobile_show">
+              <div className="header-menu-li">
+                <Link href="/user-agreement">
+                  <span className="header-menu-li-title">User Agreement</span>
                 </Link>
               </div>
             </li>

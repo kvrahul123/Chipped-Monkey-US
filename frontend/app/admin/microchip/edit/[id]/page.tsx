@@ -49,6 +49,7 @@ export default function MicrochipEditPage() {
     phone_number: string;
     email: string;
     address: string;
+    address_2: string;
     country: string;
     pet_name: string;
     pet_status: string;
@@ -114,7 +115,8 @@ export default function MicrochipEditPage() {
       .matches(/^\d+$/, "Phone Number must contain only digits")
       .required("Phone Number is required"),
     email: Yup.string().email("Invalid email").required("Email is required"),
-    address: Yup.string().required("Address is required"),
+    address: Yup.string().required("Address Line 1 is required"),
+    address_2: Yup.string().required("Address Line 2 is required"),
     country: Yup.string().required("Country is required"),
     pet_name: Yup.string().required("Pet Name is required"),
     pet_status: Yup.string().required("Pet Status is required"),
@@ -145,6 +147,7 @@ export default function MicrochipEditPage() {
       phone_number: "",
       email: "",
       address: "",
+      address_2: "",
       country: "",
       pet_name: "",
       pet_status: "",
@@ -209,6 +212,7 @@ export default function MicrochipEditPage() {
           phone_number: data.phone_number || "",
           email: data.email || "",
           address: data.address || "",
+          address_2: data.address_2 || "",
           country: data.country || "",
           pet_name: data.pet_name || "",
           pet_status: data.pet_status || "",
@@ -329,15 +333,30 @@ export default function MicrochipEditPage() {
                   {/* Address */}
                   <div className="col-12 mb-3">
                     <label htmlFor="address" className="form-label">
-                      Address <span className="text-danger">*</span>
+                      Address Line 1<span className="text-danger">*</span>
                     </label>
-                    <textarea
+                    <input
                       className="form-control"
                       id="address"
                       {...formik.getFieldProps("address")}
                     />
                     {formik.touched.address && formik.errors.address && (
                       <div className="text-danger">{formik.errors.address}</div>
+                    )}
+                  </div>
+
+                                    {/* Address */}
+                  <div className="col-12 mb-3">
+                    <label htmlFor="address_2" className="form-label">
+                      Address Line 2<span className="text-danger">*</span>
+                    </label>
+                    <input
+                      className="form-control"
+                      id="address_2"
+                      {...formik.getFieldProps("address_2")}
+                    />
+                    {formik.touched.address_2 && formik.errors.address_2 && (
+                      <div className="text-danger">{formik.errors.address_2}</div>
                     )}
                   </div>
 

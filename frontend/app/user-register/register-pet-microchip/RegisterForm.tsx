@@ -206,7 +206,7 @@ export const RegisterForm = () => {
                 {
                   fields: ["formatted_address", "address_components"],
                   types: ["geocode"],
-                  componentRestrictions: { country: "uk" }, // Restrict to the UK only
+                  componentRestrictions: { country: "us" }, // Restrict to the UK only
                 }
               );
 

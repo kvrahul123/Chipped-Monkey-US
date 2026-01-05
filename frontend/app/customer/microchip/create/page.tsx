@@ -17,7 +17,7 @@ import CreatableSelect from "react-select/creatable";
 import ReactSelect from "react-select";
 const secret = process.env.NEXT_PUBLIC_HASH_SECRET as string;
 const appUrl = process.env.NEXT_PUBLIC_APP_URL; // Your API URL
-
+const authorizeUrl = process.env.NEXT_PUBLIC_AUTHORIZE_URL || "";
 import { getLocalStorageItem } from "@/app/common/LocalStorage";
 import { EncryptData, DecryptData } from "@/app/common/HashData";
 
@@ -36,6 +36,7 @@ export default function MicrochipCreatePage() {
   const [isLoading, setIsLoading] = useState(false);
   const [isPaymentCardOpen, setIsPaymentCardOpen] = useState(false);
   const addressRef = useRef(null);
+  const address2Ref = useRef(null);
   const [microchip_paymentDetails, setmicrochip_paymentDetails] = useState([]);
   const animalOptions = [
     { value: "Dog", label: "Dog" },
@@ -66,6 +67,7 @@ export default function MicrochipCreatePage() {
     phone_number: string;
     email: string;
     address: string;
+    address_2: string;
     county: string;
     postcode: string;
     country: string;
@@ -134,7 +136,8 @@ export default function MicrochipCreatePage() {
       .matches(/^\d+$/, "Phone Number must contain only digits")
       .required("Phone Number is required"),
     email: Yup.string().email("Invalid email").required("Email is required"),
-    address: Yup.string().required("Address is required"),
+    address: Yup.string().required("Address Line 1 is required"),
+    address_2: Yup.string().required("Address Line 2 is required"),
     county: Yup.string().required("County is required"),
     postcode: Yup.string().required("Postcode is required"),
     country: Yup.string().required("Country is required"),
@@ -146,6 +149,7 @@ export default function MicrochipCreatePage() {
     color: Yup.string().required("Color is required"),
     dob: Yup.string().required("Date of Birth is required"),
     markings: Yup.string().required("Markings are required"),
+    selected_plan: Yup.string().required("Please select a payment plan"),
     photo: Yup.mixed()
       .required("Pet image is required")
       .test("fileType", "Only image files are allowed", (value) => {
@@ -168,6 +172,7 @@ export default function MicrochipCreatePage() {
       phone_number: "",
       email: "",
       address: "",
+      address_2: "",
       county: "",
       postcode: "",
       country: "",
@@ -179,6 +184,7 @@ export default function MicrochipCreatePage() {
       color: "",
       dob: "",
       markings: "",
+      selected_plan: "",
       photo: null,
     },
 
@@ -192,6 +198,7 @@ export default function MicrochipCreatePage() {
       formData.append("phone_number", values.phone_number);
       formData.append("email", values.email);
       formData.append("address", values.address);
+      formData.append("address_2", values.address_2);
       formData.append("county", values.county);
       formData.append("postcode", values.postcode);
       formData.append("country", values.country);
@@ -202,6 +209,7 @@ export default function MicrochipCreatePage() {
       formData.append("sex", values.sex);
       formData.append("color", values.color);
       formData.append("dob", values.dob);
+      formData.append("selected_plan", values.selected_plan);
       formData.append("markings", values.markings);
 
       if (values.photo) {
@@ -221,12 +229,23 @@ export default function MicrochipCreatePage() {
         );
 
         if (response.data.statusCode === 201) {
-          // toast.success(
-          //   response.data.message || "Microchip created successfully"
-          // );
-          //router.push("/customer/microchip/list");
+          let data = response.data;
+          if (data.paymentToken) {
+            const form = document.createElement("form");
+            form.method = "POST";
+            form.action = authorizeUrl;
 
-          setIsPaymentCardOpen(true);
+            const input = document.createElement("input");
+            input.type = "hidden";
+            input.name = "token";
+            input.value = data.paymentToken;
+
+            form.appendChild(input);
+            document.body.appendChild(form);
+            form.submit();
+          } else {
+            toast.info("Microchip created successfully.");
+          }
         } else {
           toast.error(response.data.message);
         }
@@ -239,34 +258,6 @@ export default function MicrochipCreatePage() {
     },
   });
 
-  const handleBuyNow = async (selectedPlan: string) => {
-    try {
-      setIsLoading(true);
-      const token = getLocalStorageItem("token");
-
-      const res = await axios.post(
-        `${appUrl}frontend/microchip/payment`,
-        {
-          microchip_id: formik.values.microchipNumber,
-          selected_plan: selectedPlan,
-        },
-        {
-          headers: { Authorization: `Bearer ${token}` },
-        }
-      );
-
-      if (res.data.statusCode === 200) {
-        openHelcimModal(res.data.checkoutToken);
-      } else {
-        toast.error(res.data.message);
-      }
-    } catch (err) {
-      console.error("Payment initialization error", err);
-      toast.error("Payment initialization failed");
-    } finally {
-      setIsLoading(false); // stop loading
-    }
-  };
   const openHelcimModal = (checkoutToken: string) => {
     if (!window.appendHelcimPayIframe) {
       toast.error("Payment service not loaded. Please refresh.");
@@ -275,48 +266,48 @@ export default function MicrochipCreatePage() {
     window.appendHelcimPayIframe(checkoutToken, true);
   };
 
-  useEffect(() => {
-    const loader = new Loader({
-      apiKey: process.env.NEXT_PUBLIC_GOOGLE_MAPS_API_KEY,
-      libraries: ["places"],
-    });
+  //useEffect(() => {
+  //   const loader = new Loader({
+  //     apiKey: process.env.NEXT_PUBLIC_GOOGLE_MAPS_API_KEY,
+  //     libraries: ["places"],
+  //   });
 
-    loader.load().then(() => {
-      if (!addressRef.current) return;
+  //   loader.load().then(() => {
+  //     if (!addressRef.current) return;
 
-      const autocomplete = new google.maps.places.Autocomplete(
-        addressRef.current,
-        {
-          fields: ["address_components", "formatted_address", "geometry"],
-          componentRestrictions: { country: "gb" }, // 🔥 Restrict to UK
-          types: ["address"], // 🔥 Use "address" not "geocode"
-        }
-      );
+  //     const autocomplete = new google.maps.places.Autocomplete(
+  //       addressRef.current,
+  //       {
+  //         fields: ["address_components", "formatted_address", "geometry"],
+  //         componentRestrictions: { country: "us" }, // 🔥 Restrict to UK
+  //         types: ["address"], // 🔥 Use "address" not "geocode"
+  //       }
+  //     );
 
-      autocomplete.addListener("place_changed", () => {
-        const place = autocomplete.getPlace();
-        if (!place.address_components) return;
+  //     autocomplete.addListener("place_changed", () => {
+  //       const place = autocomplete.getPlace();
+  //       if (!place.address_components) return;
 
-        const comp = {};
-        place.address_components.forEach((c) => {
-          comp[c.types[0]] = c.long_name;
-        });
+  //       const comp = {};
+  //       place.address_components.forEach((c) => {
+  //         comp[c.types[0]] = c.long_name;
+  //       });
 
-        const postcode = comp.postal_code || "";
-        const city = comp.post_town || comp.locality || "";
-        const county =
-          comp.administrative_area_level_2 ||
-          comp.administrative_area_level_1 ||
-          "";
-        const country = comp.country || "United Kingdom";
+  //       const postcode = comp.postal_code || "";
+  //       const city = comp.post_town || comp.locality || "";
+  //       const county =
+  //         comp.administrative_area_level_2 ||
+  //         comp.administrative_area_level_1 ||
+  //         "";
+  //       const country = comp.country || "United Kingdom";
 
-        formik.setFieldValue("address", place.formatted_address);
-        formik.setFieldValue("county", county);
-        formik.setFieldValue("postcode", postcode);
-        formik.setFieldValue("country", country);
-      });
-    });
-  }, [addressRef]);
+  //       formik.setFieldValue("address", place.formatted_address);
+  //       formik.setFieldValue("county", county);
+  //       formik.setFieldValue("postcode", postcode);
+  //       formik.setFieldValue("country", country);
+  //     });
+  //   });
+  // }, [addressRef]);
 
   return (
     <CommonLayout>
@@ -339,32 +330,39 @@ export default function MicrochipCreatePage() {
               </Link>
             </div>
           </div>
-          {!isPaymentCardOpen ? (
-            <form onSubmit={formik.handleSubmit}>
-              <div className="page-table-container w-100">
-                <div className="card-body">
-                  <div className="row">
-                    {/* Microchip Number */}
-                    <div className="col-12 mb-3">
-                      <label htmlFor="microchipNumber" className="form-label">
-                        Microchip Number <span className="text-danger">*</span>
-                      </label>
-                      <input
-                        type="text"
-                        className="form-control"
-                        id="microchipNumber"
-                        {...formik.getFieldProps("microchipNumber")}
-                      />
-                      {formik.touched.microchipNumber &&
-                        formik.errors.microchipNumber && (
-                          <div className="text-danger">
-                            {formik.errors.microchipNumber}
-                          </div>
-                        )}
+          <form onSubmit={formik.handleSubmit}>
+            <div className="page-table-container w-100">
+              <div className="card-body">
+                <div className="row">
+                  {/* Microchip Number */}
+                  <div className="col-12 mb-3">
+                    <div className="input-field-main-container">
+                      <div className="input-label-container">
+                        <label htmlFor="microchipNumber" className="form-label">
+                          Microchip Number{" "}
+                          <span className="text-danger">*</span>
+                        </label>
+                      </div>
+                      <div className="input-field-container">
+                        <input
+                          type="text"
+                          className="form-control"
+                          id="microchipNumber"
+                          {...formik.getFieldProps("microchipNumber")}
+                        />
+                        {formik.touched.microchipNumber &&
+                          formik.errors.microchipNumber && (
+                            <div className="text-danger">
+                              {formik.errors.microchipNumber}
+                            </div>
+                          )}
+                      </div>
                     </div>
+                  </div>
 
-                    {/* Pet Keeper */}
-                    <div className="col-12 mb-3">
+                  {/* Pet Keeper */}
+                  <div className="col-12 mb-3">
+                    <div className="input-field-container">
                       <label htmlFor="pet_keeper" className="form-label">
                         Pet Keeper <span className="text-danger">*</span>
                       </label>
@@ -374,16 +372,17 @@ export default function MicrochipCreatePage() {
                         id="pet_keeper"
                         {...formik.getFieldProps("pet_keeper")}
                       />
-                      {formik.touched.pet_keeper &&
-                        formik.errors.pet_keeper && (
-                          <div className="text-danger">
-                            {formik.errors.pet_keeper}
-                          </div>
-                        )}
                     </div>
+                    {formik.touched.pet_keeper && formik.errors.pet_keeper && (
+                      <div className="text-danger">
+                        {formik.errors.pet_keeper}
+                      </div>
+                    )}
+                  </div>
 
-                    {/* Phone Number */}
-                    <div className="col-12 mb-3">
+                  {/* Phone Number */}
+                  <div className="col-12 mb-3">
+                    <div className="input-field-container">
                       <label htmlFor="phone_number" className="form-label">
                         Phone Number <span className="text-danger">*</span>
                       </label>
@@ -393,16 +392,18 @@ export default function MicrochipCreatePage() {
                         id="phone_number"
                         {...formik.getFieldProps("phone_number")}
                       />
-                      {formik.touched.phone_number &&
-                        formik.errors.phone_number && (
-                          <div className="text-danger">
-                            {formik.errors.phone_number}
-                          </div>
-                        )}
                     </div>
+                    {formik.touched.phone_number &&
+                      formik.errors.phone_number && (
+                        <div className="text-danger">
+                          {formik.errors.phone_number}
+                        </div>
+                      )}
+                  </div>
 
-                    {/* Email */}
-                    <div className="col-12 mb-3">
+                  {/* Email */}
+                  <div className="col-12 mb-3">
+                    <div className="input-field-container">
                       <label htmlFor="email" className="form-label">
                         Email <span className="text-danger">*</span>
                       </label>
@@ -412,32 +413,61 @@ export default function MicrochipCreatePage() {
                         id="email"
                         {...formik.getFieldProps("email")}
                       />
-                      {formik.touched.email && formik.errors.email && (
-                        <div className="text-danger">{formik.errors.email}</div>
-                      )}
                     </div>
+                    {formik.touched.email && formik.errors.email && (
+                      <div className="text-danger">{formik.errors.email}</div>
+                    )}
+                  </div>
 
-                    {/* Address */}
-                    <div className="col-12 mb-3">
+                  {/* Address */}
+                  <div className="col-12 mb-3">
+                    <div className="input-field-container">
                       <label htmlFor="address" className="form-label">
-                        Address <span className="text-danger">*</span>
+                        Address Line 1<span className="text-danger">*</span>
                       </label>
-                      <textarea
+                      <input
                         className="form-control"
                         id="address"
                         autoComplete="off"
                         ref={addressRef}
                         {...formik.getFieldProps("address")}
                       />
-                      {formik.touched.address && formik.errors.address && (
-                        <div className="text-danger">
-                          {formik.errors.address}
-                        </div>
-                      )}
                     </div>
+                    <span className="mt-1">
+                      Street address,P.O. box, company name, c/o
+                    </span>
+                    {formik.touched.address && formik.errors.address && (
+                      <div className="text-danger">{formik.errors.address}</div>
+                    )}
+                  </div>
 
-                    {/* County */}
-                    <div className="col-12 mb-3">
+                  {/* Address */}
+                  <div className="col-12 mb-3">
+                    <div className="input-field-container">
+                      <label htmlFor="address_2" className="form-label">
+                        Address Line 2<span className="text-danger">*</span>
+                      </label>
+                      <input
+                        className="form-control"
+                        id="address_2"
+                        autoComplete="off"
+                        ref={address2Ref}
+                        {...formik.getFieldProps("address_2")}
+                      />
+                    </div>
+                    <span className="mt-1">
+                      Apartment, suite, unit, building, floor, etc
+                    </span>
+                    {formik.touched.address_2 && formik.errors.address_2 && (
+                      <div className="text-danger">
+                        {formik.errors.address_2}
+                      </div>
+                    )}
+                  </div>
+
+                  {/* County */}
+                  <div className="col-12 mb-3">
+                    <div className="input-field-container">
                       <label htmlFor="county" className="form-label">
                         County <span className="text-danger">*</span>
                       </label>
@@ -447,17 +477,17 @@ export default function MicrochipCreatePage() {
                         id="county"
                         {...formik.getFieldProps("county")}
                       />
-                      {formik.touched.county && formik.errors.county && (
-                        <div className="text-danger">
-                          {formik.errors.county}
-                        </div>
-                      )}
                     </div>
+                    {formik.touched.county && formik.errors.county && (
+                      <div className="text-danger">{formik.errors.county}</div>
+                    )}
+                  </div>
 
-                    {/* Postcode */}
-                    <div className="col-12 mb-3">
+                  {/* Postcode */}
+                  <div className="col-12 mb-3">
+                    <div className="input-field-container">
                       <label htmlFor="postcode" className="form-label">
-                        Postcode <span className="text-danger">*</span>
+                        Zip/Postcode <span className="text-danger">*</span>
                       </label>
                       <input
                         type="text"
@@ -465,15 +495,17 @@ export default function MicrochipCreatePage() {
                         id="postcode"
                         {...formik.getFieldProps("postcode")}
                       />
-                      {formik.touched.postcode && formik.errors.postcode && (
-                        <div className="text-danger">
-                          {formik.errors.postcode}
-                        </div>
-                      )}
                     </div>
+                    {formik.touched.postcode && formik.errors.postcode && (
+                      <div className="text-danger">
+                        {formik.errors.postcode}
+                      </div>
+                    )}
+                  </div>
 
-                    {/* Country */}
-                    <div className="col-12 mb-3">
+                  {/* Country */}
+                  <div className="col-12 mb-3">
+                    <div className="input-field-container">
                       <label htmlFor="country" className="form-label">
                         Country <span className="text-danger">*</span>
                       </label>
@@ -483,15 +515,15 @@ export default function MicrochipCreatePage() {
                         id="country"
                         {...formik.getFieldProps("country")}
                       />
-                      {formik.touched.country && formik.errors.country && (
-                        <div className="text-danger">
-                          {formik.errors.country}
-                        </div>
-                      )}
                     </div>
+                    {formik.touched.country && formik.errors.country && (
+                      <div className="text-danger">{formik.errors.country}</div>
+                    )}
+                  </div>
 
-                    {/* Pet Name */}
-                    <div className="col-12 mb-3">
+                  {/* Pet Name */}
+                  <div className="col-12 mb-3">
+                    <div className="input-field-container">
                       <label htmlFor="pet_name" className="form-label">
                         Pet Name <span className="text-danger">*</span>
                       </label>
@@ -501,15 +533,17 @@ export default function MicrochipCreatePage() {
                         id="pet_name"
                         {...formik.getFieldProps("pet_name")}
                       />
-                      {formik.touched.pet_name && formik.errors.pet_name && (
-                        <div className="text-danger">
-                          {formik.errors.pet_name}
-                        </div>
-                      )}
                     </div>
+                    {formik.touched.pet_name && formik.errors.pet_name && (
+                      <div className="text-danger">
+                        {formik.errors.pet_name}
+                      </div>
+                    )}
+                  </div>
 
-                    {/* Pet Status */}
-                    <div className="col-12 mb-3">
+                  {/* Pet Status */}
+                  <div className="col-12 mb-3">
+                    <div className="input-field-container">
                       <label htmlFor="pet_status" className="form-label">
                         Pet Status <span className="text-danger">*</span>
                       </label>
@@ -530,16 +564,17 @@ export default function MicrochipCreatePage() {
                           formik.setFieldTouched("pet_status", true)
                         }
                       />
-                      {formik.touched.pet_status &&
-                        formik.errors.pet_status && (
-                          <div className="text-danger">
-                            {formik.errors.pet_status}
-                          </div>
-                        )}
                     </div>
+                    {formik.touched.pet_status && formik.errors.pet_status && (
+                      <div className="text-danger">
+                        {formik.errors.pet_status}
+                      </div>
+                    )}
+                  </div>
 
-                    {/* Type */}
-                    <div className="col-12 mb-3">
+                  {/* Type */}
+                  <div className="col-12 mb-3">
+                    <div className="input-field-container">
                       <label htmlFor="type" className="form-label">
                         Type <span className="text-danger">*</span>
                       </label>
@@ -567,13 +602,15 @@ export default function MicrochipCreatePage() {
                           menu: (base) => ({ ...base, zIndex: 9999 }),
                         }}
                       />
-                      {formik.touched.type && formik.errors.type && (
-                        <div className="text-danger">{formik.errors.type}</div>
-                      )}
                     </div>
+                    {formik.touched.type && formik.errors.type && (
+                      <div className="text-danger">{formik.errors.type}</div>
+                    )}
+                  </div>
 
-                    {/* Breed */}
-                    <div className="col-12 mb-3">
+                  {/* Breed */}
+                  <div className="col-12 mb-3">
+                    <div className="input-field-container">
                       <label htmlFor="breed" className="form-label">
                         Breed <span className="text-danger">*</span>
                       </label>
@@ -623,14 +660,16 @@ export default function MicrochipCreatePage() {
                           menu: (base) => ({ ...base, zIndex: 9999 }),
                         }}
                       />
-
-                      {formik.touched.breed && formik.errors.breed && (
-                        <div className="text-danger">{formik.errors.breed}</div>
-                      )}
                     </div>
 
-                    {/* Sex */}
-                    <div className="col-12 mb-3">
+                    {formik.touched.breed && formik.errors.breed && (
+                      <div className="text-danger">{formik.errors.breed}</div>
+                    )}
+                  </div>
+
+                  {/* Sex */}
+                  <div className="col-12 mb-3">
+                    <div className="input-field-container">
                       <label htmlFor="sex" className="form-label">
                         Sex <span className="text-danger">*</span>
                       </label>
@@ -649,13 +688,15 @@ export default function MicrochipCreatePage() {
                         }
                         onBlur={() => formik.setFieldTouched("sex", true)}
                       />
-                      {formik.touched.sex && formik.errors.sex && (
-                        <div className="text-danger">{formik.errors.sex}</div>
-                      )}
                     </div>
+                    {formik.touched.sex && formik.errors.sex && (
+                      <div className="text-danger">{formik.errors.sex}</div>
+                    )}
+                  </div>
 
-                    {/* Color */}
-                    <div className="col-12 mb-3">
+                  {/* Color */}
+                  <div className="col-12 mb-3">
+                    <div className="input-field-container">
                       <label htmlFor="color" className="form-label">
                         Color <span className="text-danger">*</span>
                       </label>
@@ -681,13 +722,15 @@ export default function MicrochipCreatePage() {
                           menu: (base) => ({ ...base, zIndex: 9999 }),
                         }}
                       />
-                      {formik.touched.color && formik.errors.color && (
-                        <div className="text-danger">{formik.errors.color}</div>
-                      )}
                     </div>
+                    {formik.touched.color && formik.errors.color && (
+                      <div className="text-danger">{formik.errors.color}</div>
+                    )}
+                  </div>
 
-                    {/* DOB */}
-                    <div className="col-12 mb-3">
+                  {/* DOB */}
+                  <div className="col-12 mb-3">
+                    <div className="input-field-container">
                       <label htmlFor="dob" className="form-label">
                         Date of Birth <span className="text-danger">*</span>
                       </label>
@@ -698,13 +741,15 @@ export default function MicrochipCreatePage() {
                         {...formik.getFieldProps("dob")}
                         max={new Date().toISOString().split("T")[0]}
                       />
-                      {formik.touched.dob && formik.errors.dob && (
-                        <div className="text-danger">{formik.errors.dob}</div>
-                      )}
                     </div>
+                    {formik.touched.dob && formik.errors.dob && (
+                      <div className="text-danger">{formik.errors.dob}</div>
+                    )}
+                  </div>
 
-                    {/* Markings */}
-                    <div className="col-12 mb-3">
+                  {/* Markings */}
+                  <div className="col-12 mb-3">
+                    <div className="input-field-container">
                       <label htmlFor="markings" className="form-label">
                         Markings <span className="text-danger">*</span>
                       </label>
@@ -713,15 +758,17 @@ export default function MicrochipCreatePage() {
                         id="markings"
                         {...formik.getFieldProps("markings")}
                       />
-                      {formik.touched.markings && formik.errors.markings && (
-                        <div className="text-danger">
-                          {formik.errors.markings}
-                        </div>
-                      )}
                     </div>
+                    {formik.touched.markings && formik.errors.markings && (
+                      <div className="text-danger">
+                        {formik.errors.markings}
+                      </div>
+                    )}
+                  </div>
 
-                    {/* Photo */}
-                    <div className="col-12 mb-3">
+                  {/* Photo */}
+                  <div className="col-12 mb-3">
+                    <div className="input-field-container">
                       <label htmlFor="photo" className="form-label">
                         Photo <span className="text-danger">*</span>
                       </label>
@@ -736,98 +783,142 @@ export default function MicrochipCreatePage() {
                           )
                         }
                       />
-
-                      {formik.touched.photo && formik.errors.photo && (
-                        <div className="text-danger">{formik.errors.photo}</div>
-                      )}
                     </div>
 
-                    <div className="page-bottom-actions">
-                      <button type="submit" className="btn btn-primary">
-                        Save Microchip
-                      </button>
+                    {formik.touched.photo && formik.errors.photo && (
+                      <div className="text-danger">{formik.errors.photo}</div>
+                    )}
+                  </div>
+                <p>
+                  Every year, millions of pets go missing. A microchip is their
+                  "silent ticket" home—but it only works if it’s registered! By
+                  enrolling your pet with ChippedMonkey, you ensure that vets
+                  and shelters can find you the moment your furry friend is
+                  scanned.
+                </p>
+                <div className="row mt-5 payment-options">
+                  {/* Lifetime Registration */}
+                  <div className="col-lg-6 mb-4">
+                    <div
+                      className={`payment-option-card ${
+                        formik.values.selected_plan === "lifetime" ? "selected" : ""
+                      }`}
+                      onClick={() =>
+                        formik.setFieldValue("selected_plan", "lifetime")
+                      }>
+                      {/* Badge */}
+                      <div className="plan-badge">Best Value</div>
+
+                      <div className="payment-option-header">
+                        <div className="radio-indicator" />
+                        <div>
+                          <h4>Lifetime Registration</h4>
+                          <p>One-time payment. Forever protection.</p>
+                        </div>
+                      </div>
+
+                      <div className="payment-option-body">
+                        <p className="plan-subtext">
+                          Our most popular choice for pet parents who want to
+                          “set it and forget it.”
+                        </p>
+
+                        <ul className="feature-list">
+                          <li>
+                            Permanent Enrollment: Your pet is in our national
+                            database for life.
+                          </li>
+                          <li>
+                            Printable QR Tag: Instantly generate a custom QR
+                            code for your pet's collar.
+                          </li>
+                          <li>
+                            Ownership History: Solid digital proof of ownership
+                            records.
+                          </li>
+                          <li>
+                            Vet & Shelter Notes: Keep critical medical or
+                            behavioral info accessible to rescuers.
+                          </li>
+                          <li>
+                            Priority Lookup: Faster processing in our emergency
+                            database.
+                          </li>
+                        </ul>
+                      </div>
+
+                      <div className="payment-option-price">
+                        <span className="price">$49</span>
+                        <span className="billing">(Once)</span>
+                      </div>
                     </div>
                   </div>
+
+                  {/* Annual Protection Plan */}
+                  <div className="col-lg-6 mb-4">
+                    <div
+                      className={`payment-option-card ${
+                        formik.values.selected_plan === "annual" ? "selected" : ""
+                      }`}
+                      onClick={() => formik.setFieldValue("selected_plan", "annual")}>
+                      <div className="payment-option-header">
+                        <div className="radio-indicator" />
+                        <div>
+                          <h4>🛡️ Annual Protection Plan</h4>
+                          <p>Premium features for the ultimate safety net.</p>
+                        </div>
+                      </div>
+
+                      <div className="payment-option-body">
+                        <p className="plan-subtext">
+                          For the proactive pet parent who wants real-time
+                          alerts and advanced tools.
+                        </p>
+
+                        <ul className="feature-list">
+                          <li>
+                            Includes Lifetime Registration: All the benefits of
+                            our standard plan.
+                          </li>
+                          <li>
+                            Instant Multi-Channel Alerts: Receive emergency
+                            notifications via SMS and WhatsApp the second your
+                            pet is found.
+                          </li>
+                          <li>
+                            Geo-Shelter Radius: We notify shelters and vet
+                            clinics in your specific geographic area if your pet
+                            is reported lost.
+                          </li>
+                          <li>
+                            Multi-Animal Dashboard: Manage all your pets' safety
+                            profiles from one easy-to-use screen.
+                          </li>
+                          <li>Pet lost and found image match up tool</li>
+                        </ul>
+                      </div>
+
+                      <div className="payment-option-price">
+                        <span className="price">$19.99</span>
+                        <span className="billing">(Billed Annually)</span>
+                      </div>
+                    </div>
+                  </div>
+                    {formik.touched.selected_plan && formik.errors.selected_plan && (
+                      <div className="text-danger">{formik.errors.selected_plan}</div>
+                    )}
                 </div>
-              </div>
-            </form>
-          ) : (
-            <div className="row mt-5 payment_card">
-              {/* Lifetime Registration */}
-              <div className="col-lg-6 mb-4">
-                <div className="packages-container">
-                  <div className="package-container-title">
-                    <h3>Lifetime Registration (One-Time Payment)</h3>
-                  </div>
 
-                  <div className="package-container-description">
-                    <ul>
-                      <li>Includes everything in Free +</li>
-                      <li>Lost animal instant alerts (email/SMS)</li>
-                      <li>Printable “FOUND” posters with QR</li>
-                      <li>Vet / shelter notes</li>
-                      <li>Ownership transfer history</li>
-                      <li>Certificate of registration (PDF)</li>
-                      <li>Priority lookup visibility</li>
-                    </ul>
-                  </div>
-
-                  <div className="package-container-payment">
-                    <h4 className="d-flex justify-content-center align-items-center payment-middle">
-                      <span>$</span>49
-                    </h4>
-                  </div>
-
-                  <div className="package-btn-container">
-                    <button
-                      type="button"
-                      className="btn btn-primary"
-                      onClick={() => handleBuyNow("lifetime")}>
-                      {isLoading ? "Purchasing..." : "Buy Now"}
-                    </button>
-                  </div>
-                </div>
-              </div>
-
-              {/* Annual Protection Plan */}
-              <div className="col-lg-6 mb-4">
-                <div className="packages-container">
-                  <div className="package-container-title">
-                    <h3>Annual Protection Plan (Recurring Revenue)</h3>
-                  </div>
-
-                  <div className="package-container-description">
-                    <ul>
-                      <li>Includes everything above +</li>
-                      <li>24/7 lost animal response workflow</li>
-                      <li>SMS + WhatsApp alerts</li>
-                      <li>WhatsApp lost/found report</li>
-                      <li>Geo-alert radius</li>
-                      <li>Theft / dispute timestamped records</li>
-                      <li>Insurance-ready documentation</li>
-                      <li>Multi-animal dashboard</li>
-                      <li>Concierge ownership transfer</li>
-                    </ul>
-                  </div>
-
-                  <div className="package-container-payment">
-                    <h4 className="d-flex justify-content-center align-items-center payment-middle">
-                      <span>$</span>19.99
-                    </h4>
-                  </div>
-
-                  <div className="package-btn-container">
-                    <button
-                      type="button"
-                      className="btn btn-primary"
-                      onClick={() => handleBuyNow("annual")}>
-                      {isLoading ? "Purchasing..." : "Enable auto-renewal"}
+                  <div className="page-bottom-actions">
+                    <button type="submit" className="btn btn-primary">
+                      Save Microchip
                     </button>
                   </div>
                 </div>
               </div>
             </div>
-          )}
+          </form>
+
           <ToastContainer
             position="top-right"
             autoClose={1000}

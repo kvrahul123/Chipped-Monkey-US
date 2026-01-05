@@ -12,6 +12,7 @@ import {
   Query,
 } from "tsoa";
 import crypto from "crypto";
+import nodemailer from "nodemailer";
 import { format } from "date-fns";
 import { AppDataSource } from "../../data-source";
 import { getTokenFromRequest, decodeToken } from "../utilities/TokenUtility";
@@ -51,12 +52,29 @@ import {
 } from "../../utils/ExternalMicrochip";
 import { initializeHelcimSubscription } from "../../utils/initializeHelcimSubscription";
 import axios from "axios";
+import { sendNotificationMail } from "../../utils/notificationMail";
+import {
+  encryptPaymentToken,
+  decryptPaymentToken,
+} from "../../utils/paymentToken";
 
 require("dotenv").config();
 export interface OpayoTransactionResponse {
   nextUrl: string;
 }
+const transporter = nodemailer.createTransport({
+  host: "inficodes.com", // Your custom SMTP server (e.g., smtp.gmail.com for Gmail)
+  port: 587, // Common SMTP port (587 for TLS, 465 for SSL)
+  secure: false,
+  auth: {
+    user: process.env.SMTP_EMAIL_ID,
+    pass: process.env.SMTP_EMAIL_PASSWORD, // Consider using environment variables for sensitive data
+  },
+});
 
+interface DecryptTokenRequest {
+  token: string;
+}
 // ===== Multer Storage Setup =====
 const storage = multer.diskStorage({
   destination: (req, file, cb) => {
@@ -89,6 +107,7 @@ export class FrontendController extends Controller {
     message: string;
     data?: Contact;
     statusCode: number;
+    paymentToken?: string;
     externalDatabase?: boolean;
   }> {
     return new Promise((resolve) => {
@@ -103,6 +122,11 @@ export class FrontendController extends Controller {
           const microchipRepository = AppDataSource.getRepository(Contact);
           const assignMicrochipRepository =
             AppDataSource.getRepository(AssignedMicrochip);
+
+          const paymentRepo = AppDataSource.getRepository(MicrochipPayment);
+          const paymentDetailsRepo = AppDataSource.getRepository(
+            MicrochipPaymentDetails
+          );
 
           // Decode token if available
           let userId = "";
@@ -131,6 +155,9 @@ export class FrontendController extends Controller {
             });
           }
 
+          const orderID = `ORD-${Date.now()}`;
+          let vendor_tx_code = `TXN_${orderID}`;
+          vendor_tx_code = vendor_tx_code.substring(0, 20);
           let {
             microchip_number,
             pet_keeper,
@@ -151,11 +178,18 @@ export class FrontendController extends Controller {
             color,
             dob,
             markings,
+            selected_plan,
           } = request.body;
 
           // Check if microchip number already exists
           const existingMicrochip = await microchipRepository.findOne({
             where: { microchip_number: microchip_number },
+          });
+
+          const paymentRepository = AppDataSource.getRepository(PackageDetails);
+
+          const packageDetails = await paymentRepository.findOne({
+            where: { package_name: selected_plan },
           });
 
           if (
@@ -179,7 +213,6 @@ export class FrontendController extends Controller {
               statusCode: 409,
             });
           }
-          console.log("decodedToken.userId::" + decodedToken.userId);
           await assignMicrochipRepository.update(
             { microchip_number: microchip_number }, // condition (match)
             { used_by: decodedToken.userId } // fields to update
@@ -208,14 +241,50 @@ export class FrontendController extends Controller {
             is_claimed,
             payment_status: "un_paid",
             status: "in_active",
+            vendorTxCode: vendor_tx_code,
             photo: request.file ? `pet_images/${request.file.filename}` : "",
           });
 
           const savedMicrochip = await microchipRepository.save(newMicrochip);
 
+          const paymentEntry = paymentRepo.create({
+            order_id: vendor_tx_code,
+            user_id: Number(userId),
+            payment_type: "purchase",
+            payment_response: null,
+            payment_encrypted_response: null,
+            date: new Date().toISOString().slice(0, 10),
+            total_amount: packageDetails ? Number(packageDetails.price) : 0,
+            package_id: packageDetails ? packageDetails.id : 0,
+            payment_status: "un_paid",
+            status: "active",
+          });
+
+          await paymentRepo.save(paymentEntry);
+          const detailsEntry = paymentDetailsRepo.create({
+            microchip_order_id: paymentEntry.id, // link to main table
+            microchip_id: String(savedMicrochip.id), // old microchip id stored here
+            amount: packageDetails ? Number(packageDetails.price) : 0,
+            status: "un_paid",
+          });
+          await paymentDetailsRepo.save(detailsEntry);
+          let paymentToken = undefined;
+          if (selected_plan) {
+            const PaymentController =
+              new (require("./PaymentController").PaymentController)();
+            paymentToken = await PaymentController.getPaymentToken({
+              microchip_id: savedMicrochip.microchip_number,
+              vendor_tx_code: vendor_tx_code,
+              amount: packageDetails ? Number(packageDetails.price) : 0,
+              userId: userId,
+              paymentPage: "microchip",
+            });
+          }
+
           return resolve({
             message: "Microchip created successfully",
             data: savedMicrochip,
+            paymentToken: paymentToken?.token || undefined,
             statusCode: 200,
           });
         } catch (error) {
@@ -1088,7 +1157,9 @@ export class FrontendController extends Controller {
           );
         }
 
-        const orderID = `ORD-${Date.now()}`;
+        let orderID = `ORD-${Date.now()}`;
+        let vendor_tx_code = `TXN_${orderID}`;
+        vendor_tx_code = vendor_tx_code.substring(0, 20);
 
         const order = orderRepo.create({
           order_id: orderID,
@@ -1148,7 +1219,9 @@ export class FrontendController extends Controller {
           }
         }
         // 🔥 Generate vendorTxCode and save inside order
-        const vendorTxCode = `TXN_${savedOrder.order_id}_${Date.now()}`;
+        let vendorTxCode = `TXN_${savedOrder.order_id}_${Date.now()}`;
+        vendorTxCode = vendorTxCode.substring(0, 20);
+
         savedOrder.vendorTxCode = vendorTxCode;
         await orderRepo.save(savedOrder);
         return {
@@ -1164,12 +1237,15 @@ export class FrontendController extends Controller {
 
       // 4️⃣ Build data string WITHOUT URL-encoding the Success/Failure (Opayo expects raw)
 
-      const checkoutToken = await initializeHelcimPayment({
-        amount: Number(totalAmount),
-        currency: "USD",
-        description: `Product Purchase - Order ID: ${orderId}`,
-        returnUrl: process.env.HELCIM_RETURN_URL || "",
-        cancelUrl: process.env.HELCIM_CANCEL_URL || "",
+      let paymentToken = undefined;
+      const PaymentController =
+        new (require("./PaymentController").PaymentController)();
+      paymentToken = await PaymentController.getPaymentToken({
+        microchip_id: "",
+        vendor_tx_code: txResult.vendorTxCode,
+        amount: totalAmount ? Number(totalAmount) : 0,
+        userId: userId,
+        paymentPage: "checkout",
       });
 
       // 7️⃣ Return nextUrl + formFields so frontend can auto-submit the form
@@ -1177,14 +1253,13 @@ export class FrontendController extends Controller {
         statusCode: 200,
         message: "Order placed successfully",
         orderId,
-        checkoutToken,
+        paymentToken: paymentToken?.token,
       };
     } catch (error) {
       console.error("❌ Error saving order:", error);
       return { message: "Failed to save order", statusCode: 500 };
     }
   }
-
   @Post("/microchip/payment")
   public async microchipPayment(
     @Request() request: any,
@@ -1202,83 +1277,261 @@ export class FrontendController extends Controller {
         return { statusCode: 401, message: "Invalid token" };
       }
 
-      const userId = decodedToken.userId;
-
-      // 2️⃣ Repositories
-      const microchipRepo = queryRunner.manager.getRepository(Contact);
+      const contactRepo = queryRunner.manager.getRepository(Contact);
       const packageRepo = queryRunner.manager.getRepository(PackageDetails);
-      const paymentRepo = queryRunner.manager.getRepository(MicrochipPayment);
-
-      // 3️⃣ Validate Microchip
-      const microchip = await microchipRepo.findOne({
-        where: {
-          microchip_number: String(body.microchip_id),
-          user_id: Number(userId),
-        },
-      });
-
-      if (!microchip) {
-        return { statusCode: 404, message: "Microchip not found" };
-      }
-
-      // 4️⃣ Package
-      const packageData = await packageRepo.findOne({
-        where: { package_name: ILike(body.selected_plan) },
-      });
-
-      if (!packageData) {
-        return { statusCode: 404, message: "Package not found" };
-      }
-
-      // 6️⃣ Save pending payment
-      const randomOrderId = `MC-${Date.now()}-${Math.floor(
-        Math.random() * 1000
-      )}`;
-      const amount = packageData.price;
-
-      const paymentEntry = paymentRepo.create({
-        order_id: randomOrderId,
-        user_id: Number(userId),
-        payment_type: "purchase",
-        payment_response: null,
-        payment_encrypted_response: null,
-        date: new Date().toISOString().slice(0, 10),
-        total_amount: Number(amount),
-        package_id: packageData.id,
-        payment_status: "un_paid",
-        status: "active",
-      });
-
-      await paymentRepo.save(paymentEntry);
-      const detailsRepo = queryRunner.manager.getRepository(
+      const microchipRepo = queryRunner.manager.getRepository(MicrochipPayment);
+      const microchiDetailsRepo = queryRunner.manager.getRepository(
         MicrochipPaymentDetails
       );
 
-      const detailsEntry = detailsRepo.create({
-        microchip_order_id: paymentEntry.id, // link to main table
-        microchip_id: String(microchip.id), // old microchip id stored here
-        amount:Number(amount),
-        status: "un_paid",
+      // 2️⃣ Get package details
+      const packageDetails = await packageRepo.findOne({
+        where: { package_name: body.selected_plan },
       });
-      await detailsRepo.save(detailsEntry);
-      await queryRunner.commitTransaction();
 
-      const checkoutToken = await initializeHelcimPayment({
-        amount: Number(packageData.price),
-        currency: "USD",
-        description: `Microchip Payment #${microchip.microchip_number}`,
-        returnUrl: process.env.HELCIM_RETURN_URL || "",
-        cancelUrl: process.env.HELCIM_CANCEL_URL || "",
+      const contact = await contactRepo.findOne({
+        where: {
+          microchip_number: String(body.microchip_id),
+          user_id: Number(decodedToken.userId),
+        },
       });
+
+      let orderID = `ORD-${Date.now()}`;
+      orderID = `TXN_${orderID}`;
+      orderID = orderID.substring(0, 20);
+      if (contact) {
+
+        
+        // Update vendorTxCode if empty or null
+        if (!contact.vendorTxCode) {
+          contact.vendorTxCode = orderID;
+          await queryRunner.manager.getRepository(Contact).save(contact);
+        }
+
+        // Update microchip_payment_details.microchip_order_id
+        const microchipDetails = await microchiDetailsRepo.findOne({
+          where: { microchip_id: String(contact.id) },
+        });
+
+        if (microchipDetails) {
+          
+          // Update microchip_payment.order_id based on microchip_order_id
+          const microchipPayment = await microchipRepo.findOne({
+            where: { id: Number(microchipDetails.microchip_order_id) },
+          });
+
+          if (microchipPayment) {
+            microchipPayment.package_id = Number(packageDetails?.id);
+            microchipPayment.total_amount = Number(packageDetails?.price);
+            microchipPayment.order_id = contact.vendorTxCode;
+            await queryRunner.manager
+              .getRepository(MicrochipPayment)
+              .save(microchipPayment);
+          }
+        }
+      }
+
+      const userId = decodedToken.userId;
+      let paymentToken = undefined;
+      if (body.selected_plan) {
+        const PaymentController =
+          new (require("./PaymentController").PaymentController)();
+        paymentToken = await PaymentController.getPaymentToken({
+          microchip_id: body.microchip_id,
+          vendor_tx_code: contact?.vendorTxCode,
+          amount: packageDetails ? Number(packageDetails.price) : 0,
+          userId: userId,
+          paymentPage: "microchip",
+        });
+      }
+
+      await queryRunner.commitTransaction();
 
       return {
         statusCode: 200,
-        checkoutToken,
+        paymentToken: paymentToken?.token,
       };
     } catch (err) {
       await queryRunner.rollbackTransaction();
       console.error(err);
       return { statusCode: 500, message: "Payment failed" };
+    } finally {
+      await queryRunner.release();
+    }
+  }
+
+  @Post("/microchip/payment/confirm")
+  public async microchipPaymentConfirm(
+    @Request() request: any,
+    @Body() body: { microchip_id: number; selected_plan: string }
+  ): Promise<any> {
+    const queryRunner = AppDataSource.createQueryRunner();
+    await queryRunner.connect();
+    await queryRunner.startTransaction();
+
+    try {
+      // 1️⃣ Auth
+
+      const contactRepo = queryRunner.manager.getRepository(Contact);
+      const packageRepo = queryRunner.manager.getRepository(PackageDetails);
+      const microchipRepo = queryRunner.manager.getRepository(MicrochipPayment);
+      const microchiDetailsRepo = queryRunner.manager.getRepository(
+        MicrochipPaymentDetails
+      );
+      // 2️⃣ Get package details
+      const packageDetails = await packageRepo.findOne({
+        where: { package_name: body.selected_plan },
+      });
+      const contact = await contactRepo.findOne({
+        where: {
+          microchip_number: String(body.microchip_id),
+        },
+      });
+
+      if (!contact) {
+        return { statusCode: 500, message: "Microchip failed" };
+      }
+      let orderID = `ORD-${Date.now()}`;
+      orderID = `TXN_${orderID}`;
+      orderID = orderID.substring(0, 20);
+
+      if (contact) {
+        // Update vendorTxCode if empty or null
+        if (!contact.vendorTxCode) {
+          contact.vendorTxCode = orderID;
+          await queryRunner.manager.getRepository(Contact).save(contact);
+        }
+
+        // Update microchip_payment_details.microchip_order_id
+        const microchipDetails = await microchiDetailsRepo.findOne({
+          where: { microchip_id: String(contact.id) },
+        });
+
+        if (microchipDetails) {
+          // Update microchip_payment.order_id based on microchip_order_id
+          const microchipPayment = await microchipRepo.findOne({
+            where: { id: Number(microchipDetails.microchip_order_id) },
+          });
+
+          if (microchipPayment) {
+            microchipPayment.package_id = Number(packageDetails?.id);
+            microchipPayment.total_amount = Number(packageDetails?.price);
+            microchipPayment.order_id = contact.vendorTxCode;
+            await queryRunner.manager
+              .getRepository(MicrochipPayment)
+              .save(microchipPayment);
+          }
+        }
+      }
+      const userId = contact?.user_id;
+      let paymentToken = undefined;
+      if (body.selected_plan) {
+        const PaymentController =
+          new (require("./PaymentController").PaymentController)();
+        paymentToken = await PaymentController.getPaymentToken({
+          microchip_id: body.microchip_id,
+          vendor_tx_code: contact?.vendorTxCode,
+          amount: packageDetails ? Number(packageDetails.price) : 0,
+          userId: userId,
+          paymentPage: "microchip",
+        });
+      }
+      return {
+        statusCode: 200,
+        paymentToken: paymentToken?.token,
+      };
+    } catch (err) {
+      await queryRunner.rollbackTransaction();
+      console.error(err);
+      return { statusCode: 500, message: "Payment failed" };
+    } finally {
+      await queryRunner.release();
+    }
+  }
+
+  @Post("/microchip/payment-details")
+  public async getMicrochipPaymentDetails(
+    @Body() body: { vendor_tx_code: string }
+  ): Promise<any> {
+    const queryRunner = AppDataSource.createQueryRunner();
+    await queryRunner.connect();
+
+    try {
+      const paymentRepo = queryRunner.manager.getRepository(MicrochipPayment);
+      const paymentDetailsRepo =
+        queryRunner.manager.getRepository(PackageDetails);
+      const orderRepo = queryRunner.manager.getRepository(Order);
+      const contactRepo = queryRunner.manager.getRepository(Contact);
+      const orderProductRepo = queryRunner.manager.getRepository(OrderProducts);
+
+      /** 1️⃣ Try MICROCHIP PAYMENT */
+      const payment = await paymentRepo.findOne({
+        where: { order_id: body.vendor_tx_code },
+      });
+
+      if (payment) {
+        const packageDetails = await paymentDetailsRepo.findOne({
+          where: { id: Number(payment.package_id) },
+        });
+
+        const contact = await contactRepo.findOne({
+          where: { vendorTxCode: body.vendor_tx_code },
+        });
+
+        return {
+          statusCode: 200,
+          type: "microchip",
+          payment: {
+            product: packageDetails?.package_name || "",
+            orderId: payment.order_id,
+            paymentMethod: payment.payment_type,
+            amountPaid: payment.total_amount,
+            paymentStatus: payment.payment_status,
+            date: payment.date,
+            contact,
+          },
+        };
+      }
+
+      /** 2️⃣ Try PRODUCT CHECKOUT */
+      const order = await orderRepo.findOne({
+        where: { vendorTxCode: body.vendor_tx_code },
+      });
+
+      if (order) {
+        const orderProducts = await orderProductRepo.find({
+          where: { order_id: String(order.id) },
+        });
+        const productNames = orderProducts
+          .map((op) => op.product_name)
+          .filter(Boolean)
+          .join(", ");
+
+        return {
+          statusCode: 200,
+          type: "checkout",
+          payment: {
+            product: productNames,
+            orderId: order.order_id,
+            paymentMethod: order.payment_type,
+            amountPaid: order.total_amount,
+            paymentStatus: order.payment_status,
+            date: order.created_at,
+          },
+        };
+      }
+
+      /** 3️⃣ Nothing found */
+      return {
+        statusCode: 404,
+        message: "Payment not found",
+      };
+    } catch (err) {
+      console.error("❌ Payment details error:", err);
+      return {
+        statusCode: 500,
+        message: "Failed to fetch payment details",
+      };
     } finally {
       await queryRunner.release();
     }
@@ -1364,16 +1617,15 @@ export class FrontendController extends Controller {
       await queryRunner.commitTransaction();
 
       // 6️⃣ HELCIM – CREATE SUBSCRIPTION CHECKOUT
-const checkoutToken = await initializeHelcimSubscription({
-  dateActivated: "2025-12-23",
-  paymentPlanId: 12345,
-  customerCode: "CUST-001",
-  recurringAmount: 19.99,
-  paymentMethod: "card",
-  useCustomSetupAmount: false, // optional
-});
-console.log(checkoutToken);
-
+      const checkoutToken = await initializeHelcimSubscription({
+        dateActivated: "2025-12-23",
+        paymentPlanId: 12345,
+        customerCode: "CUST-001",
+        recurringAmount: 19.99,
+        paymentMethod: "card",
+        useCustomSetupAmount: false, // optional
+      });
+      console.log(checkoutToken);
 
       return {
         statusCode: 200,
@@ -1928,69 +2180,142 @@ console.log(checkoutToken);
     }
   }
 
-  
-@Post("/lost_found/list")
-public async getLostFoundPets(
-  @Request() request: any
-): Promise<{ message: string; data?: any; statusCode: number }> {
-  try {
-    const microchipRepository = AppDataSource.getRepository(Contact);
+  @Post("/lost_found/list")
+  public async getLostFoundPets(
+    @Request() request: any
+  ): Promise<{ message: string; data?: any; statusCode: number }> {
+    try {
+      const microchipRepository = AppDataSource.getRepository(Contact);
 
-    const result = await microchipRepository.find({
-      where: {
-        status: "active",
-      },
-      order: {
-        created_at: "DESC",
-      },
-    });
+      const result = await microchipRepository.find({
+        where: {
+          status: "active",
+          pet_status: "lost_or_stolen",
+        },
+        order: {
+          created_at: "DESC",
+        },
+      });
 
-    return {
-      message: "Lost & Found pets fetched successfully",
-      data: result,
-      statusCode: 200,
-    };
-  } catch (error) {
-    console.error(error);
-    return {
-      message: "Failed to fetch lost & found pets",
-      statusCode: 422,
-    };
-  }
-}
-@Get("/lost_found/details/{id}")
-public async getLostFoundPetById(
-  @Path() id: number
-): Promise<{ message: string; data?: any; statusCode: number }> {
-  try {
-    const contactRepository = AppDataSource.getRepository(Contact);
-
-    const result = await contactRepository.findOne({
-      where: {
-        id: id,
-        status: "active",
-      },
-    });
-
-    if (!result) {
       return {
-        message: "Pet not found",
-        statusCode: 404,
+        message: "Lost & Found pets fetched successfully",
+        data: result,
+        statusCode: 200,
       };
+    } catch (error) {
+      console.error(error);
+      return {
+        message: "Failed to fetch lost & found pets",
+        statusCode: 422,
+      };
+    }
+  }
+  @Get("/lost_found/details/{id}")
+  public async getLostFoundPetById(
+    @Path() id: number
+  ): Promise<{ message: string; data?: any; statusCode: number }> {
+    try {
+      const contactRepository = AppDataSource.getRepository(Contact);
+
+      const result = await contactRepository.findOne({
+        where: {
+          id: id,
+          status: "active",
+        },
+      });
+
+      if (!result) {
+        return {
+          message: "Pet not found",
+          statusCode: 404,
+        };
+      }
+
+      return {
+        message: "Lost & Found pet fetched successfully",
+        data: result,
+        statusCode: 200,
+      };
+    } catch (error) {
+      console.error(error);
+      return {
+        message: "Failed to fetch pet details",
+        statusCode: 422,
+      };
+    }
+  }
+
+  @Post("/payment/notification/mail")
+  public async sendPaymentNotification() {
+    const contactRepo = AppDataSource.getRepository(Contact);
+
+    const contacts = await contactRepo.find({
+      where: { payment_status: "un_paid" },
+    });
+
+    if (!contacts || contacts.length === 0) {
+      return { message: "No unpaid contacts found", statusCode: 404 };
+    }
+
+    let sentCount = 0;
+
+    for (const contact of contacts) {
+      const token = encryptPaymentToken({
+        microchip_id: contact.microchip_number || "",
+        contact_id: Number(contact.id),
+        exp: Date.now() + 1000 * 60 * 60 * 24, // 24 hrs expiry
+      });
+
+      await sendNotificationMail({
+        to: contact?.email||"",
+        // to: "kvraghul2018@gmail.com",
+        subject: `Don't let ${contact.pet_name}’s safety hang in the balance! 🐾`,
+        petParentName: contact.pet_keeper ?? "",
+        petName: contact.pet_name ?? "",
+        completeProfileUrl: `${
+          process.env.FRONTEND_URL
+        }microchip/payment/${encodeURIComponent(token)}`,
+        unsubscribeUrl: `${process.env.FRONTEND_URL}unsubscribe/${contact.id}`,
+      });
+
+      sentCount++;
     }
 
     return {
-      message: "Lost & Found pet fetched successfully",
-      data: result,
+      message: `Payment reminder emails sent successfully`,
+      totalMailsSent: sentCount,
       statusCode: 200,
     };
-  } catch (error) {
-    console.error(error);
-    return {
-      message: "Failed to fetch pet details",
-      statusCode: 422,
-    };
   }
-}
 
+  @Post("/payment/decrypt-token")
+  public async decryptPaymentTokenApi(@Body() body: DecryptTokenRequest) {
+    try {
+      const token = decodeURIComponent(body.token); // << decode here
+      const payload = decryptPaymentToken(token);
+
+      // check expiration
+      if (payload.exp && Date.now() > payload.exp) {
+        throw new Error("Token expired");
+      }
+      const contactRepo = AppDataSource.getRepository(Contact);
+      const contact = await contactRepo.findOne({
+        where: { microchip_number: String(payload.microchip_id) },
+      });
+      return {
+        statusCode: 200,
+        data: {
+          microchip_number: payload.microchip_id,
+          contact_id: payload.contact_id,
+          contact: contact,
+        },
+      };
+    } catch (err: any) {
+      console.log("err: " + err.message);
+      return {
+        statusCode: 400,
+        message: err.message || "Invalid or expired token",
+      };
+    }
+  }
 }

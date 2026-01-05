@@ -15,6 +15,8 @@ import { ProductController } from './../controllers/ProductController';
 // WARNING: This file was auto-generated with tsoa. Please do not modify it. Re-run tsoa to re-generate this file: https://github.com/lukeautry/tsoa
 import { PetLookUpController } from './../controllers/PetLookUpController';
 // WARNING: This file was auto-generated with tsoa. Please do not modify it. Re-run tsoa to re-generate this file: https://github.com/lukeautry/tsoa
+import { PaymentController } from './../controllers/PaymentController';
+// WARNING: This file was auto-generated with tsoa. Please do not modify it. Re-run tsoa to re-generate this file: https://github.com/lukeautry/tsoa
 import { PagesController } from './../controllers/PagesController';
 // WARNING: This file was auto-generated with tsoa. Please do not modify it. Re-run tsoa to re-generate this file: https://github.com/lukeautry/tsoa
 import { PackageController } from './../controllers/PackageController';
@@ -256,6 +258,7 @@ const models: TsoaRoute.Models = {
             "phone_number": {"dataType":"string"},
             "email": {"dataType":"string"},
             "address": {"dataType":"string"},
+            "address_2": {"dataType":"string"},
             "company_name": {"dataType":"string"},
             "selected_plan": {"dataType":"double"},
             "payment_encrypted_response": {"dataType":"union","subSchemas":[{"dataType":"string"},{"dataType":"enum","enums":[null]}]},
@@ -326,6 +329,14 @@ const models: TsoaRoute.Models = {
         "properties": {
             "productId": {"dataType":"double","required":true},
             "quantity": {"dataType":"double","required":true},
+        },
+        "additionalProperties": true,
+    },
+    // WARNING: This file was auto-generated with tsoa. Please do not modify it. Re-run tsoa to re-generate this file: https://github.com/lukeautry/tsoa
+    "DecryptTokenRequest": {
+        "dataType": "refObject",
+        "properties": {
+            "token": {"dataType":"string","required":true},
         },
         "additionalProperties": true,
     },
@@ -1021,6 +1032,66 @@ export function RegisterRoutes(app: Router,opts?:{multer?:ReturnType<typeof mult
 
               await templateService.apiHandler({
                 methodName: 'petLookUp',
+                controller,
+                response,
+                next,
+                validatedArgs,
+                successStatus: undefined,
+              });
+            } catch (err) {
+                return next(err);
+            }
+        });
+        // WARNING: This file was auto-generated with tsoa. Please do not modify it. Re-run tsoa to re-generate this file: https://github.com/lukeautry/tsoa
+        app.post('/payment/get-token',
+            ...(fetchMiddlewares<RequestHandler>(PaymentController)),
+            ...(fetchMiddlewares<RequestHandler>(PaymentController.prototype.getPaymentToken)),
+
+            async function PaymentController_getPaymentToken(request: ExRequest, response: ExResponse, next: any) {
+            const args: Record<string, TsoaRoute.ParameterSchema> = {
+                    data: {"in":"body","name":"data","required":true,"dataType":"nestedObjectLiteral","nestedProperties":{"paymentPage":{"dataType":"string"},"vendor_tx_code":{"dataType":"string"},"userId":{"dataType":"double"},"amount":{"dataType":"double","required":true},"microchip_id":{"dataType":"string","required":true}}},
+            };
+
+            // WARNING: This file was auto-generated with tsoa. Please do not modify it. Re-run tsoa to re-generate this file: https://github.com/lukeautry/tsoa
+
+            let validatedArgs: any[] = [];
+            try {
+                validatedArgs = templateService.getValidatedArgs({ args, request, response });
+
+                const controller = new PaymentController();
+
+              await templateService.apiHandler({
+                methodName: 'getPaymentToken',
+                controller,
+                response,
+                next,
+                validatedArgs,
+                successStatus: undefined,
+              });
+            } catch (err) {
+                return next(err);
+            }
+        });
+        // WARNING: This file was auto-generated with tsoa. Please do not modify it. Re-run tsoa to re-generate this file: https://github.com/lukeautry/tsoa
+        app.post('/payment/webhook',
+            ...(fetchMiddlewares<RequestHandler>(PaymentController)),
+            ...(fetchMiddlewares<RequestHandler>(PaymentController.prototype.authorizeNetWebhook)),
+
+            async function PaymentController_authorizeNetWebhook(request: ExRequest, response: ExResponse, next: any) {
+            const args: Record<string, TsoaRoute.ParameterSchema> = {
+                    payload: {"in":"body","name":"payload","required":true,"dataType":"any"},
+            };
+
+            // WARNING: This file was auto-generated with tsoa. Please do not modify it. Re-run tsoa to re-generate this file: https://github.com/lukeautry/tsoa
+
+            let validatedArgs: any[] = [];
+            try {
+                validatedArgs = templateService.getValidatedArgs({ args, request, response });
+
+                const controller = new PaymentController();
+
+              await templateService.apiHandler({
+                methodName: 'authorizeNetWebhook',
                 controller,
                 response,
                 next,
@@ -2295,6 +2366,67 @@ export function RegisterRoutes(app: Router,opts?:{multer?:ReturnType<typeof mult
             }
         });
         // WARNING: This file was auto-generated with tsoa. Please do not modify it. Re-run tsoa to re-generate this file: https://github.com/lukeautry/tsoa
+        app.post('/frontend/microchip/payment/confirm',
+            ...(fetchMiddlewares<RequestHandler>(FrontendController)),
+            ...(fetchMiddlewares<RequestHandler>(FrontendController.prototype.microchipPaymentConfirm)),
+
+            async function FrontendController_microchipPaymentConfirm(request: ExRequest, response: ExResponse, next: any) {
+            const args: Record<string, TsoaRoute.ParameterSchema> = {
+                    request: {"in":"request","name":"request","required":true,"dataType":"object"},
+                    body: {"in":"body","name":"body","required":true,"dataType":"nestedObjectLiteral","nestedProperties":{"selected_plan":{"dataType":"string","required":true},"microchip_id":{"dataType":"double","required":true}}},
+            };
+
+            // WARNING: This file was auto-generated with tsoa. Please do not modify it. Re-run tsoa to re-generate this file: https://github.com/lukeautry/tsoa
+
+            let validatedArgs: any[] = [];
+            try {
+                validatedArgs = templateService.getValidatedArgs({ args, request, response });
+
+                const controller = new FrontendController();
+
+              await templateService.apiHandler({
+                methodName: 'microchipPaymentConfirm',
+                controller,
+                response,
+                next,
+                validatedArgs,
+                successStatus: undefined,
+              });
+            } catch (err) {
+                return next(err);
+            }
+        });
+        // WARNING: This file was auto-generated with tsoa. Please do not modify it. Re-run tsoa to re-generate this file: https://github.com/lukeautry/tsoa
+        app.post('/frontend/microchip/payment-details',
+            ...(fetchMiddlewares<RequestHandler>(FrontendController)),
+            ...(fetchMiddlewares<RequestHandler>(FrontendController.prototype.getMicrochipPaymentDetails)),
+
+            async function FrontendController_getMicrochipPaymentDetails(request: ExRequest, response: ExResponse, next: any) {
+            const args: Record<string, TsoaRoute.ParameterSchema> = {
+                    body: {"in":"body","name":"body","required":true,"dataType":"nestedObjectLiteral","nestedProperties":{"vendor_tx_code":{"dataType":"string","required":true}}},
+            };
+
+            // WARNING: This file was auto-generated with tsoa. Please do not modify it. Re-run tsoa to re-generate this file: https://github.com/lukeautry/tsoa
+
+            let validatedArgs: any[] = [];
+            try {
+                validatedArgs = templateService.getValidatedArgs({ args, request, response });
+
+                const controller = new FrontendController();
+
+              await templateService.apiHandler({
+                methodName: 'getMicrochipPaymentDetails',
+                controller,
+                response,
+                next,
+                validatedArgs,
+                successStatus: undefined,
+              });
+            } catch (err) {
+                return next(err);
+            }
+        });
+        // WARNING: This file was auto-generated with tsoa. Please do not modify it. Re-run tsoa to re-generate this file: https://github.com/lukeautry/tsoa
         app.post('/frontend/microchip/subscription',
             ...(fetchMiddlewares<RequestHandler>(FrontendController)),
             ...(fetchMiddlewares<RequestHandler>(FrontendController.prototype.microchipSubscription)),
@@ -2526,6 +2658,65 @@ export function RegisterRoutes(app: Router,opts?:{multer?:ReturnType<typeof mult
 
               await templateService.apiHandler({
                 methodName: 'getLostFoundPetById',
+                controller,
+                response,
+                next,
+                validatedArgs,
+                successStatus: undefined,
+              });
+            } catch (err) {
+                return next(err);
+            }
+        });
+        // WARNING: This file was auto-generated with tsoa. Please do not modify it. Re-run tsoa to re-generate this file: https://github.com/lukeautry/tsoa
+        app.post('/frontend/payment/notification/mail',
+            ...(fetchMiddlewares<RequestHandler>(FrontendController)),
+            ...(fetchMiddlewares<RequestHandler>(FrontendController.prototype.sendPaymentNotification)),
+
+            async function FrontendController_sendPaymentNotification(request: ExRequest, response: ExResponse, next: any) {
+            const args: Record<string, TsoaRoute.ParameterSchema> = {
+            };
+
+            // WARNING: This file was auto-generated with tsoa. Please do not modify it. Re-run tsoa to re-generate this file: https://github.com/lukeautry/tsoa
+
+            let validatedArgs: any[] = [];
+            try {
+                validatedArgs = templateService.getValidatedArgs({ args, request, response });
+
+                const controller = new FrontendController();
+
+              await templateService.apiHandler({
+                methodName: 'sendPaymentNotification',
+                controller,
+                response,
+                next,
+                validatedArgs,
+                successStatus: undefined,
+              });
+            } catch (err) {
+                return next(err);
+            }
+        });
+        // WARNING: This file was auto-generated with tsoa. Please do not modify it. Re-run tsoa to re-generate this file: https://github.com/lukeautry/tsoa
+        app.post('/frontend/payment/decrypt-token',
+            ...(fetchMiddlewares<RequestHandler>(FrontendController)),
+            ...(fetchMiddlewares<RequestHandler>(FrontendController.prototype.decryptPaymentTokenApi)),
+
+            async function FrontendController_decryptPaymentTokenApi(request: ExRequest, response: ExResponse, next: any) {
+            const args: Record<string, TsoaRoute.ParameterSchema> = {
+                    body: {"in":"body","name":"body","required":true,"ref":"DecryptTokenRequest"},
+            };
+
+            // WARNING: This file was auto-generated with tsoa. Please do not modify it. Re-run tsoa to re-generate this file: https://github.com/lukeautry/tsoa
+
+            let validatedArgs: any[] = [];
+            try {
+                validatedArgs = templateService.getValidatedArgs({ args, request, response });
+
+                const controller = new FrontendController();
+
+              await templateService.apiHandler({
+                methodName: 'decryptPaymentTokenApi',
                 controller,
                 response,
                 next,

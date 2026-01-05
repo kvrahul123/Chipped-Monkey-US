@@ -373,11 +373,20 @@ margin-right: 0px;
         display: flex;
     justify-content: space-between;
   }
+  .form-lost{
+    padding: 15px;
+  }
   .page-title-filter {
   display: flex;
   justify-content: flex-end;
 }
-
+.pageHeadingTitle{
+  margin: 15px 0px;
+}
+.pageHeadingTitle > h4{
+  font-size: 22px !important;
+  line-height: 28px !important;
+}
 
 .filter-icon {
   width: 23px;

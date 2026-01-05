@@ -1154,6 +1154,59 @@ export default function Home() {
             </div>
           </div>
         </div>
+
+                <div className="container">
+          <div className="blog-container">
+            <div className="row mb-8 mt-5 d-flex align-items-center">
+              <div className="col-md-8 blog-title">
+                <p>Our Blog</p>
+                <h4>Exploring the Latest Trends in Pet lovers</h4>
+              </div>
+              <div className="col-md-4 blog-title text-end">
+                <Link href="/blog/lists" className="view_all">
+                  View All
+                </Link>
+              </div>
+            </div>
+            <div className="row blog-section mb-10">
+              {blogs.map((blog, index) => (
+                <div className="col-12 col-md-12 col-lg-4 mb-4" key={index}>
+                  <div className="card mb-4 blog-card">
+                    <Link href={`/blog/details/${blog.slug}`}>
+                      <Image
+                        className="card-img img-blog"
+                        src={
+                          blog.image_file_name
+                            ? `${appUrl}uploads/${blog.image_file_name}`
+                            : `${appUrl}/assets/images/default.jpg`
+                        }
+                        alt={blog.title}
+                        width={410}
+                        height={250}
+                        style={{ objectFit: "cover" }}
+                      />
+
+                      <div className="card-body p-4">
+                        <div className="views mb-2">{blog.date}</div>
+                        <h4 className="card-title" style={{ fontSize: "18px" }}>
+                          {blog.title}
+                        </h4>
+                        <small className="text-muted cat">
+                          {blog.category || ""}
+                        </small>
+                        <p className="card-text">
+                          {blog.short_description
+                            ? parse(blog.short_description)
+                            : "N/A"}
+                        </p>
+                      </div>
+                    </Link>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+        </div>
       </CommonLayout>
     </div>
   );

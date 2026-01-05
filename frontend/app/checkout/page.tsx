@@ -16,11 +16,14 @@ import Script from "next/script";
 const secret = process.env.NEXT_PUBLIC_HASH_SECRET as string;
 const appUrl = process.env.NEXT_PUBLIC_APP_URL;
 const googleMapsKey = process.env.NEXT_PUBLIC_GOOGLE_MAPS_API_KEY || "";
-
+const authorizeUrl = process.env.NEXT_PUBLIC_AUTHORIZE_URL || "";
 
 declare global {
   interface Window {
-    appendHelcimPayIframe?: (checkoutToken: string, allowExit?: boolean) => void;
+    appendHelcimPayIframe?: (
+      checkoutToken: string,
+      allowExit?: boolean
+    ) => void;
   }
 }
 
@@ -47,15 +50,15 @@ export default function Checkout() {
     terms: Yup.boolean().oneOf([true], "You must accept terms"),
   });
 
-    const openHelcimModal = (checkoutToken: string) => {
-  if (!window.appendHelcimPayIframe) {
-    toast.error("Payment service not loaded. Please refresh.");
-    return;
-  }
+  const openHelcimModal = (checkoutToken: string) => {
+    if (!window.appendHelcimPayIframe) {
+      toast.error("Payment service not loaded. Please refresh.");
+      return;
+    }
 
-  window.appendHelcimPayIframe(checkoutToken, true);
-    };
-  
+    window.appendHelcimPayIframe(checkoutToken, true);
+  };
+
   const fetchExistingAddress = async (setFieldValue: any) => {
     try {
       const res = await fetch(`${appUrl}frontend/order/addresses`, {
@@ -128,11 +131,26 @@ export default function Checkout() {
       });
 
       const data = await res.json();
-    if (data.statusCode === 200) {
-      openHelcimModal(data.checkoutToken);
-    } else {
-      toast.error(data.message);
-    }
+      if (data.statusCode == 200) {
+        if (data.paymentToken) {
+          const form = document.createElement("form");
+          form.method = "POST";
+          form.action = authorizeUrl;
+
+          const input = document.createElement("input");
+          input.type = "hidden";
+          input.name = "token";
+          input.value = data.paymentToken;
+
+          form.appendChild(input);
+          document.body.appendChild(form);
+          form.submit();
+        } else {
+          toast.info("Microchip created successfully.");
+        }
+      } else {
+        toast.error(data.message);
+      }
     } catch (error) {
       console.error(error);
     } finally {
@@ -220,14 +238,12 @@ export default function Checkout() {
               <div className="container pt-7 pt-md-7 pb-8">
                 <h3>Checkout Page</h3>
 
-
                 {products.length === 0 ? (
                   <p>
                     Your cart is empty. Please add products to proceed to
                     checkout.
                   </p>
                 ) : (
-                  
                   <Formik
                     initialValues={{
                       name: "",
@@ -244,7 +260,7 @@ export default function Checkout() {
                     }}
                     validationSchema={validationSchema}
                     onSubmit={handleSubmit}>
-                    {({ setFieldValue,resetForm }) => {
+                    {({ setFieldValue, resetForm }) => {
                       useEffect(() => {
                         if (selectedOption === "existing") {
                           fetchExistingAddress(setFieldValue);
@@ -284,7 +300,7 @@ export default function Checkout() {
                               addressRef.current,
                               {
                                 types: ["geocode"],
-                                componentRestrictions: { country: "uk" },
+                                componentRestrictions: { country: "us" },
                               }
                             );
 
@@ -320,62 +336,59 @@ export default function Checkout() {
                               "pincode",
                               components.postal_code || ""
                             );
-                            setFieldValue(
-                              "country",
-                              components.country || ""
-                            );
+                            setFieldValue("country", components.country || "");
                           });
                         });
                       }, [setFieldValue]);
 
                       return (
                         <Form>
-                                          <div className="checkout-form mt-5">
-                  <div className="address-check-container">
-                    <h4 className="section-title">Address Options</h4>
-                    <div className="address-options">
-                      {/* Existing Address */}
-                      <label className="address-card">
-                        <input
-                          type="radio"
-                          name="address_option"
-                          value="existing"
-                          checked={selectedOption === "existing"}
-                          onChange={(e) => {
-                            setSelectedOption(e.target.value);
-                          }}
-                        />
-                        <div className="address-content">
-                          <h5>Use Existing Address</h5>
-                          <p>
-                            Select this option to use the address already saved
-                            in your profile.
-                          </p>
-                        </div>
-                      </label>
+                          <div className="checkout-form mt-5">
+                            <div className="address-check-container">
+                              <h4 className="section-title">Address Options</h4>
+                              <div className="address-options">
+                                {/* Existing Address */}
+                                <label className="address-card">
+                                  <input
+                                    type="radio"
+                                    name="address_option"
+                                    value="existing"
+                                    checked={selectedOption === "existing"}
+                                    onChange={(e) => {
+                                      setSelectedOption(e.target.value);
+                                    }}
+                                  />
+                                  <div className="address-content">
+                                    <h5>Use Existing Address</h5>
+                                    <p>
+                                      Select this option to use the address
+                                      already saved in your profile.
+                                    </p>
+                                  </div>
+                                </label>
 
-                      {/* New Address */}
-                      <label className="address-card">
-                        <input
-                          type="radio"
-                          name="address_option"
-                          value="new"
-                          checked={selectedOption === "new"}
-                          onChange={(e) => {
-                            setSelectedOption(e.target.value);
-                          }}
-                        />
-                        <div className="address-content">
-                          <h5>Add New Address</h5>
-                          <p>
-                            Choose this if you want to provide a new shipping
-                            address for this order.
-                          </p>
-                        </div>
-                      </label>
-                    </div>
-                  </div>
-                </div>
+                                {/* New Address */}
+                                <label className="address-card">
+                                  <input
+                                    type="radio"
+                                    name="address_option"
+                                    value="new"
+                                    checked={selectedOption === "new"}
+                                    onChange={(e) => {
+                                      setSelectedOption(e.target.value);
+                                    }}
+                                  />
+                                  <div className="address-content">
+                                    <h5>Add New Address</h5>
+                                    <p>
+                                      Choose this if you want to provide a new
+                                      shipping address for this order.
+                                    </p>
+                                  </div>
+                                </label>
+                              </div>
+                            </div>
+                          </div>
                           <div className="row">
                             {/* LEFT SIDE */}
                             <div className="col-lg-6 col-md-12 col-sm-12">
@@ -471,10 +484,7 @@ export default function Checkout() {
                                   <Field
                                     type="text"
                                     name="country"
-                                    className="form-control"
-                                    >
-                                  
-                                  </Field>
+                                    className="form-control"></Field>
                                   <ErrorMessage
                                     name="country"
                                     component="div"

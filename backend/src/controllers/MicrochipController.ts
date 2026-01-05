@@ -287,11 +287,10 @@ export class MicrochipController extends Controller {
 
   @Security("jwt")
   @Post("/create")
-  public async createMicrochip(
-    @Request() request: MulterRequest
-  ): Promise<{
+  public async createMicrochip(@Request() request: MulterRequest): Promise<{
     message: string;
     data?: Contact;
+    paymentToken?: string;
     statusCode: number;
     externalDatabase?: boolean;
   }> {
@@ -306,7 +305,10 @@ export class MicrochipController extends Controller {
           const microchipRepository = AppDataSource.getRepository(Contact);
           const assignMicrochipRepository =
             AppDataSource.getRepository(AssignedMicrochip);
-
+          const paymentRepo = AppDataSource.getRepository(MicrochipPayment);
+          const paymentDetailsRepo = AppDataSource.getRepository(
+            MicrochipPaymentDetails
+          );
           const actualToken = getTokenFromRequest(request);
           const decodedToken = decodeToken(actualToken);
 
@@ -316,6 +318,10 @@ export class MicrochipController extends Controller {
               statusCode: 401,
             });
           }
+
+          const orderID = `ORD-${Date.now()}`;
+          let vendor_tx_code = `TXN_${orderID}`;
+          vendor_tx_code = vendor_tx_code.substring(0, 20);
 
           let is_claimed = "false";
           let status = "active";
@@ -333,6 +339,7 @@ export class MicrochipController extends Controller {
             phone_number,
             email,
             address,
+            address_2,
             county,
             postcode,
             country,
@@ -344,7 +351,13 @@ export class MicrochipController extends Controller {
             color,
             dob,
             markings,
+            selected_plan,
           } = request.body;
+
+          const paymentRepository = AppDataSource.getRepository(PackageDetails);
+          const packageDetails = await paymentRepository.findOne({
+            where: { package_name: selected_plan },
+          });
 
           // Check if microchip number exists
           const existingMicrochip = await microchipRepository.findOne({
@@ -380,6 +393,7 @@ export class MicrochipController extends Controller {
             phone_number,
             email,
             address,
+            address_2,
             county,
             postcode,
             country,
@@ -394,14 +408,51 @@ export class MicrochipController extends Controller {
             is_claimed: is_claimed,
             status: status,
             payment_status: "un_paid",
+            vendorTxCode: vendor_tx_code,
             photo: request.file ? "pet_images/" + request.file.filename : "",
           });
 
           const savedMicrochip = await microchipRepository.save(newMicrochip);
 
+            const paymentEntry = paymentRepo.create({
+            order_id: vendor_tx_code,
+            user_id: Number(decodedToken.userId),
+            payment_type: "purchase",
+            payment_response: null,
+            payment_encrypted_response: null,
+            date: new Date().toISOString().slice(0, 10),
+            total_amount: packageDetails ? Number(packageDetails.price) : 0,
+            package_id: packageDetails ? packageDetails.id : 0,
+            payment_status: "un_paid",
+            status: "active",
+          });
+
+          await paymentRepo.save(paymentEntry);
+          const detailsEntry = paymentDetailsRepo.create({
+            microchip_order_id: paymentEntry.id, // link to main table
+            microchip_id: String(savedMicrochip.id), // old microchip id stored here
+            amount: packageDetails ? Number(packageDetails.price) : 0,
+            status: "un_paid",
+          });
+          await paymentDetailsRepo.save(detailsEntry);
+
+          let paymentToken = undefined;
+          if (selected_plan) {
+            const PaymentController =
+              new (require("./PaymentController").PaymentController)();
+            paymentToken = await PaymentController.getPaymentToken({
+              microchip_id: savedMicrochip.microchip_number,
+              vendor_tx_code: vendor_tx_code,
+              amount: packageDetails ? Number(packageDetails.price) : 0,
+              userId: Number(decodedToken.userId),
+              paymentPage: "microchip",
+            });
+          }
+
           return resolve({
             message: "Microchip created successfully",
             data: savedMicrochip,
+            paymentToken: paymentToken?.token || undefined,
             statusCode: 201,
           });
         } catch (error) {
@@ -473,7 +524,12 @@ export class MicrochipController extends Controller {
   public async updateMicrochip(
     @Request() request: MulterRequest,
     @Path() id: number
-  ): Promise<{ message: string; data?: Contact; statusCode: number; externalDatabase?:boolean }> {
+  ): Promise<{
+    message: string;
+    data?: Contact;
+    statusCode: number;
+    externalDatabase?: boolean;
+  }> {
     return new Promise((resolve) => {
       upload.single("photo")(request, {} as any, async (err: any) => {
         if (err) {
@@ -512,6 +568,7 @@ export class MicrochipController extends Controller {
             phone_number,
             email,
             address,
+            address_2,
             county,
             postcode,
             country,
@@ -541,7 +598,7 @@ export class MicrochipController extends Controller {
             }
           }
 
-                    const externalCheck = await checkExternalMicrochip(microchipNumber);
+          const externalCheck = await checkExternalMicrochip(microchipNumber);
 
           if (externalCheck.exists) {
             return resolve({
@@ -550,7 +607,6 @@ export class MicrochipController extends Controller {
               statusCode: 409,
             });
           }
-
 
           // Update fields
           existingMicrochip.microchip_number =
@@ -562,6 +618,8 @@ export class MicrochipController extends Controller {
             phone_number || existingMicrochip.phone_number;
           existingMicrochip.email = email || existingMicrochip.email;
           existingMicrochip.address = address || existingMicrochip.address;
+          existingMicrochip.address_2 =
+            address_2 || existingMicrochip.address_2;
           existingMicrochip.county = county || existingMicrochip.county;
           existingMicrochip.postcode = postcode || existingMicrochip.postcode;
           existingMicrochip.country = country || existingMicrochip.country;

@@ -57,6 +57,7 @@ export default function MicrochipEditPage() {
     phone_number: string;
     email: string;
     address: string;
+    address_2: string;
     county: string;
     postcode: string;
     country: string;
@@ -124,7 +125,8 @@ export default function MicrochipEditPage() {
       .matches(/^\d+$/, "Phone Number must contain only digits")
       .required("Phone Number is required"),
     email: Yup.string().email("Invalid email").required("Email is required"),
-    address: Yup.string().required("Address is required"),
+    address: Yup.string().required("Address Line 1 is required"),
+    address_2: Yup.string().required("Address Line 2 is required"),
     county: Yup.string().required("County is required"),
     postcode: Yup.string().required("Postcode is required"),
     country: Yup.string().required("Country is required"),
@@ -157,6 +159,7 @@ export default function MicrochipEditPage() {
       phone_number: "",
       email: "",
       address: "",
+      address_2: "",
       county: "",
       postcode: "",
       country: "",
@@ -226,6 +229,7 @@ export default function MicrochipEditPage() {
           phone_number: data.phone_number || "",
           email: data.email || "",
           address: data.address || "",
+          address_2: data.address_2 || "",
           country: data.country || "",
           county: data.county || "",
           postcode: data.postcode || "",
@@ -252,48 +256,48 @@ export default function MicrochipEditPage() {
 
     fetchData();
 
-    const loader = new Loader({
-      apiKey: process.env.NEXT_PUBLIC_GOOGLE_MAPS_API_KEY,
-      libraries: ["places"],
-    });
+    // const loader = new Loader({
+    //   apiKey: process.env.NEXT_PUBLIC_GOOGLE_MAPS_API_KEY,
+    //   libraries: ["places"],
+    // });
 
-    loader.load().then(() => {
-      setTimeout(() => {
-        if (!addressRef.current) return;
+    // loader.load().then(() => {
+    //   setTimeout(() => {
+    //     if (!addressRef.current) return;
 
-        const autocomplete = new google.maps.places.Autocomplete(
-          addressRef.current,
-          {
-            fields: ["address_components", "formatted_address", "geometry"],
-            componentRestrictions: { country: "gb" },
-            types: ["address"],
-          }
-        );
+    //     const autocomplete = new google.maps.places.Autocomplete(
+    //       addressRef.current,
+    //       {
+    //         fields: ["address_components", "formatted_address", "geometry"],
+    //         componentRestrictions: { country: "us" },
+    //         types: ["address"],
+    //       }
+    //     );
 
-        autocomplete.addListener("place_changed", () => {
-          const place = autocomplete.getPlace();
-          if (!place.address_components) return;
+    //     autocomplete.addListener("place_changed", () => {
+    //       const place = autocomplete.getPlace();
+    //       if (!place.address_components) return;
 
-          const comp = {};
-          place.address_components.forEach((c) => {
-            comp[c.types[0]] = c.long_name;
-          });
+    //       const comp = {};
+    //       place.address_components.forEach((c) => {
+    //         comp[c.types[0]] = c.long_name;
+    //       });
 
-          const postcode = comp.postal_code || "";
-          const city = comp.post_town || comp.locality || "";
-          const county =
-            comp.administrative_area_level_2 ||
-            comp.administrative_area_level_1 ||
-            "";
-          const country = comp.country || "United Kingdom";
+    //       const postcode = comp.postal_code || "";
+    //       const city = comp.post_town || comp.locality || "";
+    //       const county =
+    //         comp.administrative_area_level_2 ||
+    //         comp.administrative_area_level_1 ||
+    //         "";
+    //       const country = comp.country || "United Kingdom";
 
-          formik.setFieldValue("address", place.formatted_address);
-          formik.setFieldValue("county", county);
-          formik.setFieldValue("postcode", postcode);
-          formik.setFieldValue("country", country);
-        });
-      }, 500);
-    });
+    //       formik.setFieldValue("address", place.formatted_address);
+    //       formik.setFieldValue("county", county);
+    //       formik.setFieldValue("postcode", postcode);
+    //       formik.setFieldValue("country", country);
+    //     });
+    //   }, 500);
+    // });
   }, [id]);
 
   return (
@@ -397,9 +401,9 @@ export default function MicrochipEditPage() {
                   {/* Address */}
                   <div className="col-12 mb-3">
                     <label htmlFor="address" className="form-label">
-                      Address <span className="text-danger">*</span>
+                      Address Line 1<span className="text-danger">*</span>
                     </label>
-                    <textarea
+                    <input
                       className="form-control"
                       id="address"
                       autoComplete="off"
@@ -410,6 +414,25 @@ export default function MicrochipEditPage() {
                       <div className="text-danger">{formik.errors.address}</div>
                     )}
                   </div>
+
+                  {/* Address 2*/}
+                  <div className="col-12 mb-3">
+                    <label htmlFor="address_2" className="form-label">
+                      Address Line 2<span className="text-danger">*</span>
+                    </label>
+                    <input
+                      className="form-control"
+                      id="address_2"
+                      autoComplete="off"
+                      ref={addressRef}
+                      {...formik.getFieldProps("address_2")}
+                    />
+                    {formik.touched.address_2 && formik.errors.address_2 && (
+                      <div className="text-danger">{formik.errors.address_2}</div>
+                    )}
+                  </div>
+
+
                   {/* County */}
                   <div className="col-12 mb-3">
                     <label htmlFor="county" className="form-label">

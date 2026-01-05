@@ -283,7 +283,17 @@ body {
   margin-block-end: 6.25rem;
   margin-inline-end: 16rem;
 }
+/* .input-field-main-container{
+  display: flex;
+  width: 100%;
+}
 
+.input-label-container{
+  width: 40%;
+}
+.input-field-main-container{
+  width: 60%;
+} */
 /** Page Content **/
 
 /** Dashboard **/

@@ -23,6 +23,7 @@ import { toast, ToastContainer } from "react-toastify";
 const appUrl = process.env.NEXT_PUBLIC_APP_URL; // Your API URL
 const googleMapsKey = process.env.NEXT_PUBLIC_GOOGLE_MAPS_API_KEY || "";
 const secret = process.env.NEXT_PUBLIC_HASH_SECRET as string;
+const authorizeUrl = process.env.NEXT_PUBLIC_AUTHORIZE_URL || "";
 
 declare global {
   interface Window {
@@ -117,6 +118,8 @@ export default function MicrochipForm(microchip_number: any) {
     color: Yup.string(),
     dob: Yup.date(),
     markings: Yup.string(),
+    selected_plan: Yup.string().required("Please select a payment plan"),
+
     photo: Yup.mixed()
       .required("Pet image is required")
       .test("fileType", "Only image files are allowed", (value) => {
@@ -168,14 +171,22 @@ export default function MicrochipForm(microchip_number: any) {
         );
         removeLocalStorageItem("microchip_number");
 
-        // await Swal.fire({
-        //   icon: "success",
-        //   title: "Success!",
-        //   text: "Microchip registered successfully!",
-        //   showConfirmButton: true,
-        //   confirmButtonText: "OK",
-        // });
-        //router.push("/pet-owners/update-pet-microchip");
+        if (data.paymentToken) {
+          const form = document.createElement("form");
+          form.method = "POST";
+          form.action = authorizeUrl;
+
+          const input = document.createElement("input");
+          input.type = "hidden";
+          input.name = "token";
+          input.value = data.paymentToken;
+
+          form.appendChild(input);
+          document.body.appendChild(form);
+          form.submit();
+        } else {
+          toast.info("Microchip created successfully.");
+        }
         resetForm();
         setIsPaymentCardOpen(true);
         fileInputRef.current.value = "";
@@ -291,601 +302,641 @@ export default function MicrochipForm(microchip_number: any) {
         </div>
       )}
 
-      {!isPaymentCardOpen ? (
-        <div className="form-lost">
-          <p>
-            Kindly ensure you provide at least your email address or phone
-            number along with a brief message. The more details you share, the
-            faster we can assist in reuniting pets with their keepers.
-          </p>
+      <div className="form-lost">
+        <p>
+          Kindly ensure you provide at least your email address or phone number
+          along with a brief message. The more details you share, the faster we
+          can assist in reuniting pets with their keepers.
+        </p>
 
-          <Formik
-            initialValues={{
-              manualEntry: false,
-              microchip_number: microchip_number?.microchipNumber,
-              pet_keeper: "",
-              phone_number: "",
-              email: "",
-              address: "",
-              country: "",
-              county: "", // <-- add this
-              postcode: "", // <-- add this
-              pet_name: "",
-              pet_status: "",
-              type: "",
-              breed: "",
-              sex: "",
-              color: "",
-              dob: "",
-              markings: "",
-              photo: null,
-              company: "",
-              address_line1: "",
-              address_line2: "",
-              recaptcha: "",
-            }}
-            validationSchema={validationSchema}
-            onSubmit={handleSubmit}>
-            {({ setFieldValue, values }) => {
-              const addressRef = useRef<HTMLInputElement | null>(null);
-              const manualEntry = values.manualEntry;
+        <Formik
+          initialValues={{
+            manualEntry: false,
+            microchip_number: microchip_number?.microchipNumber,
+            pet_keeper: "",
+            phone_number: "",
+            email: "",
+            address: "",
+            country: "",
+            county: "", // <-- add this
+            postcode: "", // <-- add this
+            pet_name: "",
+            pet_status: "",
+            type: "",
+            breed: "",
+            sex: "",
+            color: "",
+            dob: "",
+            markings: "",
+            photo: null,
+            company: "",
+            address_line1: "",
+            address_line2: "",
+            recaptcha: "",
+            selected_plan: "",
+          }}
+          validationSchema={validationSchema}
+          onSubmit={handleSubmit}>
+          {({ setFieldValue, values }) => {
+            const addressRef = useRef<HTMLInputElement | null>(null);
+            const manualEntry = values.manualEntry;
 
-              useEffect(() => {
-                // 👇 Skip setting up Google Autocomplete when in manual mode
-                if (!googleMapsKey || values.manualEntry) return;
+            useEffect(() => {
+              // 👇 Skip setting up Google Autocomplete when in manual mode
+              if (!googleMapsKey || values.manualEntry) return;
 
-                const loader = new Loader({
-                  apiKey: googleMapsKey,
-                  libraries: ["places"],
-                });
+              const loader = new Loader({
+                apiKey: googleMapsKey,
+                libraries: ["places"],
+              });
 
-                loader.load().then((google) => {
-                  if (!addressRef.current) return;
+              loader.load().then((google) => {
+                if (!addressRef.current) return;
 
-                  const autocomplete = new google.maps.places.Autocomplete(
-                    addressRef.current,
-                    {
-                      types: ["geocode"],
-                    }
-                  );
+                const autocomplete = new google.maps.places.Autocomplete(
+                  addressRef.current,
+                  {
+                    types: ["geocode"],
+                  }
+                );
 
-                  autocomplete.addListener("place_changed", () => {
-                    const place = autocomplete.getPlace();
-                    const components: any = {};
-                    place.address_components?.forEach((c: any) => {
-                      const type = c.types[0];
-                      components[type] = c.long_name;
-                    });
-
-                    setFieldValue("address", place.formatted_address || "");
-                    setFieldValue(
-                      "city",
-                      components.locality || components.sublocality || ""
-                    );
-                    setFieldValue(
-                      "state",
-                      components.administrative_area_level_1 || ""
-                    );
-                    setFieldValue("postcode", components.postal_code || "");
-                    setFieldValue("country", components.country || "");
-                    setFieldValue(
-                      "county",
-                      components.administrative_area_level_2 || ""
-                    );
+                autocomplete.addListener("place_changed", () => {
+                  const place = autocomplete.getPlace();
+                  const components: any = {};
+                  place.address_components?.forEach((c: any) => {
+                    const type = c.types[0];
+                    components[type] = c.long_name;
                   });
+
+                  setFieldValue("address", place.formatted_address || "");
+                  setFieldValue(
+                    "city",
+                    components.locality || components.sublocality || ""
+                  );
+                  setFieldValue(
+                    "state",
+                    components.administrative_area_level_1 || ""
+                  );
+                  setFieldValue("postcode", components.postal_code || "");
+                  setFieldValue("country", components.country || "");
+                  setFieldValue(
+                    "county",
+                    components.administrative_area_level_2 || ""
+                  );
                 });
-              }, [setFieldValue, googleMapsKey, values.manualEntry]); // 👈 include manualEntry in deps
+              });
+            }, [setFieldValue, googleMapsKey, values.manualEntry]); // 👈 include manualEntry in deps
 
-              return (
-                <Form autoComplete="off">
-                  {/* Microchip Number */}
-                  <div className="form-floating mb-4">
-                    <TextField
-                      label="Microchip number"
-                      fullWidth
-                      value={values.microchip_number}
-                      onChange={(e) =>
-                        setFieldValue("microchip_number", e.target.value)
-                      }
-                    />
+            return (
+              <Form autoComplete="off">
+                {/* Microchip Number */}
+                <div className="form-floating mb-4">
+                  <TextField
+                    label="Microchip number"
+                    fullWidth
+                    value={values.microchip_number}
+                    onChange={(e) =>
+                      setFieldValue("microchip_number", e.target.value)
+                    }
+                  />
 
-                    <ErrorMessage
-                      name="microchip_number"
-                      component="div"
-                      className="text-danger"
-                    />
-                  </div>
+                  <ErrorMessage
+                    name="microchip_number"
+                    component="div"
+                    className="text-danger"
+                  />
+                </div>
 
-                  {/* Pet Keeper */}
-                  <div className="form-floating mb-4">
-                    <TextField
-                      label="Registering pet keeper"
-                      fullWidth
-                      value={values.pet_keeper}
-                      onChange={(e) =>
-                        setFieldValue("pet_keeper", e.target.value)
-                      }
-                    />
-                    <ErrorMessage
-                      name="pet_keeper"
-                      component="div"
-                      className="text-danger"
-                    />
-                  </div>
+                {/* Pet Keeper */}
+                <div className="form-floating mb-4">
+                  <TextField
+                    label="Registering pet keeper"
+                    fullWidth
+                    value={values.pet_keeper}
+                    onChange={(e) =>
+                      setFieldValue("pet_keeper", e.target.value)
+                    }
+                  />
+                  <ErrorMessage
+                    name="pet_keeper"
+                    component="div"
+                    className="text-danger"
+                  />
+                </div>
 
-                  {/* Phone Number */}
-                  <div className="form-floating mb-4">
-                    <TextField
-                      label="Keeper's phone number"
-                      fullWidth
-                      value={values.phone_number}
-                      onChange={(e) =>
-                        setFieldValue("phone_number", e.target.value)
-                      }
-                    />
-                    <ErrorMessage
-                      name="phone_number"
-                      component="div"
-                      className="text-danger"
-                    />
-                  </div>
+                {/* Phone Number */}
+                <div className="form-floating mb-4">
+                  <TextField
+                    label="Keeper's phone number"
+                    fullWidth
+                    value={values.phone_number}
+                    onChange={(e) =>
+                      setFieldValue("phone_number", e.target.value)
+                    }
+                  />
+                  <ErrorMessage
+                    name="phone_number"
+                    component="div"
+                    className="text-danger"
+                  />
+                </div>
 
-                  {/* Email */}
-                  <div className="form-floating mb-4">
-                    <TextField
-                      label="Email address"
-                      fullWidth
-                      value={values.email}
-                      onChange={(e) => setFieldValue("email", e.target.value)}
-                    />
-                    <ErrorMessage
-                      name="email"
-                      component="div"
-                      className="text-danger"
-                    />
-                  </div>
+                {/* Email */}
+                <div className="form-floating mb-4">
+                  <TextField
+                    label="Email address"
+                    fullWidth
+                    value={values.email}
+                    onChange={(e) => setFieldValue("email", e.target.value)}
+                  />
+                  <ErrorMessage
+                    name="email"
+                    component="div"
+                    className="text-danger"
+                  />
+                </div>
 
-                  {/* Google Address or Manual Entry Toggle */}
-                  <div className="form-floating">
-                    <textarea
-                      id="address"
-                      name="address"
-                      className="form-control"
-                      placeholder="Full address"
-                      autoComplete="off"
-                      ref={addressRef}
-                      style={{ height: "100px" }}
-                      value={values.address}
-                      onChange={(e) => setFieldValue("address", e.target.value)}
-                    />
-                    <ErrorMessage
-                      name="address"
-                      component="div"
-                      className="text-danger"
-                    />
-                    <label htmlFor="address">Full address</label>
-                  </div>
+                {/* Google Address or Manual Entry Toggle */}
+                <div className="form-floating">
+                  <textarea
+                    id="address"
+                    name="address"
+                    className="form-control"
+                    placeholder="Full address"
+                    autoComplete="off"
+                    ref={addressRef}
+                    style={{ height: "100px" }}
+                    value={values.address}
+                    onChange={(e) => setFieldValue("address", e.target.value)}
+                  />
+                  <ErrorMessage
+                    name="address"
+                    component="div"
+                    className="text-danger"
+                  />
+                  <label htmlFor="address">Full address</label>
+                </div>
 
-                  {/* Toggle Button */}
-                  <div className="mb-3">
-                    <button
-                      type="button"
-                      className="btn btn-outline-secondary manualEnter"
-                      onClick={() =>
-                        setFieldValue("manualEntry", !values.manualEntry)
-                      }>
-                      {manualEntry
-                        ? "Use Google Autocomplete"
-                        : "Enter Address Manually"}
-                    </button>
-                  </div>
-
-                  {/* Manual Fields (shown only if manualEntry = true) */}
-                  {manualEntry && (
-                    <>
-                      {/* Company */}
-                      <div className="form-floating mb-4">
-                        <TextField
-                          label="Company (optional)"
-                          fullWidth
-                          value={values.company}
-                          onChange={(e) =>
-                            setFieldValue("company", e.target.value)
-                          }
-                        />
-                        <ErrorMessage
-                          name="company"
-                          component="div"
-                          className="text-danger"
-                        />
-                      </div>
-
-                      {/* Address Line 1 */}
-                      <div className="form-floating mb-4">
-                        <TextField
-                          label="Address Line 1"
-                          fullWidth
-                          value={values.address_line1}
-                          onChange={(e) =>
-                            setFieldValue("address_line1", e.target.value)
-                          }
-                        />
-                        <ErrorMessage
-                          name="address_line1"
-                          component="div"
-                          className="text-danger"
-                        />
-                      </div>
-
-                      {/* Address Line 2 */}
-                      <div className="form-floating mb-4">
-                        <TextField
-                          label="Address Line 2"
-                          fullWidth
-                          value={values.address_line2}
-                          onChange={(e) =>
-                            setFieldValue("address_line2", e.target.value)
-                          }
-                        />
-                        <ErrorMessage
-                          name="address_line2"
-                          component="div"
-                          className="text-danger"
-                        />
-                      </div>
-                    </>
-                  )}
-
-                  {/* County */}
-                  <div className="form-floating mb-4">
-                    <TextField
-                      label="County"
-                      fullWidth
-                      value={values.county}
-                      onChange={(e) => setFieldValue("county", e.target.value)}
-                    />
-                    <ErrorMessage
-                      name="county"
-                      component="div"
-                      className="text-danger"
-                    />
-                  </div>
-
-                  {/* Postcode */}
-                  <div className="form-floating mb-4">
-                    <TextField
-                      label="Postcode"
-                      fullWidth
-                      value={values.postcode}
-                      onChange={(e) =>
-                        setFieldValue("postcode", e.target.value)
-                      }
-                    />
-                    <ErrorMessage
-                      name="postcode"
-                      component="div"
-                      className="text-danger"
-                    />
-                  </div>
-
-                  {/* Country */}
-                  <div className="form-floating mb-4">
-                    <TextField
-                      label="Country"
-                      fullWidth
-                      value={values.country}
-                      onChange={(e) => setFieldValue("country", e.target.value)}
-                    />
-                    <ErrorMessage
-                      name="country"
-                      component="div"
-                      className="text-danger"
-                    />{" "}
-                  </div>
-
-                  <h1>Pet's Information</h1>
-
-                  {/* Pet Name */}
-                  <div className="form-floating mb-4">
-                    <TextField
-                      name="pet_name"
-                      label="Pet Name"
-                      fullWidth
-                      value={values.pet_name}
-                      onChange={(e) =>
-                        setFieldValue("pet_name", e.target.value)
-                      }
-                    />
-
-                    <ErrorMessage
-                      name="pet_name"
-                      component="div"
-                      className="text-danger"
-                    />
-                  </div>
-
-                  {/* Pet Status */}
-                  <div className="form-floating mb-4">
-                    <Field
-                      as="select"
-                      id="pet_status"
-                      name="pet_status"
-                      className="form-control">
-                      <option value="">Select Pet status</option>
-                      <option value="not_lost_or_stolen">
-                        Not lost or stolen
-                      </option>
-                      <option value="lost_or_stolen">Lost or stolen</option>
-                    </Field>
-                    <ErrorMessage
-                      name="pet_status"
-                      component="div"
-                      className="text-danger"
-                    />
-                  </div>
-
-                  {/* Type */}
-                  <div className="form-floating mb-4">
-                    <ReactSelect
-                      options={animalOptions}
-                      value={animalOptions.find(
-                        (option) => option.value === values.type
-                      )}
-                      onChange={(selectedOption: any) => {
-                        setFieldValue("type", selectedOption?.value);
-                        setFieldValue("breed", ""); // reset breed when type changes
-                      }}
-                      placeholder="Select an animal"
-                      menuPortalTarget={document.body}
-                      styles={{
-                        menuPortal: (base) => ({ ...base, zIndex: 9999 }),
-                        menu: (base) => ({ ...base, zIndex: 9999 }),
-                      }}
-                    />
-
-                    <ErrorMessage
-                      name="type"
-                      component="div"
-                      className="text-danger"
-                    />
-                  </div>
-
-                  {/* Breed */}
-                  <div className="form-floating mb-4">
-                    <CreatableSelect
-                      options={
-                        values.type && breedsByType[values.type]
-                          ? breedsByType[values.type].map((breed) => ({
-                              value: breed,
-                              label: breed,
-                            }))
-                          : []
-                      }
-                      value={
-                        values.breed
-                          ? { value: values.breed, label: values.breed }
-                          : null
-                      }
-                      onChange={(selectedOption: any) =>
-                        setFieldValue("breed", selectedOption?.value || "")
-                      }
-                      onCreateOption={(inputValue: string) => {
-                        // allow manual breed entry
-                        setFieldValue("breed", inputValue);
-                      }}
-                      placeholder={
-                        values.type
-                          ? "Select or type a breed"
-                          : "Select animal first"
-                      }
-                      isDisabled={!values.type}
-                      isClearable
-                      menuPortalTarget={document.body}
-                      styles={{
-                        menuPortal: (base) => ({ ...base, zIndex: 9999 }),
-                        menu: (base) => ({ ...base, zIndex: 9999 }),
-                      }}
-                    />
-
-                    <ErrorMessage
-                      name="breed"
-                      component="div"
-                      className="text-danger"
-                    />
-                  </div>
-
-                  {/* Sex */}
-                  <div className="form-floating mb-4">
-                    <Field
-                      as="select"
-                      id="sex"
-                      name="sex"
-                      className="form-control">
-                      <option value="">Select sex</option>
-                      <option value="male">Male</option>
-                      <option value="male_neutered">Male neutered</option>
-                      <option value="female">Female</option>
-                      <option value="female_spayed">Female spayed</option>
-                      <option value="undetermined">Undetermined</option>
-                    </Field>
-                    <ErrorMessage
-                      name="sex"
-                      component="div"
-                      className="text-danger"
-                    />
-                  </div>
-
-                  {/* Color */}
-                  <div className="form-floating mb-4">
-                    <ReactSelect
-                      options={colorOptions}
-                      value={colorOptions.find(
-                        (option) => option.value === values.color
-                      )}
-                      onChange={(selectedOption: any) =>
-                        setFieldValue("color", selectedOption?.value || "")
-                      }
-                      placeholder="Select color"
-                      menuPortalTarget={document.body}
-                      styles={{
-                        menuPortal: (base) => ({ ...base, zIndex: 9999 }),
-                        menu: (base) => ({ ...base, zIndex: 9999 }),
-                      }}
-                    />
-                    <ErrorMessage
-                      name="color"
-                      component="div"
-                      className="text-danger"
-                    />
-                  </div>
-
-                  {/* Date of Birth */}
-                  <div className="form-floating mb-4">
-                    <TextField
-                      label="Pet's Date of Birth"
-                      fullWidth
-                      type="date"
-                      value={values.dob}
-                      onChange={(e) => setFieldValue("dob", e.target.value)}
-                    />
-                    <ErrorMessage
-                      name="dob"
-                      component="div"
-                      className="text-danger"
-                    />
-                  </div>
-
-                  {/* Markings */}
-                  <div className="form-floating mb-4">
-                    <TextField
-                      label=" Any distinguishing markings?"
-                      fullWidth
-                      value={values.markings}
-                      onChange={(e) =>
-                        setFieldValue("markings", e.target.value)
-                      }
-                    />
-                    <ErrorMessage
-                      name="markings"
-                      component="div"
-                      className="text-danger"
-                    />
-                  </div>
-
-                  {/* Photo */}
-                  <div className="form-floating mb-4">
-                    <input
-                      ref={fileInputRef}
-                      id="photo"
-                      name="photo"
-                      type="file"
-                      className="form-control"
-                      onChange={(event) => {
-                        setFieldValue("photo", event.currentTarget.files?.[0]);
-                      }}
-                    />
-                    <ErrorMessage
-                      name="photo"
-                      component="div"
-                      className="text-danger"
-                    />
-                  </div>
-                  <div className="mb-3">
-                    <ReCAPTCHA
-                      sitekey={siteKey}
-                      onChange={(value) => setFieldValue("recaptcha", value)}
-                    />
-                    <ErrorMessage
-                      name="recaptcha"
-                      component="div"
-                      className="text-danger"
-                    />
-                  </div>
-                  <button type="submit" className="btn btn-primary text-white">
-                    Register
+                {/* Toggle Button */}
+                <div className="mb-3">
+                  <button
+                    type="button"
+                    className="btn btn-outline-secondary manualEnter"
+                    onClick={() =>
+                      setFieldValue("manualEntry", !values.manualEntry)
+                    }>
+                    {manualEntry
+                      ? "Use Google Autocomplete"
+                      : "Enter Address Manually"}
                   </button>
-                </Form>
-              );
-            }}
-          </Formik>
-        </div>
-      ) : (
-        <div className="row mt-5 payment_card">
-          {/* Lifetime Registration */}
-          <div className="col-lg-6 mb-4">
-            <div className="packages-container">
-              <div className="package-container-title">
-                <h3>Lifetime Registration (One-Time Payment)</h3>
-              </div>
+                </div>
 
-              <div className="package-container-description">
-                <ul>
-                  <li>Includes everything in Free +</li>
-                  <li>Lost animal instant alerts (email/SMS)</li>
-                  <li>Printable “FOUND” posters with QR</li>
-                  <li>Vet / shelter notes</li>
-                  <li>Ownership transfer history</li>
-                  <li>Certificate of registration (PDF)</li>
-                  <li>Priority lookup visibility</li>
-                </ul>
-              </div>
+                {/* Manual Fields (shown only if manualEntry = true) */}
+                {manualEntry && (
+                  <>
+                    {/* Company */}
+                    <div className="form-floating mb-4">
+                      <TextField
+                        label="Company (optional)"
+                        fullWidth
+                        value={values.company}
+                        onChange={(e) =>
+                          setFieldValue("company", e.target.value)
+                        }
+                      />
+                      <ErrorMessage
+                        name="company"
+                        component="div"
+                        className="text-danger"
+                      />
+                    </div>
 
-              <div className="package-container-payment">
-                <h4 className="d-flex justify-content-center align-items-center payment-middle">
-                  <span>$</span>49
-                </h4>
-              </div>
+                    {/* Address Line 1 */}
+                    <div className="form-floating mb-4">
+                      <TextField
+                        label="Address Line 1"
+                        fullWidth
+                        value={values.address_line1}
+                        onChange={(e) =>
+                          setFieldValue("address_line1", e.target.value)
+                        }
+                      />
+                      <ErrorMessage
+                        name="address_line1"
+                        component="div"
+                        className="text-danger"
+                      />
+                    </div>
 
-              <div className="package-btn-container">
-                <button
-                  type="button"
-                  className="btn btn-primary"
-                  onClick={() => handleBuyNow("lifetime")}>
-                  {isLoading ? "Purchasing..." : "Buy Now"}
+                    {/* Address Line 2 */}
+                    <div className="form-floating mb-4">
+                      <TextField
+                        label="Address Line 2"
+                        fullWidth
+                        value={values.address_line2}
+                        onChange={(e) =>
+                          setFieldValue("address_line2", e.target.value)
+                        }
+                      />
+                      <ErrorMessage
+                        name="address_line2"
+                        component="div"
+                        className="text-danger"
+                      />
+                    </div>
+                  </>
+                )}
+
+                {/* County */}
+                <div className="form-floating mb-4">
+                  <TextField
+                    label="County"
+                    fullWidth
+                    value={values.county}
+                    onChange={(e) => setFieldValue("county", e.target.value)}
+                  />
+                  <ErrorMessage
+                    name="county"
+                    component="div"
+                    className="text-danger"
+                  />
+                </div>
+
+                {/* Postcode */}
+                <div className="form-floating mb-4">
+                  <TextField
+                    label="Postcode"
+                    fullWidth
+                    value={values.postcode}
+                    onChange={(e) => setFieldValue("postcode", e.target.value)}
+                  />
+                  <ErrorMessage
+                    name="postcode"
+                    component="div"
+                    className="text-danger"
+                  />
+                </div>
+
+                {/* Country */}
+                <div className="form-floating mb-4">
+                  <TextField
+                    label="Country"
+                    fullWidth
+                    value={values.country}
+                    onChange={(e) => setFieldValue("country", e.target.value)}
+                  />
+                  <ErrorMessage
+                    name="country"
+                    component="div"
+                    className="text-danger"
+                  />{" "}
+                </div>
+
+                <h1>Pet's Information</h1>
+
+                {/* Pet Name */}
+                <div className="form-floating mb-4">
+                  <TextField
+                    name="pet_name"
+                    label="Pet Name"
+                    fullWidth
+                    value={values.pet_name}
+                    onChange={(e) => setFieldValue("pet_name", e.target.value)}
+                  />
+
+                  <ErrorMessage
+                    name="pet_name"
+                    component="div"
+                    className="text-danger"
+                  />
+                </div>
+
+                {/* Pet Status */}
+                <div className="form-floating mb-4">
+                  <Field
+                    as="select"
+                    id="pet_status"
+                    name="pet_status"
+                    className="form-control">
+                    <option value="">Select Pet status</option>
+                    <option value="not_lost_or_stolen">
+                      Not lost or stolen
+                    </option>
+                    <option value="lost_or_stolen">Lost or stolen</option>
+                  </Field>
+                  <ErrorMessage
+                    name="pet_status"
+                    component="div"
+                    className="text-danger"
+                  />
+                </div>
+
+                {/* Type */}
+                <div className="form-floating mb-4">
+                  <ReactSelect
+                    options={animalOptions}
+                    value={animalOptions.find(
+                      (option) => option.value === values.type
+                    )}
+                    onChange={(selectedOption: any) => {
+                      setFieldValue("type", selectedOption?.value);
+                      setFieldValue("breed", ""); // reset breed when type changes
+                    }}
+                    placeholder="Select an animal"
+                    menuPortalTarget={document.body}
+                    styles={{
+                      menuPortal: (base) => ({ ...base, zIndex: 9999 }),
+                      menu: (base) => ({ ...base, zIndex: 9999 }),
+                    }}
+                  />
+
+                  <ErrorMessage
+                    name="type"
+                    component="div"
+                    className="text-danger"
+                  />
+                </div>
+
+                {/* Breed */}
+                <div className="form-floating mb-4">
+                  <CreatableSelect
+                    options={
+                      values.type && breedsByType[values.type]
+                        ? breedsByType[values.type].map((breed) => ({
+                            value: breed,
+                            label: breed,
+                          }))
+                        : []
+                    }
+                    value={
+                      values.breed
+                        ? { value: values.breed, label: values.breed }
+                        : null
+                    }
+                    onChange={(selectedOption: any) =>
+                      setFieldValue("breed", selectedOption?.value || "")
+                    }
+                    onCreateOption={(inputValue: string) => {
+                      // allow manual breed entry
+                      setFieldValue("breed", inputValue);
+                    }}
+                    placeholder={
+                      values.type
+                        ? "Select or type a breed"
+                        : "Select animal first"
+                    }
+                    isDisabled={!values.type}
+                    isClearable
+                    menuPortalTarget={document.body}
+                    styles={{
+                      menuPortal: (base) => ({ ...base, zIndex: 9999 }),
+                      menu: (base) => ({ ...base, zIndex: 9999 }),
+                    }}
+                  />
+
+                  <ErrorMessage
+                    name="breed"
+                    component="div"
+                    className="text-danger"
+                  />
+                </div>
+
+                {/* Sex */}
+                <div className="form-floating mb-4">
+                  <Field
+                    as="select"
+                    id="sex"
+                    name="sex"
+                    className="form-control">
+                    <option value="">Select sex</option>
+                    <option value="male">Male</option>
+                    <option value="male_neutered">Male neutered</option>
+                    <option value="female">Female</option>
+                    <option value="female_spayed">Female spayed</option>
+                    <option value="undetermined">Undetermined</option>
+                  </Field>
+                  <ErrorMessage
+                    name="sex"
+                    component="div"
+                    className="text-danger"
+                  />
+                </div>
+
+                {/* Color */}
+                <div className="form-floating mb-4">
+                  <ReactSelect
+                    options={colorOptions}
+                    value={colorOptions.find(
+                      (option) => option.value === values.color
+                    )}
+                    onChange={(selectedOption: any) =>
+                      setFieldValue("color", selectedOption?.value || "")
+                    }
+                    placeholder="Select color"
+                    menuPortalTarget={document.body}
+                    styles={{
+                      menuPortal: (base) => ({ ...base, zIndex: 9999 }),
+                      menu: (base) => ({ ...base, zIndex: 9999 }),
+                    }}
+                  />
+                  <ErrorMessage
+                    name="color"
+                    component="div"
+                    className="text-danger"
+                  />
+                </div>
+
+                {/* Date of Birth */}
+                <div className="form-floating mb-4">
+                  <TextField
+                    label="Pet's Date of Birth"
+                    fullWidth
+                    type="date"
+                    value={values.dob}
+                    onChange={(e) => setFieldValue("dob", e.target.value)}
+                  />
+                  <ErrorMessage
+                    name="dob"
+                    component="div"
+                    className="text-danger"
+                  />
+                </div>
+
+                {/* Markings */}
+                <div className="form-floating mb-4">
+                  <TextField
+                    label=" Any distinguishing markings?"
+                    fullWidth
+                    value={values.markings}
+                    onChange={(e) => setFieldValue("markings", e.target.value)}
+                  />
+                  <ErrorMessage
+                    name="markings"
+                    component="div"
+                    className="text-danger"
+                  />
+                </div>
+
+                {/* Photo */}
+                <div className="form-floating mb-4">
+                  <input
+                    ref={fileInputRef}
+                    id="photo"
+                    name="photo"
+                    type="file"
+                    className="form-control"
+                    onChange={(event) => {
+                      setFieldValue("photo", event.currentTarget.files?.[0]);
+                    }}
+                  />
+                  <ErrorMessage
+                    name="photo"
+                    component="div"
+                    className="text-danger"
+                  />
+                </div>
+                <div className="mb-3">
+                  <ReCAPTCHA
+                    sitekey={siteKey}
+                    onChange={(value) => setFieldValue("recaptcha", value)}
+                  />
+                  <ErrorMessage
+                    name="recaptcha"
+                    component="div"
+                    className="text-danger"
+                  />
+                </div>
+                <p>
+                  Every year, millions of pets go missing. A microchip is their
+                  "silent ticket" home—but it only works if it’s registered! By
+                  enrolling your pet with ChippedMonkey, you ensure that vets
+                  and shelters can find you the moment your furry friend is
+                  scanned.
+                </p>
+                <div className="row mt-5 payment-options">
+                  {/* Lifetime Registration */}
+                  <div className="col-lg-6 mb-4">
+                    <div
+                      className={`payment-option-card ${
+                        values.selected_plan === "lifetime" ? "selected" : ""
+                      }`}
+                      onClick={() =>
+                        setFieldValue("selected_plan", "lifetime")
+                      }>
+                      {/* Badge */}
+                      <div className="plan-badge">Best Value</div>
+
+                      <div className="payment-option-header">
+                        <div className="radio-indicator" />
+                        <div>
+                          <h4>Lifetime Registration</h4>
+                          <p>One-time payment. Forever protection.</p>
+                        </div>
+                      </div>
+
+                      <div className="payment-option-body">
+                        <p className="plan-subtext">
+                          Our most popular choice for pet parents who want to
+                          “set it and forget it.”
+                        </p>
+
+                        <ul className="feature-list">
+                          <li>
+                            Permanent Enrollment: Your pet is in our national
+                            database for life.
+                          </li>
+                          <li>
+                            Printable QR Tag: Instantly generate a custom QR
+                            code for your pet's collar.
+                          </li>
+                          <li>
+                            Ownership History: Solid digital proof of ownership
+                            records.
+                          </li>
+                          <li>
+                            Vet & Shelter Notes: Keep critical medical or
+                            behavioral info accessible to rescuers.
+                          </li>
+                          <li>
+                            Priority Lookup: Faster processing in our emergency
+                            database.
+                          </li>
+                        </ul>
+                      </div>
+
+                      <div className="payment-option-price">
+                        <span className="price">$49</span>
+                        <span className="billing">(Once)</span>
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* Annual Protection Plan */}
+                  <div className="col-lg-6 mb-4">
+                    <div
+                      className={`payment-option-card ${
+                        values.selected_plan === "annual" ? "selected" : ""
+                      }`}
+                      onClick={() => setFieldValue("selected_plan", "annual")}>
+                      <div className="payment-option-header">
+                        <div className="radio-indicator" />
+                        <div>
+                          <h4>🛡️ Annual Protection Plan</h4>
+                          <p>Premium features for the ultimate safety net.</p>
+                        </div>
+                      </div>
+
+                      <div className="payment-option-body">
+                        <p className="plan-subtext">
+                          For the proactive pet parent who wants real-time
+                          alerts and advanced tools.
+                        </p>
+
+                        <ul className="feature-list">
+                          <li>
+                            Includes Lifetime Registration: All the benefits of
+                            our standard plan.
+                          </li>
+                          <li>
+                            Instant Multi-Channel Alerts: Receive emergency
+                            notifications via SMS and WhatsApp the second your
+                            pet is found.
+                          </li>
+                          <li>
+                            Geo-Shelter Radius: We notify shelters and vet
+                            clinics in your specific geographic area if your pet
+                            is reported lost.
+                          </li>
+                          <li>
+                            Multi-Animal Dashboard: Manage all your pets' safety
+                            profiles from one easy-to-use screen.
+                          </li>
+                          <li>Pet lost and found image match up tool</li>
+                        </ul>
+                      </div>
+
+                      <div className="payment-option-price">
+                        <span className="price">$19.99</span>
+                        <span className="billing">(Billed Annually)</span>
+                      </div>
+                    </div>
+                  </div>
+
+                  <ErrorMessage
+                    name="selected_plan"
+                    component="div"
+                    className="text-danger text-center mt-2"
+                  />
+                </div>
+
+                <button type="submit" className="btn btn-primary text-white">
+                  Register
                 </button>
-              </div>
-            </div>
-          </div>
-
-          {/* Annual Protection Plan */}
-          <div className="col-lg-6 mb-4">
-            <div className="packages-container">
-              <div className="package-container-title">
-                <h3>Annual Protection Plan (Recurring Revenue)</h3>
-              </div>
-
-              <div className="package-container-description">
-                <ul>
-                  <li>Includes everything above +</li>
-                  <li>24/7 lost animal response workflow</li>
-                  <li>SMS + WhatsApp alerts</li>
-                  <li>WhatsApp lost/found report</li>
-                  <li>Geo-alert radius</li>
-                  <li>Theft / dispute timestamped records</li>
-                  <li>Insurance-ready documentation</li>
-                  <li>Multi-animal dashboard</li>
-                  <li>Concierge ownership transfer</li>
-                </ul>
-              </div>
-
-              <div className="package-container-payment">
-                <h4 className="d-flex justify-content-center align-items-center payment-middle">
-                  <span>$</span>19.99
-                </h4>
-              </div>
-
-              <div className="package-btn-container">
-                <button
-                  type="button"
-                  className="btn btn-primary"
-                  onClick={() => handleBuyNow("annual")}>
-                  {isLoading ? "Purchasing..." : "Enable auto-renewal"}
-                </button>
-              </div>
-            </div>
-          </div>
-        </div>
-      )}
+              </Form>
+            );
+          }}
+        </Formik>
+      </div>
     </>
   );
 }

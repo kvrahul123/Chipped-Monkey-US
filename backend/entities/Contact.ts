@@ -26,6 +26,9 @@ export class Contact {
     @Column({ type: "text", nullable: true })
   address?: string;
 
+      @Column({ type: "text", nullable: true })
+  address_2?: string;
+
       @Column({ type: "varchar", length: 255, nullable: true })
     company_name?: string;
       @Column({ type: "int", nullable: true })

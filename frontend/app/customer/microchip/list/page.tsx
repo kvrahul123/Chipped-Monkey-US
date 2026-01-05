@@ -11,7 +11,7 @@ import { getLocalStorageItem } from "@/app/common/LocalStorage";
 import { Modal, Button } from "react-bootstrap";
 import Image from "next/image";
 const appUrl = process.env.NEXT_PUBLIC_APP_URL;
-
+const authorizeUrl = process.env.NEXT_PUBLIC_AUTHORIZE_URL || "";
 declare global {
   interface Window {
     appendHelcimPayIframe?: (
@@ -134,8 +134,23 @@ export default function MicrochipOrdersPage() {
       );
 
       if (res.data.statusCode === 200) {
-        setIsModalOpen(false);
-        openHelcimModal(res.data.checkoutToken);
+        let data=res.data;
+        if (data.paymentToken) {
+          const form = document.createElement("form");
+          form.method = "POST";
+          form.action = authorizeUrl;
+
+          const input = document.createElement("input");
+          input.type = "hidden";
+          input.name = "token";
+          input.value = data.paymentToken;
+
+          form.appendChild(input);
+          document.body.appendChild(form);
+          form.submit();
+        } else {
+          toast.info("Microchip created successfully.");
+        }
       } else {
         toast.error(res.data.message);
       }
@@ -342,17 +357,30 @@ export default function MicrochipOrdersPage() {
                       <h3>Lifetime Registration (One-Time Payment)</h3>
                     </div>
 
-                    <div className="package-container-description">
-                      <ul>
-                        <li>Includes everything in Free +</li>
-                        <li>Lost animal instant alerts (email/SMS)</li>
-                        <li>Printable “FOUND” posters with QR</li>
-                        <li>Vet / shelter notes</li>
-                        <li>Ownership transfer history</li>
-                        <li>Certificate of registration (PDF)</li>
-                        <li>Priority lookup visibility</li>
-                      </ul>
-                    </div>
+                      <div className="package-container-description">
+                        <ul>
+                          <li>
+                            Permanent Enrollment: Your pet is in our national
+                            database for life.
+                          </li>
+                          <li>
+                            Printable QR Tag: Instantly generate a custom QR
+                            code for your pet's collar.
+                          </li>
+                          <li>
+                            Ownership History: Solid digital proof of ownership
+                            records.
+                          </li>
+                          <li>
+                            Vet & Shelter Notes: Keep critical medical or
+                            behavioral info accessible to rescuers.
+                          </li>
+                          <li>
+                            Priority Lookup: Faster processing in our emergency
+                            database.
+                          </li>
+                        </ul>
+                      </div>
 
                     <div className="package-container-payment">
                       <h4 className="d-flex justify-content-center align-items-center payment-middle">
@@ -380,19 +408,29 @@ export default function MicrochipOrdersPage() {
                       <h3>Annual Protection Plan (Recurring Revenue)</h3>
                     </div>
 
-                    <div className="package-container-description">
-                      <ul>
-                        <li>Includes everything above +</li>
-                        <li>24/7 lost animal response workflow</li>
-                        <li>SMS + WhatsApp alerts</li>
-                        <li>WhatsApp lost/found report</li>
-                        <li>Geo-alert radius</li>
-                        <li>Theft / dispute timestamped records</li>
-                        <li>Insurance-ready documentation</li>
-                        <li>Multi-animal dashboard</li>
-                        <li>Concierge ownership transfer</li>
-                      </ul>
-                    </div>
+                      <div className="package-container-description">
+                        <ul>
+ <li>
+                            Includes Lifetime Registration: All the benefits of
+                            our standard plan.
+                          </li>
+                          <li>
+                            Instant Multi-Channel Alerts: Receive emergency
+                            notifications via SMS and WhatsApp the second your
+                            pet is found.
+                          </li>
+                          <li>
+                            Geo-Shelter Radius: We notify shelters and vet
+                            clinics in your specific geographic area if your pet
+                            is reported lost.
+                          </li>
+                          <li>
+                            Multi-Animal Dashboard: Manage all your pets' safety
+                            profiles from one easy-to-use screen.
+                          </li>
+                          <li>Pet lost and found image match up tool</li>
+                        </ul>
+                      </div>
 
                     <div className="package-container-payment">
                       <h4 className="d-flex justify-content-center align-items-center payment-middle">

@@ -51,7 +51,7 @@ export default function profileCreatePage() {
         inputRef.current,
         {
           types: ["(regions)"],
-          componentRestrictions: { country: "gb" },
+          componentRestrictions: { country: "us" },
         }
       );
 
@@ -369,7 +369,7 @@ useEffect(() => {
           "formatted_address",
           "geometry"
         ],
-        componentRestrictions: { country: "gb" },
+        componentRestrictions: { country: "us" },
         types: ["address"] 
       }
     );

@@ -124,7 +124,10 @@ export default function Footer() {
                   <Link href="/privacypolicy">Privacy Policy</Link>
                 </li>
                 <li>
-                  <Link href="/termsconditions">Terms &amp; Conditions</Link>
+                  <Link href="/terms-conditions">Terms &amp; Conditions</Link>
+                </li>
+                <li>
+                  <Link href="/user-agreement">User &amp; Agreement</Link>
                 </li>
                 <li>
                   <Link href="/refundpolicy">Refund and Return Policy</Link>
@@ -191,7 +194,11 @@ export default function Footer() {
                   height={30}
                   quality={100}
                 />
-                <span className="footer_menu_title" style={{color:"rgb(247, 161, 46)"}}>Register Microchip</span>
+                <span
+                  className="footer_menu_title"
+                  style={{ color: "rgb(247, 161, 46)" }}>
+                  Register Microchip
+                </span>
               </Link>
             </div>
             <div className="col-2">
@@ -233,7 +240,7 @@ export default function Footer() {
                     height={30}
                     quality={100}
                   />
-                   <span className="footer_menu_title truncate_text">
+                  <span className="footer_menu_title truncate_text">
                     {userDetails?.user_name}
                   </span>
                 </Link>

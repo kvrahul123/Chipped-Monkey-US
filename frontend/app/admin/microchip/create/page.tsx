@@ -51,6 +51,7 @@ export default function MicrochipCreatePage() {
     phone_number: string;
     email: string;
     address: string;
+    address_2: string;
     county: string;
     postcode: string;
     country: string;
@@ -119,7 +120,8 @@ export default function MicrochipCreatePage() {
       .matches(/^\d+$/, "Phone Number must contain only digits")
       .required("Phone Number is required"),
     email: Yup.string().email("Invalid email").required("Email is required"),
-    address: Yup.string().required("Address is required"),
+    address: Yup.string().required("Address Line 1 is required"),
+    address_2: Yup.string().required("Address Line 2 is required"),
     county: Yup.string().required("County is required"),
     postcode: Yup.string().required("Postcode is required"),
     country: Yup.string().required("Country is required"),
@@ -153,6 +155,7 @@ export default function MicrochipCreatePage() {
       phone_number: "",
       email: "",
       address: "",
+      address_2: "",
       county: "",
       postcode: "",
       country: "",
@@ -176,6 +179,7 @@ export default function MicrochipCreatePage() {
       formData.append("phone_number", values.phone_number);
       formData.append("email", values.email);
       formData.append("address", values.address);
+      formData.append("address_2", values.address_2);
       formData.append("county", values.county);
       formData.append("postcode", values.postcode);
       formData.append("country", values.country);
@@ -219,50 +223,50 @@ export default function MicrochipCreatePage() {
     },
   });
 
-  useEffect(() => {
-    const loader = new Loader({
-      apiKey: process.env.NEXT_PUBLIC_GOOGLE_MAPS_API_KEY,
-      libraries: ["places"],
-    });
+  // useEffect(() => {
+  //   const loader = new Loader({
+  //     apiKey: process.env.NEXT_PUBLIC_GOOGLE_MAPS_API_KEY,
+  //     libraries: ["places"],
+  //   });
 
-    setTimeout(() => {
-      loader.load().then(() => {
-        if (!addressRef.current) return;
+  //   setTimeout(() => {
+  //     loader.load().then(() => {
+  //       if (!addressRef.current) return;
 
-        const autocomplete = new google.maps.places.Autocomplete(
-          addressRef.current,
-          {
-            fields: ["address_components", "formatted_address", "geometry"],
-            componentRestrictions: { country: "gb" }, // 🔥 Restrict to UK
-            types: ["address"], // 🔥 Use "address" not "geocode"
-          }
-        );
+  //       const autocomplete = new google.maps.places.Autocomplete(
+  //         addressRef.current,
+  //         {
+  //           fields: ["address_components", "formatted_address", "geometry"],
+  //           componentRestrictions: { country: "us" }, // 🔥 Restrict to UK
+  //           types: ["address"], // 🔥 Use "address" not "geocode"
+  //         }
+  //       );
 
-        autocomplete.addListener("place_changed", () => {
-          const place = autocomplete.getPlace();
-          if (!place.address_components) return;
+  //       autocomplete.addListener("place_changed", () => {
+  //         const place = autocomplete.getPlace();
+  //         if (!place.address_components) return;
 
-          const comp = {};
-          place.address_components.forEach((c) => {
-            comp[c.types[0]] = c.long_name;
-          });
+  //         const comp = {};
+  //         place.address_components.forEach((c) => {
+  //           comp[c.types[0]] = c.long_name;
+  //         });
 
-          const postcode = comp.postal_code || "";
-          const city = comp.post_town || comp.locality || "";
-          const county =
-            comp.administrative_area_level_2 ||
-            comp.administrative_area_level_1 ||
-            "";
-          const country = comp.country || "United Kingdom";
+  //         const postcode = comp.postal_code || "";
+  //         const city = comp.post_town || comp.locality || "";
+  //         const county =
+  //           comp.administrative_area_level_2 ||
+  //           comp.administrative_area_level_1 ||
+  //           "";
+  //         const country = comp.country || "United Kingdom";
 
-          formik.setFieldValue("address", place.formatted_address);
-          formik.setFieldValue("county", county);
-          formik.setFieldValue("postcode", postcode);
-          formik.setFieldValue("country", country);
-        });
-      });
-    }, 500);
-  }, [addressRef]);
+  //         formik.setFieldValue("address", place.formatted_address);
+  //         formik.setFieldValue("county", county);
+  //         formik.setFieldValue("postcode", postcode);
+  //         formik.setFieldValue("country", country);
+  //       });
+  //     });
+  //   }, 500);
+  // }, [addressRef]);
 
   return (
     <CommonLayout>
@@ -360,9 +364,9 @@ export default function MicrochipCreatePage() {
                   {/* Address */}
                   <div className="col-12 mb-3">
                     <label htmlFor="address" className="form-label">
-                      Address <span className="text-danger">*</span>
+                      Address Line 1<span className="text-danger">*</span>
                     </label>
-                    <textarea
+                    <input
                       className="form-control"
                       id="address"
                       ref={addressRef}
@@ -370,6 +374,22 @@ export default function MicrochipCreatePage() {
                     />
                     {formik.touched.address && formik.errors.address && (
                       <div className="text-danger">{formik.errors.address}</div>
+                    )}
+                  </div>
+
+                 {/* Address */}
+                  <div className="col-12 mb-3">
+                    <label htmlFor="address_2" className="form-label">
+                      Address Line 2<span className="text-danger">*</span>
+                    </label>
+                    <input
+                      className="form-control"
+                      id="address_2"
+                      ref={addressRef}
+                      {...formik.getFieldProps("address_2")}
+                    />
+                    {formik.touched.address_2 && formik.errors.address_2 && (
+                      <div className="text-danger">{formik.errors.address_2}</div>
                     )}
                   </div>
 
