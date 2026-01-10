@@ -174,7 +174,7 @@ export default function MicrochipForm(microchip_number: any) {
         if (data.paymentToken) {
           const form = document.createElement("form");
           form.method = "POST";
-          form.action = authorizeUrl;
+          form.action = authorizeUrl ;
 
           const input = document.createElement("input");
           input.type = "hidden";
@@ -337,7 +337,7 @@ export default function MicrochipForm(microchip_number: any) {
           }}
           validationSchema={validationSchema}
           onSubmit={handleSubmit}>
-          {({ setFieldValue, values }) => {
+          {({ setFieldValue, values, isSubmitting: formikSubmitting }) => {
             const addressRef = useRef<HTMLInputElement | null>(null);
             const manualEntry = values.manualEntry;
 
@@ -622,7 +622,8 @@ export default function MicrochipForm(microchip_number: any) {
                     <option value="not_lost_or_stolen">
                       Not lost or stolen
                     </option>
-                    <option value="lost_or_stolen">Lost or stolen</option>
+                    <option value="lost">Lost</option>
+                    <option value="stolen">Stolen</option>
                   </Field>
                   <ErrorMessage
                     name="pet_status"
@@ -828,8 +829,8 @@ export default function MicrochipForm(microchip_number: any) {
 
                       <div className="payment-option-header">
                         <div className="radio-indicator" />
-                        <div>
-                          <h4>Lifetime Registration</h4>
+                        <div  className="banner-heading-title">
+                          <h4><b>Lifetime Registration</b></h4>
                           <p>One-time payment. Forever protection.</p>
                         </div>
                       </div>
@@ -842,23 +843,23 @@ export default function MicrochipForm(microchip_number: any) {
 
                         <ul className="feature-list">
                           <li>
-                            Permanent Enrollment: Your pet is in our national
+                            <span className="payment_li_title">Permanent Enrollment:</span> Your pet is in our national
                             database for life.
                           </li>
                           <li>
-                            Printable QR Tag: Instantly generate a custom QR
+                            <span className="payment_li_title">Printable QR Tag:</span> Instantly generate a custom QR
                             code for your pet's collar.
                           </li>
                           <li>
-                            Ownership History: Solid digital proof of ownership
+                            <span className="payment_li_title">Ownership History:</span> Solid digital proof of ownership
                             records.
                           </li>
                           <li>
-                            Vet & Shelter Notes: Keep critical medical or
+                            <span className="payment_li_title">Vet & Shelter Notes:</span> Keep critical medical or
                             behavioral info accessible to rescuers.
                           </li>
                           <li>
-                            Priority Lookup: Faster processing in our emergency
+                            <span className="payment_li_title">Priority Lookup:</span> Faster processing in our emergency
                             database.
                           </li>
                         </ul>
@@ -880,8 +881,8 @@ export default function MicrochipForm(microchip_number: any) {
                       onClick={() => setFieldValue("selected_plan", "annual")}>
                       <div className="payment-option-header">
                         <div className="radio-indicator" />
-                        <div>
-                          <h4>🛡️ Annual Protection Plan</h4>
+                        <div className="banner-heading-title">
+                          <h4>🛡️ Ann<b>ual Protection Plan</b></h4>
                           <p>Premium features for the ultimate safety net.</p>
                         </div>
                       </div>
@@ -894,21 +895,21 @@ export default function MicrochipForm(microchip_number: any) {
 
                         <ul className="feature-list">
                           <li>
-                            Includes Lifetime Registration: All the benefits of
+                            <span className="payment_li_title">Includes Lifetime Registration:</span> All the benefits of
                             our standard plan.
                           </li>
                           <li>
-                            Instant Multi-Channel Alerts: Receive emergency
+                            <span className="payment_li_title">Instant Multi-Channel Alerts:</span> Receive emergency
                             notifications via SMS and WhatsApp the second your
                             pet is found.
                           </li>
                           <li>
-                            Geo-Shelter Radius: We notify shelters and vet
+                            <span className="payment_li_title">Geo-Shelter Radius:</span> We notify shelters and vet
                             clinics in your specific geographic area if your pet
                             is reported lost.
                           </li>
                           <li>
-                            Multi-Animal Dashboard: Manage all your pets' safety
+                            <span className="payment_li_title">Multi-Animal Dashboard:</span> Manage all your pets' safety
                             profiles from one easy-to-use screen.
                           </li>
                           <li>Pet lost and found image match up tool</li>
@@ -929,7 +930,7 @@ export default function MicrochipForm(microchip_number: any) {
                   />
                 </div>
 
-                <button type="submit" className="btn btn-primary text-white">
+                <button type="submit" className="btn btn-primary text-white"  disabled={isSubmitting || formikSubmitting}>
                   Register
                 </button>
               </Form>

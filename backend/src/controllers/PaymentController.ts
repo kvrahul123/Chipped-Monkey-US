@@ -5,6 +5,8 @@ import { Contact } from "../../entities/Contact";
 import { MicrochipPayment } from "../../entities/MicrochipPayment";
 import { MicrochipPaymentDetails } from "../../entities/MicrochipPaymentDetails";
 import { Order } from "../../entities/Order";
+import { PackageDetails } from "../../entities/PackageDetails";
+import { Subscription } from "../../entities/Subscription";
 
 const AuthorizeNet = require("authorizenet");
 const ApiContracts = AuthorizeNet.APIContracts;
@@ -86,7 +88,7 @@ export class PaymentController extends Controller {
     //   cancelUrlText: "Cancel",
     // });
 
-        addSetting("hostedPaymentReturnOptions", {
+    addSetting("hostedPaymentReturnOptions", {
       showReceipt: true,
       url: `${process.env.FRONTEND_URL}customer/dashboard`,
       urlText: "Continue",
@@ -148,12 +150,10 @@ export class PaymentController extends Controller {
      * - max 20 chars
      */
     order.setInvoiceNumber(vendor_tx_code);
-       console.log("vendor_tx_code::" + vendor_tx_code);
+    console.log("vendor_tx_code::" + vendor_tx_code);
     order.setDescription("Microchip payment");
 
     transactionRequest.setOrder(order);
-
-
 
     /** CONTROLLER */
     const ctrl = new ApiControllers.GetHostedPaymentPageController(
@@ -193,88 +193,91 @@ export class PaymentController extends Controller {
     });
   }
 
-@Post("webhook")
-public async authorizeNetWebhook(@Body() payload: any): Promise<any> {
-  try {
-    if (payload.eventType !== "net.authorize.payment.authcapture.created") {
-      return { status: "ignored" };
-    }
-
-    const transaction = payload.payload;
-
-    console.log("🔔 Authorize.Net Webhook Received");
-    console.log("📦 Full Payload:", JSON.stringify(payload, null, 2));
-
-    const transactionId = transaction.id;
-    const amount =
-      transaction?.authAmount ?? transaction?.settleAmount ?? null;
-    const invoice = transaction.invoiceNumber;
-
-    console.log("💳 Transaction Summary:", {
-      transactionId,
-      amount,
-      invoice,
-    });
-
-    const contactRepo = AppDataSource.getRepository(Contact);
-    const paymentRepo = AppDataSource.getRepository(MicrochipPayment);
-    const paymentDetailsRepo = AppDataSource.getRepository(
-      MicrochipPaymentDetails
-    );
-    const orderRepo = AppDataSource.getRepository(Order);
-
-    /** 🔍 1️⃣ CHECK MICROCHIP ORDER FIRST */
-    const microchip = await contactRepo.findOne({
-      where: { vendorTxCode: invoice },
-    });
-
-    if (microchip) {
-      console.log("🛍️ microchip order payment detected");
-
-      microchip.payment_status = "paid";
-      microchip.status = "active";
-      await contactRepo.save(microchip);
-
-      const payment = await paymentRepo.findOne({
-        where: { order_id: invoice },
-      });
-
-      if (payment) {
-        payment.payment_status = "paid";
-        payment.payment_response = JSON.stringify(transaction);
-        await paymentRepo.save(payment);
-
-        await paymentDetailsRepo.update(
-          { microchip_order_id: payment.id },
-          { status: "paid" }
-        );
+  @Post("webhook")
+  public async authorizeNetWebhook(@Body() payload: any): Promise<any> {
+    try {
+      if (payload.eventType !== "net.authorize.payment.authcapture.created") {
+        return { status: "ignored" };
       }
 
-      return { status: "ok", type: "microchip" };
+      const transaction = payload.payload;
+
+      console.log("🔔 Authorize.Net Webhook Received");
+      console.log("📦 Full Payload:", JSON.stringify(payload, null, 2));
+
+      const transactionId = transaction.id;
+      const amount =
+        transaction?.authAmount ?? transaction?.settleAmount ?? null;
+      const invoice = transaction.invoiceNumber;
+
+      console.log("💳 Transaction Summary:", {
+        transactionId,
+        amount,
+        invoice,
+      });
+
+      const contactRepo = AppDataSource.getRepository(Contact);
+      const paymentRepo = AppDataSource.getRepository(MicrochipPayment);
+      const paymentDetailsRepo = AppDataSource.getRepository(
+        MicrochipPaymentDetails
+      );
+      const orderRepo = AppDataSource.getRepository(Order);
+
+      /** 🔍 1️⃣ CHECK MICROCHIP ORDER FIRST */
+      const microchip = await contactRepo.findOne({
+        where: { vendorTxCode: invoice },
+      });
+
+      if (microchip) {
+        console.log("🛍️ microchip order payment detected");
+
+        microchip.payment_status = "paid";
+        microchip.status = "active";
+        await contactRepo.save(microchip);
+
+        const payment = await paymentRepo.findOne({
+          where: { order_id: invoice },
+        });
+
+        if (payment) {
+          payment.payment_status = "paid";
+          payment.payment_response = JSON.stringify(transaction);
+          await paymentRepo.save(payment);
+
+          await paymentDetailsRepo.update(
+            { microchip_order_id: payment.id },
+            { status: "paid" }
+          );
+        }
+
+        return { status: "ok", type: "microchip" };
+      }
+
+      /** 🛒 2️⃣ CHECK PRODUCT CHECKOUT ORDER */
+      const order = await orderRepo.findOne({
+        where: { vendorTxCode: invoice },
+      });
+
+      if (order) {
+        console.log("🛍️ Checkout order payment detected");
+
+        order.payment_status = "paid";
+        await orderRepo.save(order);
+
+        return { status: "ok", type: "checkout" };
+      }
+
+      console.log("🛍️ nothing detected");
+
+      return { status: "not_found" };
+    } catch (err) {
+      console.error("❌ Webhook error:", err);
+      return { status: "error" };
     }
-
-    /** 🛒 2️⃣ CHECK PRODUCT CHECKOUT ORDER */
-    const order = await orderRepo.findOne({
-      where: { vendorTxCode: invoice },
-    });
-
-    if (order) {
-      console.log("🛍️ Checkout order payment detected");
-
-      order.payment_status = "paid";
-      await orderRepo.save(order);
-
-      return { status: "ok", type: "checkout" };
-    }
-
-          console.log("🛍️ nothing detected");
-
-    return { status: "not_found" };
-
-  } catch (err) {
-    console.error("❌ Webhook error:", err);
-    return { status: "error" };
   }
-}
 
+
+
+
+ 
 }

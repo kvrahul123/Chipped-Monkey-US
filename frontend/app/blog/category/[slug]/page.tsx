@@ -2,10 +2,11 @@
 import CommonLayout from "@/app/frontend/layouts/CommonLayouts";
 import Link from "next/link";
 import Image from "next/image";
-import BlogDetails from "./BlogsDetails";
+import BlogDetails from "./BlogsCategoryLists";
 import { useParams, useSearchParams } from "next/navigation";
 import { Metadata } from "next";
 import { generateCommonMetadata } from "@/app/utils/metadata";
+import BlogCategoryList from "./BlogsCategoryLists";
 const appUrl = process.env.NEXT_PUBLIC_APP_URL;
 
 
@@ -16,7 +17,7 @@ interface PageProps {
 }
 export async function generateMetadata({ params }: PageProps): Promise<Metadata> {
   console.log("slugss"+params.slug)
-  const res = await fetch(`${appUrl}frontend/blogs/details?slug=${params.slug}`);
+  const res = await fetch(`${appUrl}frontend/blogs/category/details?slug=${params.slug}`);
   const result = await res.json();
   const seoData = result.data;
   const dynamicTitle = seoData ? seoData.meta_title : process.env.NEXT_META_TITLE; // You can choose what to do if the id is not found
@@ -31,7 +32,7 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
     dynamicDescription,
     dynamicKeywords,
     dynamicMetaImg,
-     `${appUrl}blog/details/${params.slug}`
+     `${appUrl}blog/category/${params.slug}`
   )
 }
 
@@ -42,7 +43,7 @@ export default function BlogDetailsPage({ params }: PageProps) {
         <div className="container">
           <div className="row">
             <div className="col-12">
-              <BlogDetails slug={params.slug} />
+              <BlogCategoryList slug={params.slug} />
             </div>
           </div>
         </div>

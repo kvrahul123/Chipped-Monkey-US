@@ -48,7 +48,9 @@ export default function MicrochipCreatePage() {
   const petStatusOptions = [
     { value: "", label: "Select Pet status" },
     { value: "not_lost_or_stolen", label: "Not lost or stolen" },
-    { value: "lost_or_stolen", label: "Lost or stolen" },
+    { value: "lost", label: "Lost" },
+    { value: "stolen", label: "Stolen" },
+    
   ];
 
   // Options for Sex

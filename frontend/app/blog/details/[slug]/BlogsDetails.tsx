@@ -9,6 +9,7 @@ interface BlogDetailsProps {
   slug: string | null;
 }
 
+
 export default function BlogDetails({ slug }: BlogDetailsProps) {
   const [blog, setBlog] = useState<any>(null);
   const [loading, setLoading] = useState(true);

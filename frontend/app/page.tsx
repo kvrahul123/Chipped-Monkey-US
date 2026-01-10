@@ -844,8 +844,7 @@ export default function Home() {
                 For over{" "}
                 <strong className="cm-highlight-secondary">25 years</strong>,
                 ChippedMonkey has been the trusted name in pet identification,
-                helping reunite lost pets with their families across the USA,
-                UK, Europe, and Australia. Your pet's microchip is their
+                helping reunite lost pets with their families across the US and Canada. Your pet's microchip is their
                 lifelong, unloseable ID, and our world-class, multi-country
                 database is the essential link that ensures they are found and
                 returned quickly, no matter where you are.
@@ -862,7 +861,7 @@ export default function Home() {
                   works everywhere. ChippedMonkey.com is built on 25+ years of
                   experience in the pet industry, providing a secure, compliant,
                   and internationally recognized database for pet owners in the
-                  UK, USA, Australia, and throughout Europe.
+                  US and Canada.
                 </p>
 
                 <ul className="why-choose-list">
@@ -984,8 +983,7 @@ export default function Home() {
                 </ul>
 
                 <p className="why-choose-cta">
-                  ​Join the thousands of pet owners across the USA, canada,
-                  Europe, and Australia who trust ChippedMonkey.com to protect
+                  ​Join the thousands of pet owners across the US and Canada who trust ChippedMonkey.com to protect
                   their family. Your pet's safe return is just a few clicks
                   away.
                 </p>

@@ -41,7 +41,7 @@ return (
       {/* Header */}
       <div className="lostFoundDetails__header">
         <span className="lostFoundDetails__status lost">
-          {pet.pet_status === "lost_or_stolen" ? "LOST" : "FOUND"}
+          {pet.pet_status === "lost" ? "LOST" : "FOUND"}
         </span>
 
         <h1 className="lostFoundDetails__petName">

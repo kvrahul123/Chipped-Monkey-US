@@ -1,30 +1,21 @@
 import { Entity, PrimaryGeneratedColumn, Column } from "typeorm";
 
-@Entity('blogs')
-export class Blogs {
+@Entity('blog_category')
+export class BlogCategory {
   @PrimaryGeneratedColumn({ type: 'bigint', unsigned: true })
   id?: number;
 
 
-    @Column({ type: 'int' })
-  category_id!: number;
+  @Column({ type: "varchar", length: 255 })
+  name!: string;
 
+  @Column({ type: "int", nullable: true })
+  parent_id!: number | null;
 
-  @Column({ type: 'varchar', length: 255 })
-  title!: string;
-
-  @Column({ type: 'varchar', length: 255 })
+  @Column({ type: "varchar", length: 255, unique: true })
   slug!: string;
-
-  @Column({ type: 'text', nullable: true })
-  short_description?: string;
-
-  @Column({ type: 'longtext', nullable: true })
-  description?: string;
-
-  @Column({ type: 'varchar',length:255, nullable: true })
-  image?: string;
-
+    
+    
   @Column({ type: 'varchar', length: 255, nullable: true })
   meta_title?: string;
 
@@ -37,6 +28,7 @@ export class Blogs {
   @Column({ type: 'text', nullable: true })
   meta_keywords?: string;
 
+    
   @Column({ type: 'varchar', length: 255, default: 'active' })
   status!: string;
 
@@ -46,6 +38,4 @@ export class Blogs {
   @Column({ type: 'timestamp', nullable: true })
   updated_at?: Date;
 
-  @Column({ type: 'time', nullable: true })
-  deleted_at?: string;  // stored as time
 }

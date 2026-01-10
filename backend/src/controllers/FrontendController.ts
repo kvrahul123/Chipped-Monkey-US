@@ -38,10 +38,7 @@ import twilio from "twilio";
 import { WhatsappTemplate } from "../../entities/WhatsappTemplate";
 import { WhatsappMessageLog } from "../../entities/WhatsappMessageLog";
 import { OrderAddresses } from "../../entities/OrderAddresses";
-import {
-  decryptOpayoData,
-  encryptOpayoData,
-} from "../../utils/OpayaEncryptDecrypt";
+
 import { PackageDetails } from "../../entities/PackageDetails";
 import { MicrochipPayment } from "../../entities/MicrochipPayment";
 import { MicrochipPaymentDetails } from "../../entities/MicrochipPaymentDetails";
@@ -57,6 +54,7 @@ import {
   encryptPaymentToken,
   decryptPaymentToken,
 } from "../../utils/paymentToken";
+import { BlogCategory } from "../../entities/BlogCategory";
 
 require("dotenv").config();
 export interface OpayoTransactionResponse {
@@ -272,14 +270,16 @@ export class FrontendController extends Controller {
           if (selected_plan) {
             const PaymentController =
               new (require("./PaymentController").PaymentController)();
-            paymentToken = await PaymentController.getPaymentToken({
-              microchip_id: savedMicrochip.microchip_number,
-              vendor_tx_code: vendor_tx_code,
-              amount: packageDetails ? Number(packageDetails.price) : 0,
-              userId: userId,
-              paymentPage: "microchip",
-            });
+              paymentToken = await PaymentController.getPaymentToken({
+                microchip_id: savedMicrochip.microchip_number,
+                vendor_tx_code: vendor_tx_code,
+                amount: packageDetails ? Number(packageDetails.price) : 0,
+                userId: userId,
+                paymentPage: "microchip",
+              });
           }
+
+          console.log("paymentToken?.token::" + paymentToken?.token);
 
           return resolve({
             message: "Microchip created successfully",
@@ -634,6 +634,66 @@ export class FrontendController extends Controller {
     }
   }
 
+
+
+
+
+  @Get("/blogs/category/list")
+  public async getBlogCategoryLists(@Query("slug") slug?: string): Promise<{
+    message: string;
+    data?: any[];
+    statusCode: number;
+  }> {
+    try {
+      const blogsRepository = AppDataSource.getRepository(Blogs);
+      const blogsCategoryRepository = AppDataSource.getRepository(BlogCategory);
+      const uploadsRepository = AppDataSource.getRepository(Uploads);
+        const blogCategory = await blogsCategoryRepository.findOne({
+          where: { slug },
+        });
+
+        if (!blogCategory) {
+          return { message: "Blog Category not found", statusCode: 404 };
+        }
+        let blogs=await blogsRepository.find({
+          where: { category_id:blogCategory.id },
+        });
+        if (!blogs) {
+          return { message: "Blog  not found", statusCode: 404 };
+        }
+
+      const blogsWithImages = await Promise.all(
+        blogs.map(async (blog) => {
+          let file_name = null;
+
+          if (blog.image) {
+            // Ensure we take only the first ID if it's a comma-separated string
+            const firstImageId = String(blog.image).split(",")[0].trim();
+
+            const upload = await uploadsRepository.findOne({
+              where: { id: Number(firstImageId) }, // convert to number if your DB ID is numeric
+            });
+            file_name = upload?.file_name || null;
+          }
+
+          return {
+            ...blog,
+            image_file_name: file_name, // attach file name
+          };
+        })
+      );
+
+      return {
+        message: "Blogs retrieved successfully",
+        data: blogsWithImages,
+        statusCode: 200,
+      };
+    } catch (error) {
+      console.log(error);
+      return { message: "Failed to retrieve blogs", statusCode: 422 };
+    }
+  }
+
   @Get("/blogs/details")
   public async getMicrochipDetails(@Query("slug") slug?: string): Promise<{
     message: string;
@@ -655,19 +715,30 @@ export class FrontendController extends Controller {
         }
 
         let file_name = null;
+            let meta_image_file_name = null;
+
         if (blog.image) {
           const firstImageId = String(blog.image).split(",")[0].trim();
           const upload = await uploadsRepository.findOne({
             where: { id: Number(firstImageId) },
           });
           file_name = upload?.file_name || null;
+
         }
 
+            if (blog.meta_img) {
+      const firstMetaImageId = String(blog.meta_img).split(",")[0].trim();
+      const metaUpload = await uploadsRepository.findOne({
+        where: { id: Number(firstMetaImageId) },
+      });
+      meta_image_file_name = metaUpload?.file_name || null;
+    }
         return {
           message: "Blog retrieved successfully",
           data: {
             ...blog,
             image_file_name: file_name,
+            meta_image_file_name
           },
           statusCode: 200,
         };
@@ -707,6 +778,48 @@ export class FrontendController extends Controller {
           statusCode: 200,
         };
       }
+    } catch (error) {
+      console.log(error);
+      return { message: "Failed to retrieve blogs", statusCode: 422 };
+    }
+  }
+
+
+
+  @Get("/blogs/category/details")
+  public async getBlogCatgeoryDetails(@Query("slug") slug?: string): Promise<{
+    message: string;
+    data?: any | any[];
+    statusCode: number;
+  }> {
+    try {
+       const blogsCategoryRepository = AppDataSource.getRepository(BlogCategory);
+      const uploadsRepository = AppDataSource.getRepository(Uploads);
+
+        const blogCategory = await blogsCategoryRepository.findOne({
+          where: { slug },
+        });
+
+        if (!blogCategory) {
+          return { message: "Blog Category not found", statusCode: 404 };
+        }
+
+        let file_name = null;
+            let meta_image_file_name = null;
+
+     
+        return {
+          message: "Blog retrieved successfully",
+          data: {
+            ...blogCategory,
+            image_file_name: file_name,
+            meta_image_file_name
+          },
+          statusCode: 200,
+        };
+
+ 
+      
     } catch (error) {
       console.log(error);
       return { message: "Failed to retrieve blogs", statusCode: 422 };
@@ -1300,8 +1413,6 @@ export class FrontendController extends Controller {
       orderID = `TXN_${orderID}`;
       orderID = orderID.substring(0, 20);
       if (contact) {
-
-        
         // Update vendorTxCode if empty or null
         if (!contact.vendorTxCode) {
           contact.vendorTxCode = orderID;
@@ -1314,7 +1425,6 @@ export class FrontendController extends Controller {
         });
 
         if (microchipDetails) {
-          
           // Update microchip_payment.order_id based on microchip_order_id
           const microchipPayment = await microchipRepo.findOne({
             where: { id: Number(microchipDetails.microchip_order_id) },
@@ -2190,7 +2300,7 @@ export class FrontendController extends Controller {
       const result = await microchipRepository.find({
         where: {
           status: "active",
-          pet_status: "lost_or_stolen",
+          pet_status: In(["lost", "stolen"]),
         },
         order: {
           created_at: "DESC",
@@ -2267,7 +2377,7 @@ export class FrontendController extends Controller {
       });
 
       await sendNotificationMail({
-        to: contact?.email||"",
+        to: contact?.email || "",
         // to: "kvraghul2018@gmail.com",
         subject: `Don't let ${contact.pet_name}’s safety hang in the balance! 🐾`,
         petParentName: contact.pet_keeper ?? "",

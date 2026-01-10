@@ -127,10 +127,12 @@ export const menuItems = [
       </svg>
     ),
   },
-  {
+ 
+
+
+    {
     key: "blogs",
     label: "Blogs",
-    href: "/admin/blogs/list",
     icon: (
       <svg
         xmlns="http://www.w3.org/2000/svg"
@@ -147,7 +149,23 @@ export const menuItems = [
         />
       </svg>
     ),
+    children: [
+      {
+        key: "blogs/category",
+        label: "Blogs Category",
+        href: "/admin/blogs/category",
+      },
+      {
+        key: "blogs/create",
+        label: "Blogs Lists",
+        href: "/admin/blogs/list",
+      },
+     
+    ],
   },
+
+
+
   {
     key: "products",
     label: "Products",

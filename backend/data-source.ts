@@ -25,6 +25,8 @@ import { MicrochipPayment } from "./entities/MicrochipPayment";
 import { MicrochipPaymentDetails } from "./entities/MicrochipPaymentDetails";
 import { ImplantersAmount } from "./entities/ImplantersAmount";
 import * as dotenv from "dotenv";
+import { Subscription } from "./entities/Subscription";
+import { BlogCategory } from "./entities/BlogCategory";
 
 dotenv.config();
 
@@ -37,7 +39,7 @@ export const AppDataSource = new DataSource({
   database: process.env.DB_NAME, // Database name
   synchronize: false, // Automatically synchronize the schema (use in development only)
   logging: true,
-  entities: [User,Order,Pages,ExternalMicrochip,ImplantersAmount,MicrochipPaymentDetails,MicrochipPayment,OrderAddresses,ImplantedMicrochip,TransactionDetails,WhatsappMessageLog,WhatsappTemplate,AssignedMicrochip,Enquiry,Blogs,BreederDetail,Product,Uploads,MicrochipOrders,TransactionRequest,Contact,OrderProducts,Package,PackageDetails,Gender],  // Your entities
+  entities: [User,Order,Pages,ExternalMicrochip,Subscription,BlogCategory,ImplantersAmount,MicrochipPaymentDetails,MicrochipPayment,OrderAddresses,ImplantedMicrochip,TransactionDetails,WhatsappMessageLog,WhatsappTemplate,AssignedMicrochip,Enquiry,Blogs,BreederDetail,Product,Uploads,MicrochipOrders,TransactionRequest,Contact,OrderProducts,Package,PackageDetails,Gender],  // Your entities
   migrations: [],
   subscribers: [],
 });

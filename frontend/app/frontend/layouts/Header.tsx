@@ -282,7 +282,10 @@ export default function Header() {
 
       <div className="header_contact_info">
         <div className="emergency_helpline">
-          24/7 emergency Helpline - (888) TRACK-17
+          24/7 emergency Helpline -{" "}
+          <a href="tel:+1 888-872-2517" className="helpline_link text-white">
+            (888) TRACK-17
+          </a>
         </div>
       </div>
     </header>

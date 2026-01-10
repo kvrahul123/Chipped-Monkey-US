@@ -185,6 +185,16 @@ header {
   margin: 35px 0px;
   padding: 25px;
 }
+.payment_li_title {
+    min-width: 180px; /* adjust based on longest title */
+    font-size: 16px;
+    font-weight: 500;
+    text-decoration: underline;
+    text-decoration-color: #f7a12e;
+    flex-shrink: 0;
+        text-decoration-thickness: 2px;
+    text-underline-offset: 6px;
+}
 .petdetailsBg > p {
   color: #7a7a7a;
   font-size: 19px;
@@ -924,10 +934,90 @@ li.banner-popular-title-li {
 }
 
 .payment-option-header h4 {
-  font-size: 18px;
+  font-size: 21px;
   margin: 0;
   font-weight: 600;
 }
+.payment-option-header .banner-heading-title > h4 > b:after{
+  height: 14px;
+    bottom: -14px;
+}
+
+/* Sidebar Container */
+.blogsCategoryLS-sidebar {
+  background: #ffffff;
+  padding: 25px;
+  border-radius: 24px;
+  box-shadow: 0 10px 40px rgba(0, 0, 0, 0.03);
+  border: 1px solid rgba(0, 0, 0, 0.05);
+}
+
+/* Header with Glass Effect */
+.sidebar-header-glass h5 {
+  font-size: 1.1rem;
+  font-weight: 800;
+  color: #1a1a1a;
+  margin-bottom: 15px;
+  letter-spacing: -0.5px;
+}
+
+.header-line {
+  height: 4px;
+  width: 40px;
+  background: linear-gradient(90deg, #ff9f43, #ff6b6b); /* Brand Gradient */
+  border-radius: 10px;
+  margin-bottom: 25px;
+}
+
+/* List Styling */
+.blogsCategoryLS-item {
+  margin-bottom: 12px;
+}
+
+.blogsCategoryLS-link {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 14px 20px;
+  text-decoration: none !important;
+  color: #555;
+  font-weight: 600;
+  font-size: 0.95rem;
+  border-radius: 16px;
+  background: #fcfcfc;
+  border: 1px solid #f1f1f1;
+  transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+  position: relative;
+  overflow: hidden;
+}
+
+
+/* Left Accent Bar that appears on hover */
+.blogsCategoryLS-link::before {
+  content: "";
+  position: absolute;
+  left: 0;
+  top: 0;
+  height: 100%;
+  width: 5px;
+  background: linear-gradient(to bottom, #ff9f43, #ff6b6b);
+  transform: scaleY(0);
+  transition: transform 0.3s ease;
+}
+
+
+
+/* blogsCategoryLS Count Badge */
+.blogsCategoryLS-count {
+  font-size: 0.75rem;
+  background: #f0f0f0;
+  color: #888;
+  padding: 5px 12px;
+  border-radius: 12px;
+  font-family: 'Inter', sans-serif; /* Use a clean font */
+  transition: all 0.3s ease;
+}
+
 
 .payment-option-header p {
   font-size: 14px;
@@ -935,6 +1025,9 @@ li.banner-popular-title-li {
   margin: 4px 0 0;
 }
 
+.payment-option-header .banner-heading-title > h4 > b,.payment-option-header .banner-heading-title > h4 {
+font-size: 20px !important;
+}
 .radio-indicator {
   width: 20px;
   height: 20px;
@@ -1025,6 +1118,7 @@ li.banner-popular-title-li {
   padding-left: 22px;
   position: relative;
   margin-bottom: 10px;
+  text-align: left;
 }
 
 .feature-list li::before {

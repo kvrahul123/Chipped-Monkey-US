@@ -1,7 +1,7 @@
 // app/dashboard/page.tsx
 "use client";
 
-import CommonLayout from "../../layouts/CommonLayouts"; // Import your common layout component
+import CommonLayout from "../../../layouts/CommonLayouts"; // Import your common layout component
 import Link from "next/link"; // Import Link for navigation
 import { useState, useRef, useEffect } from "react"; // Import useState and useRef from React
 import { useFormik } from "formik"; // Formik for form handling
@@ -10,7 +10,7 @@ import { toast, ToastContainer } from "react-toastify";
 import { useRouter } from "next/navigation";
 import axios from "axios";
 import Select from "react-select";
-import ModalComponent from "../../fileDirectory/FilesPop";
+import ModalComponent from "../../../fileDirectory/FilesPop";
 import { StarterKit } from "@tiptap/starter-kit";
 import { Underline } from "@tiptap/extension-underline";
 import { Placeholder } from "@tiptap/extension-placeholder";
@@ -26,9 +26,6 @@ export default function blogsCreatePage() {
   const router = useRouter();
   const token = getLocalStorageItem("token");
   const [showModal, setShowModal] = useState(false);
-const [categoryList, setCategoryList] = useState<
-  { value: string; label: string }[]
->([]);
   const [currentType, setCurrentType] = useState<string | null>(null);
   const handleOpenModal = (type: string) => {
     setCurrentType(type);
@@ -40,10 +37,7 @@ const [categoryList, setCategoryList] = useState<
   };
   type Values = {
     title: string;
-    category_id: string;
-    image: string;
-    short_description: string;
-    description: string;
+   
     meta_title: string;
     meta_img: string;
     meta_description: string;
@@ -53,10 +47,7 @@ const [categoryList, setCategoryList] = useState<
   // Yup validation schema
   const validationSchema = Yup.object().shape({
     title: Yup.string().required("Title is required"),
-    category_id: Yup.string().required("Category is required"),
-    image: Yup.mixed().required("Image is required"),
-    short_description: Yup.string().required("Short Description is required"),
-    description: Yup.string().required("Description is required"),
+
     meta_title: Yup.string().required("Meta Title is required"),
     meta_img: Yup.mixed().required("Meta Image is required"),
     meta_description: Yup.string().required("Meta Description is required"),
@@ -67,10 +58,6 @@ const [categoryList, setCategoryList] = useState<
   const formik = useFormik<Values>({
     initialValues: {
       title: "",
-      category_id: "",
-      image: "", // use null for files
-      short_description: "",
-      description: "",
       meta_title: "",
       meta_img: "", // use null for files
       meta_description: "",
@@ -80,19 +67,15 @@ const [categoryList, setCategoryList] = useState<
     onSubmit: async (values) => {
       const payload = {
         title: values.title,
-        category_id: values.category_id,
-        short_description: values.short_description,
-        description: values.description,
         meta_title: values.meta_title,
         meta_description: values.meta_description,
         meta_keywords: values.meta_keywords,
-        image: values.image,
         meta_img: values.meta_img,
         // image/meta_img: send as URL or number if backend expects IDs
       };
 
       try {
-        const response = await axios.post(`${appUrl}blogs/create`, payload, {
+        const response = await axios.post(`${appUrl}blogs/category/create`, payload, {
           headers: {
             "Content-Type": "application/json", // <--- JSON, not multipart
             Authorization: `Bearer ${token}`,
@@ -100,8 +83,8 @@ const [categoryList, setCategoryList] = useState<
         });
 
         if (response.data.statusCode === 201) {
-          toast.success(response.data.message || "Blog created successfully");
-          router.push("/admin/blogs/list");
+          toast.success(response.data.message || "Blog Category created successfully");
+          router.push("/admin/blogs/category");
         } else {
           toast.error(response.data.message);
         }
@@ -133,28 +116,28 @@ const [categoryList, setCategoryList] = useState<
     meta_img: [],
   });
 
-  const descriptionEditor = useEditor({
-    extensions: [
-      StarterKit,
-      Placeholder.configure({
-        placeholder: "Start typing the description...",
-      }),
-      TextAlign.configure({
-        types: ["heading", "paragraph"],
-      }),
-    ],
-    content: formik.values.description, // optional initial content
-    editorProps: {
-      attributes: {
-        class:
-          "prose prose-sm sm:prose lg:prose-lg xl:prose-2xl focus:outline-none",
-      },
+const descriptionEditor = useEditor({
+  extensions: [
+    StarterKit,
+    Placeholder.configure({
+      placeholder: "Start typing the description...",
+    }),
+    TextAlign.configure({
+      types: ["heading", "paragraph"],
+    }),
+  ],
+  content: formik.values.description, // optional initial content
+  editorProps: {
+    attributes: {
+      class: "prose prose-sm sm:prose lg:prose-lg xl:prose-2xl focus:outline-none",
     },
-    onUpdate: ({ editor }) => {
-      formik.setFieldValue("description", editor.getHTML());
-    },
-    immediatelyRender: false, // ⚠ important for SSR in Next.js
-  });
+  },
+  onUpdate: ({ editor }) => {
+    formik.setFieldValue("description", editor.getHTML());
+  },
+  immediatelyRender: false, // ⚠ important for SSR in Next.js
+});
+
 
   const handleEditorChange = (content) => {
     formik.setFieldValue("description", content); // Replace 'description' with your actual field name in Formik
@@ -171,34 +154,6 @@ const [categoryList, setCategoryList] = useState<
     }
   }, [descriptionEditor]);
 
-  useEffect(() => {
-    const fetchData = async () => {
-      try {
-        const response = await fetch(`${appUrl}blogs/category/lists`, {
-          method: "GET",
-          headers: {
-            "Content-Type": "application/json",
-            Authorization: `Bearer ${token}`,
-          },
-        });
-
-        const data = await response.json();
-        if (data && data.statusCode == 200) {
-        const options = data.data.map((cat: any) => ({
-          value: String(cat.id), // 👈 convert to string
-          label: cat.name,
-        }));
-
-        setCategoryList(options); 
-        }
-      } catch (error) {
-        console.error("Failed to fetch data", error);
-      }
-    };
-
-    fetchData();
-  }, []);
-
   return (
     <CommonLayout>
       <div className="app-content">
@@ -208,7 +163,7 @@ const [categoryList, setCategoryList] = useState<
               <h1 className="fs-4 mb-0">Create Blogs</h1>
             </div>
             <div className="page-header-button">
-              <Link href="/admin/blogs/list">
+              <Link href="/admin/blogs/category">
                 <button className="btn btn-primary">
                   <i className="fa-solid fa-arrow-left"></i> Back
                 </button>
@@ -223,7 +178,7 @@ const [categoryList, setCategoryList] = useState<
                   {/* Title */}
                   <div className="col-12 mb-3">
                     <label htmlFor="title" className="form-label">
-                      Title <span className="text-danger">*</span>
+                      Category Name <span className="text-danger">*</span>
                     </label>
                     <input
                       type="text"
@@ -235,95 +190,8 @@ const [categoryList, setCategoryList] = useState<
                       <div className="text-danger">{formik.errors.title}</div>
                     )}
                   </div>
-                  <div className="col-12 mb-3">
-                    <label htmlFor="title" className="form-label">
-                      Category <span className="text-danger">*</span>
-                    </label>
-                    <Select
-                      options={categoryList}
-                      placeholder="Select category"
-                      value={categoryList.find(
-                        (opt) => opt.value === formik.values.category_id
-                      )}
-                      onChange={(selected: any) =>
-                        formik.setFieldValue("category_id", selected?.value)
-                      }
-                      onBlur={() => formik.setFieldTouched("category_id", true)}
-                    />
-                    {formik.touched.category_id &&
-                      formik.errors.category_id && (
-                        <div className="text-danger">
-                          {formik.errors.category_id}
-                        </div>
-                      )}
-                  </div>
 
-                  {/* Image */}
-                  <div className="col-12 mb-3">
-                    <label htmlFor="image" className="form-label">
-                      Image <span className="text-danger">*</span>
-                    </label>
-                    <button
-                      className="form-control"
-                      id="image"
-                      onClick={() => handleOpenModal("image")}
-                      type="button">
-                      Choose File
-                    </button>
-                    {formik.touched.image && formik.errors.image && (
-                      <div className="text-danger">{formik.errors.image}</div>
-                    )}
-                  </div>
 
-                  {/* Short Description */}
-                  <div className="col-12 mb-3">
-                    <label htmlFor="short_description" className="form-label">
-                      Short Description <span className="text-danger">*</span>
-                    </label>
-                    <textarea
-                      className="form-control"
-                      id="short_description"
-                      {...formik.getFieldProps("short_description")}
-                    />
-                    {formik.touched.short_description &&
-                      formik.errors.short_description && (
-                        <div className="text-danger">
-                          {formik.errors.short_description}
-                        </div>
-                      )}
-                  </div>
-
-                  {/* Description */}
-                  <div className="col-12 mb-3">
-                    <label htmlFor="description" className="form-label">
-                      Description <span className="text-danger">*</span>
-                    </label>
-                    <div className="border rounded-md">
-                      <div className="editor-top-tool">
-                        <EditorToolbar editor={descriptionEditor} />
-                        <div className="editor-content-tool">
-                          <EditorContent
-                            value={formik.values.description}
-                            onUpdate={({ editor }) => {
-                              console.log(
-                                "Editor content updated:",
-                                editor.getHTML()
-                              ); // Check if HTML is logged
-                              handleEditorChange(editor.getHTML());
-                            }}
-                            editor={descriptionEditor}
-                            className="bs-[200px] overflow-y-auto flex"
-                          />
-                        </div>
-                      </div>
-                    </div>
-                    {formik.touched.description &&
-                      formik.errors.description && (
-                        <div className="text-danger">
-                          {formik.errors.description}
-                        </div>
-                      )}
-                  </div>
 
                   {/* Meta Title */}
                   <div className="col-12 mb-3">

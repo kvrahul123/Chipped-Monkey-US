@@ -7,23 +7,23 @@ import { useEffect, useState } from "react";
 import { generateCommonMetadata } from "@/app/utils/metadata";
 const appUrl = process.env.NEXT_PUBLIC_APP_URL;
 
+interface BlogDetailsProps {
+  slug: string | null;
+}
 
-
-
-export default function BlogSection() {
+export default function BlogCategoryList({ slug }: BlogDetailsProps) {
   const [blogs, setBlogs] = useState<any[]>([]);
- const [categoriesList, setblogsLists] = useState([]);
+  const [categoriesList, setblogsLists] = useState([]);
 
   useEffect(() => {
-    fetch(`${appUrl}frontend/blogs/list`)
+    fetch(`${appUrl}frontend/blogs/category/list?slug=${slug}`)
       .then((res) => res.json())
       .then((data) => {
         setBlogs(data.data || []); // adjust key depending on your API response
       })
       .catch((err) => console.error("Error fetching blogs:", err));
-    
-    
-        const fetchData = async () => {
+
+    const fetchData = async () => {
       try {
         const response = await fetch(`${appUrl}blogs/category/lists`, {
           method: "GET",
@@ -46,26 +46,27 @@ export default function BlogSection() {
   return (
     <div className="row blog-section mb-10">
       <div className="col-12 col-md-3">
-  <div className="blogsCategoryLS-sidebar">
-    <div className="sidebar-header-glass">
-      <h5>Explore Topics</h5>
-      <div className="header-line"></div>
-    </div>
-    <ul className="blogsCategoryLS-list list-unstyled">
-      {categoriesList.map((cat, index) => (
-        <li key={index} className="blogsCategoryLS-item">
-          <Link
-            href={`/blog/category/${cat.slug}`}
-            className="blogsCategoryLS-link"
-          >
-            <span className="blogsCategoryLS-name">{cat.name}</span>
-            <span className="blogsCategoryLS-count">{cat.blogsCount || 0}</span>
-          </Link>
-        </li>
-      ))}
-    </ul>
-  </div>
-</div>
+        <div className="blogsCategoryLS-sidebar">
+          <div className="sidebar-header-glass">
+            <h5>Explore Topics</h5>
+            <div className="header-line"></div>
+          </div>
+          <ul className="blogsCategoryLS-list list-unstyled">
+            {categoriesList.map((cat, index) => (
+              <li key={index} className="blogsCategoryLS-item">
+                <Link
+                  href={`/blog/category/${cat.slug}`}
+                  className="blogsCategoryLS-link">
+                  <span className="blogsCategoryLS-name">{cat.name}</span>
+                  <span className="blogsCategoryLS-count">
+                    {cat.blogsCount || 0}
+                  </span>
+                </Link>
+              </li>
+            ))}
+          </ul>
+        </div>
+      </div>
       <div className="col-12 col-md-9">
         <div className="row">
           {blogs.map((blog, index) => (
@@ -107,7 +108,6 @@ export default function BlogSection() {
       </div>
 
       {/* Categories sidebar */}
-
     </div>
   );
 }

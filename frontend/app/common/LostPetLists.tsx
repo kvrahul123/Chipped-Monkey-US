@@ -88,7 +88,8 @@ export default function LostPetLists(): React.JSX.Element {
   }, []);
 
   const mapStatus = (status: string) => {
-    if (status === "lost_or_stolen") return "Lost";
+    if (status === "lost") return "Lost";
+    if (status === "stolen") return "Stolen";
     if (status === "not_lost_or_stolen") return "Found";
     return "Unknown";
   };

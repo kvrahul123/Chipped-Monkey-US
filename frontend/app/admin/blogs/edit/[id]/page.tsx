@@ -29,6 +29,9 @@ export default function blogsEditPage() {
   const token = getLocalStorageItem("token");
   const [showModal, setShowModal] = useState(false);
   const [currentType, setCurrentType] = useState<string | null>(null);
+  const [categoryList, setCategoryList] = useState<
+    { value: string; label: string }[]
+  >([]);
   const [image, setImages] = useState<string[]>([]);
   const [metaImages, setMetaImages] = useState<string[]>([]);
   const handleOpenModal = (type: string) => {
@@ -41,6 +44,7 @@ export default function blogsEditPage() {
   };
   type Values = {
     title: string;
+    category_id: number | null; // ← allow null
     image: string;
     short_description: string;
     description: string;
@@ -53,6 +57,9 @@ export default function blogsEditPage() {
   // Yup validation schema
   const validationSchema = Yup.object().shape({
     title: Yup.string().required("Title is required"),
+category_id: Yup.number()
+  .required("Category is required"),
+
     image: Yup.mixed().required("Image is required"),
     short_description: Yup.string().required("Short Description is required"),
     description: Yup.string().required("Description is required"),
@@ -66,6 +73,7 @@ export default function blogsEditPage() {
   const formik = useFormik<Values>({
     initialValues: {
       title: "",
+      category_id: null,
       image: "", // use null for files
       short_description: "",
       description: "",
@@ -78,6 +86,7 @@ export default function blogsEditPage() {
     onSubmit: async (values) => {
       const payload = {
         title: values.title,
+        category_id: values.category_id,
         short_description: values.short_description,
         description: values.description,
         meta_title: values.meta_title,
@@ -89,12 +98,16 @@ export default function blogsEditPage() {
       };
 
       try {
-        const response = await axios.put(`${appUrl}blogs/update/${id}`, payload, {
-          headers: {
-            "Content-Type": "application/json", // <--- JSON, not multipart
-            Authorization: `Bearer ${token}`,
-          },
-        });
+        const response = await axios.put(
+          `${appUrl}blogs/update/${id}`,
+          payload,
+          {
+            headers: {
+              "Content-Type": "application/json", // <--- JSON, not multipart
+              Authorization: `Bearer ${token}`,
+            },
+          }
+        );
 
         if (response.data.statusCode == 200) {
           toast.success(response.data.message || "Blog updated successfully");
@@ -132,6 +145,34 @@ export default function blogsEditPage() {
   };
 
   useEffect(() => {
+    const fetchData = async () => {
+      try {
+        const response = await fetch(`${appUrl}blogs/category/lists`, {
+          method: "GET",
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${token}`,
+          },
+        });
+
+        const data = await response.json();
+        if (data && data.statusCode == 200) {
+          const options = data.data.map((cat: any) => ({
+            value: String(cat.id), // 👈 convert to string
+            label: cat.name,
+          }));
+
+          setCategoryList(options);
+        }
+      } catch (error) {
+        console.error("Failed to fetch data", error);
+      }
+    };
+
+    fetchData();
+  }, []);
+
+  useEffect(() => {
     if (!id || didFetch.current) return;
 
     didFetch.current = true;
@@ -146,6 +187,7 @@ export default function blogsEditPage() {
 
         formik.setValues({
           title: res.data.title,
+          category_id: Number(res.data.category_id),
           image: res.data.image?.toString() || "",
           short_description: res.data.short_description,
           description: res.data.description,
@@ -193,13 +235,13 @@ export default function blogsEditPage() {
     handleCloseModal();
   };
 
-    const handleEditorChange = (content) => {
+  const handleEditorChange = (content) => {
     formik.setFieldValue("description", content); // Replace 'description' with your actual field name in Formik
     if (formik.touched.description) {
       formik.setFieldTouched("description", false); // Mark the field as untouched to clear the error
     }
-    };
-  
+  };
+
   const [selectedImages, setSelectedImages] = useState<{
     [key: string]: number[];
   }>({
@@ -207,29 +249,29 @@ export default function blogsEditPage() {
     meta_img: [],
   });
 
-
-    /** Editor **/
-const descriptionEditor = useEditor({
-  extensions: [
-    StarterKit,
-    Placeholder.configure({
-      placeholder: "Start typing the description...",
-    }),
-    TextAlign.configure({
-      types: ["heading", "paragraph"],
-    }),
-  ],
-  content: formik.values.description, // optional initial content
-  editorProps: {
-    attributes: {
-      class: "prose prose-sm sm:prose lg:prose-lg xl:prose-2xl focus:outline-none",
+  /** Editor **/
+  const descriptionEditor = useEditor({
+    extensions: [
+      StarterKit,
+      Placeholder.configure({
+        placeholder: "Start typing the description...",
+      }),
+      TextAlign.configure({
+        types: ["heading", "paragraph"],
+      }),
+    ],
+    content: formik.values.description, // optional initial content
+    editorProps: {
+      attributes: {
+        class:
+          "prose prose-sm sm:prose lg:prose-lg xl:prose-2xl focus:outline-none",
+      },
     },
-  },
-  onUpdate: ({ editor }) => {
-    formik.setFieldValue("description", editor.getHTML());
-  },
-  immediatelyRender: false, // ⚠ important for SSR in Next.js
-});
+    onUpdate: ({ editor }) => {
+      formik.setFieldValue("description", editor.getHTML());
+    },
+    immediatelyRender: false, // ⚠ important for SSR in Next.js
+  });
   useEffect(() => {
     if (descriptionEditor && formik.values.description) {
       descriptionEditor.commands.setContent(formik.values.description);
@@ -270,6 +312,35 @@ const descriptionEditor = useEditor({
                     {formik.touched.title && formik.errors.title && (
                       <div className="text-danger">{formik.errors.title}</div>
                     )}
+                  </div>
+
+                  <div className="col-12 mb-3">
+                    <label htmlFor="title" className="form-label">
+                      Category <span className="text-danger">*</span>
+                    </label>
+          <Select
+  options={categoryList}
+  placeholder="Select category"
+  value={categoryList.find(
+    (opt) => Number(opt.value) === formik.values.category_id
+  )}
+  onChange={(selected: any) =>
+    formik.setFieldValue(
+      "category_id",
+      selected ? Number(selected.value) : null
+    )
+  }
+  onBlur={() => formik.setFieldTouched("category_id", true)}
+  isClearable
+/>
+
+
+                    {formik.touched.category_id &&
+                      formik.errors.category_id && (
+                        <div className="text-danger">
+                          {formik.errors.category_id}
+                        </div>
+                      )}
                   </div>
 
                   {/* Image */}
@@ -332,23 +403,23 @@ const descriptionEditor = useEditor({
                       Description <span className="text-danger">*</span>
                     </label>
                     <div className="border rounded-md">
-                    <div className="editor-top-tool">
+                      <div className="editor-top-tool">
                         <EditorToolbar editor={descriptionEditor} />
                         <div className="editor-content-tool">
-                        <EditorContent
-                          value={formik.values.description}
-                          onUpdate={({ editor }) => {
-                            console.log(
-                              "Editor content updated:",
-                              editor.getHTML()
-                            ); // Check if HTML is logged
-                            handleEditorChange(editor.getHTML());
-                          }}
-                          editor={descriptionEditor}
-                          className="bs-[200px] overflow-y-auto flex"
+                          <EditorContent
+                            value={formik.values.description}
+                            onUpdate={({ editor }) => {
+                              console.log(
+                                "Editor content updated:",
+                                editor.getHTML()
+                              ); // Check if HTML is logged
+                              handleEditorChange(editor.getHTML());
+                            }}
+                            editor={descriptionEditor}
+                            className="bs-[200px] overflow-y-auto flex"
                           />
-                          </div>
                         </div>
+                      </div>
                     </div>
                     {formik.touched.description &&
                       formik.errors.description && (
